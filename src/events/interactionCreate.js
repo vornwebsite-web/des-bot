@@ -7,54 +7,68 @@ module.exports = {
   async execute(interaction, client) {
     // ── Button interactions ───────────────────────────────────
     if (interaction.isButton()) {
-      const buttonId = interaction.customId;
-      
-      // Find the command that handles this button
-      let handled = false;
-      for (const [, command] of client.commands) {
-        if (command.handleButton && await command.handleButton(interaction, client)) {
-          handled = true;
-          logger.info(`[BUTTON] ${interaction.user.tag} clicked ${buttonId}`);
-          break;
+      try {
+        // Parse button customId to find command: "commandName:action:data"
+        const [commandName] = interaction.customId.split(':');
+        const command = client.commands.get(commandName);
+        
+        if (command?.handleButton) {
+          await command.handleButton(interaction, client);
+        } else {
+          // Silently ignore unknown buttons (they might be from old commands)
+          await interaction.deferUpdate().catch(() => {});
         }
-      }
-      
-      if (!handled) {
-        logger.warn(`[BUTTON] Unhandled button: ${buttonId}`);
+      } catch (error) {
+        logger.error(`[BUTTON] Error: ${error.message}`);
+        try {
+          if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({ embeds: [E.error('Error', 'Failed to process button.')], ephemeral: true });
+          }
+        } catch {}
       }
       return;
     }
 
     // ── Select menu interactions ──────────────────────────────
-    if (interaction.isStringSelectMenu() || interaction.isUserSelectMenu() || interaction.isRoleSelectMenu() || interaction.isMentionableSelectMenu() || interaction.isChannelSelectMenu()) {
-      let handled = false;
-      for (const [, command] of client.commands) {
-        if (command.handleSelectMenu && await command.handleSelectMenu(interaction, client)) {
-          handled = true;
-          logger.info(`[SELECT] ${interaction.user.tag} selected in ${interaction.customId}`);
-          break;
+    if (interaction.isAnySelectMenu()) {
+      try {
+        const [commandName] = interaction.customId.split(':');
+        const command = client.commands.get(commandName);
+        
+        if (command?.handleSelectMenu) {
+          await command.handleSelectMenu(interaction, client);
+        } else {
+          await interaction.deferUpdate().catch(() => {});
         }
-      }
-      
-      if (!handled) {
-        logger.warn(`[SELECT] Unhandled menu: ${interaction.customId}`);
+      } catch (error) {
+        logger.error(`[SELECT] Error: ${error.message}`);
+        try {
+          if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({ embeds: [E.error('Error', 'Failed to process selection.')], ephemeral: true });
+          }
+        } catch {}
       }
       return;
     }
 
     // ── Modal submissions ─────────────────────────────────────
     if (interaction.isModalSubmit()) {
-      let handled = false;
-      for (const [, command] of client.commands) {
-        if (command.handleModal && await command.handleModal(interaction, client)) {
-          handled = true;
-          logger.info(`[MODAL] ${interaction.user.tag} submitted ${interaction.customId}`);
-          break;
+      try {
+        const [commandName] = interaction.customId.split(':');
+        const command = client.commands.get(commandName);
+        
+        if (command?.handleModal) {
+          await command.handleModal(interaction, client);
+        } else {
+          await interaction.deferUpdate().catch(() => {});
         }
-      }
-      
-      if (!handled) {
-        logger.warn(`[MODAL] Unhandled modal: ${interaction.customId}`);
+      } catch (error) {
+        logger.error(`[MODAL] Error: ${error.message}`);
+        try {
+          if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({ embeds: [E.error('Error', 'Failed to process form.')], ephemeral: true });
+          }
+        } catch {}
       }
       return;
     }
