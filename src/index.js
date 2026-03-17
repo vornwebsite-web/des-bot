@@ -1,5 +1,6 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, Collection, Partials } = require('discord.js');
+const { REST, Routes } = require('@discordjs/rest');
 const fs = require('fs');
 const path = require('path');
 const mongoose = require('mongoose');
@@ -29,10 +30,15 @@ client.cooldowns = new Collection();
 
 // Load commands
 const cmdDir = path.join(__dirname, 'commands');
+const commands = [];
+
 for (const file of fs.readdirSync(cmdDir).filter(f => f.endsWith('.js'))) {
   try {
     const cmd = require(path.join(cmdDir, file));
-    if (cmd.data && cmd.execute) client.commands.set(cmd.data.name, cmd);
+    if (cmd.data && cmd.execute) {
+      client.commands.set(cmd.data.name, cmd);
+      commands.push(cmd.data.toJSON());
+    }
   } catch (e) { logger.error(`Command load error ${file}: ${e.message}`); }
 }
 
@@ -45,6 +51,21 @@ for (const file of fs.readdirSync(evtDir).filter(f => f.endsWith('.js'))) {
     : client.on(evt.name, (...a) => evt.execute(...a, client));
 }
 
+// Auto-deploy commands
+async function deployCommands() {
+  try {
+    const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
+    logger.info(`📡 Deploying ${commands.length} commands...`);
+    
+    await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), { body: commands });
+    
+    logger.info(`✅ Successfully deployed ${commands.length} slash commands!`);
+    commands.forEach(c => logger.info(`  /${c.name}`));
+  } catch (e) {
+    logger.error('Command deployment failed: ' + e.message);
+  }
+}
+
 async function main() {
   try {
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/desbot');
@@ -52,6 +73,10 @@ async function main() {
   } catch (e) {
     logger.warn('MongoDB failed, continuing without DB: ' + e.message);
   }
+
+  // Deploy commands before logging in
+  await deployCommands();
+
   await client.login(process.env.DISCORD_TOKEN);
   startDashboard(client);
 }
