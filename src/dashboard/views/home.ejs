@@ -2,359 +2,119 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DeS Bot™ — DOT Esport</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<title>Premium — DeS Bot™</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --gold:#D4AF37;--gold2:#FFD700;--gold3:#B8960C;
-  --bg:#070709;--bg2:#0D0D14;--bg3:#13131E;--bg4:#1A1A28;
-  --text:#F0EDE8;--text2:#A89F8C;--text3:#6B6578;
-  --accent:#D4AF37;--error:#FF2B4E;--success:#00E676;
-  --border:rgba(212,175,55,0.15);
-}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;overflow-x:hidden;min-height:100vh}
-
-/* ── Noise overlay ── */
-body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");pointer-events:none;z-index:0;opacity:.5}
-
-/* ── Grid bg ── */
-body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(212,175,55,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(212,175,55,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;z-index:0}
-
-/* ── Nav ── */
-nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:70px;background:rgba(7,7,9,0.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border)}
-.nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
-.nav-logo-text{font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:900;background:linear-gradient(135deg,var(--gold2),var(--gold),var(--gold3));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.nav-links{display:flex;align-items:center;gap:32px}
-.nav-links a{color:var(--text2);text-decoration:none;font-size:.9rem;font-weight:500;letter-spacing:.05em;transition:color .2s}
+:root{--gold:#D4AF37;--gold2:#FFD700;--bg:#070709;--bg2:#0D0D14;--text:#F0EDE8;--text2:#A89F8C;--text3:#6B6578;--border:rgba(212,175,55,0.15)}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(212,175,55,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(212,175,55,.025) 1px,transparent 1px);background-size:50px 50px;pointer-events:none;z-index:0}
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:70px;background:rgba(7,7,9,.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.logo{font-family:'Orbitron',monospace;font-weight:900;font-size:1.4rem;background:linear-gradient(135deg,#FFD700,#D4AF37);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-links a{color:var(--text2);text-decoration:none;font-size:.9rem;margin-left:28px;transition:color .2s}
 .nav-links a:hover{color:var(--gold)}
-.nav-cta{background:linear-gradient(135deg,var(--gold),var(--gold3));color:#0a0800;font-weight:700;padding:9px 22px;border-radius:6px;text-decoration:none;font-size:.85rem;letter-spacing:.05em;transition:all .2s;font-family:'Rajdhani',sans-serif}
-.nav-cta:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(212,175,55,.4)}
-
-/* ── Hero ── */
-.hero{position:relative;min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:120px 40px 80px;z-index:1}
-.hero-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.25);padding:7px 16px;border-radius:100px;font-size:.8rem;color:var(--gold);font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:.1em;margin-bottom:32px;animation:fadeUp .6s ease both}
-.hero-title{font-family:'Orbitron',monospace;font-size:clamp(2.5rem,7vw,6rem);font-weight:900;line-height:1.05;margin-bottom:24px;animation:fadeUp .6s .1s ease both}
-.hero-title .gold{background:linear-gradient(135deg,var(--gold2) 0%,var(--gold) 50%,var(--gold3) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:block}
-.hero-sub{font-size:1.15rem;color:var(--text2);max-width:600px;line-height:1.7;margin-bottom:48px;animation:fadeUp .6s .2s ease both;font-weight:300}
-.hero-actions{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;animation:fadeUp .6s .3s ease both}
-.btn-primary{background:linear-gradient(135deg,var(--gold2),var(--gold),var(--gold3));color:#0a0800;font-weight:700;padding:14px 32px;border-radius:8px;text-decoration:none;font-family:'Rajdhani',sans-serif;font-size:1rem;letter-spacing:.08em;transition:all .25s;display:inline-flex;align-items:center;gap:8px}
-.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(212,175,55,.4)}
-.btn-secondary{background:transparent;color:var(--text);font-weight:600;padding:14px 32px;border-radius:8px;text-decoration:none;font-family:'Rajdhani',sans-serif;font-size:1rem;letter-spacing:.08em;border:1px solid var(--border);transition:all .25s;display:inline-flex;align-items:center;gap:8px}
-.btn-secondary:hover{border-color:var(--gold);color:var(--gold);transform:translateY(-2px)}
-
-/* ── Stats bar ── */
-.stats-bar{display:flex;justify-content:center;gap:0;flex-wrap:wrap;margin-top:72px;animation:fadeUp .6s .4s ease both}
-.stat-item{padding:24px 48px;text-align:center;border-right:1px solid var(--border)}
-.stat-item:last-child{border-right:none}
-.stat-val{font-family:'Orbitron',monospace;font-size:2rem;font-weight:900;background:linear-gradient(135deg,var(--gold2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.stat-label{font-size:.8rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-top:4px}
-
-/* ── Section ── */
-section{padding:100px 40px;position:relative;z-index:1}
-.section-header{text-align:center;margin-bottom:64px}
-.section-badge{display:inline-block;background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.2);padding:5px 14px;border-radius:100px;font-size:.75rem;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;font-family:'Rajdhani',sans-serif;font-weight:600;margin-bottom:16px}
-.section-title{font-family:'Orbitron',monospace;font-size:clamp(1.8rem,4vw,3rem);font-weight:900;margin-bottom:16px}
-.section-sub{color:var(--text2);font-size:1rem;max-width:560px;margin:0 auto;line-height:1.7}
-
-/* ── Features grid ── */
-.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;max-width:1200px;margin:0 auto}
-.feature-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:32px;transition:all .3s;position:relative;overflow:hidden}
-.feature-card::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:0;transition:opacity .3s}
-.feature-card:hover{border-color:rgba(212,175,55,.3);transform:translateY(-4px);box-shadow:0 20px 60px rgba(0,0,0,.4)}
-.feature-card:hover::before{opacity:1}
-.feature-icon{width:52px;height:52px;background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.2);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;margin-bottom:20px}
-.feature-name{font-family:'Rajdhani',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);margin-bottom:10px;letter-spacing:.03em}
-.feature-desc{font-size:.9rem;color:var(--text2);line-height:1.7}
-
-/* ── Commands section ── */
-.commands-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;max-width:1200px;margin:0 auto}
-.cmd-category{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px}
-.cmd-cat-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:.05em;margin-bottom:14px;display:flex;align-items:center;gap:8px}
-.cmd-list{list-style:none;display:flex;flex-direction:column;gap:8px}
-.cmd-list li{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--text2)}
-.cmd-list li code{background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.15);padding:2px 8px;border-radius:4px;font-size:.8rem;color:var(--gold);font-family:monospace}
-
-/* ── Pricing ── */
-.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;max-width:900px;margin:0 auto}
-.pricing-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:36px;transition:all .3s;position:relative}
-.pricing-card.featured{border-color:var(--gold);background:linear-gradient(160deg,var(--bg2),rgba(212,175,55,.05))}
-.pricing-card.featured::after{content:'MOST POPULAR';position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--gold2),var(--gold));color:#0a0800;font-size:.65rem;font-weight:700;letter-spacing:.1em;padding:4px 12px;border-radius:0 0 8px 8px;font-family:'Rajdhani',sans-serif}
-.pricing-plan{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;letter-spacing:.1em;color:var(--text2);text-transform:uppercase;margin-bottom:8px}
-.pricing-price{font-family:'Orbitron',monospace;font-size:2.5rem;font-weight:900;background:linear-gradient(135deg,var(--gold2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
-.pricing-period{font-size:.8rem;color:var(--text3);margin-bottom:28px}
-.pricing-features{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
-.pricing-features li{display:flex;align-items:center;gap:10px;font-size:.9rem;color:var(--text2)}
-.pricing-features li::before{content:'✦';color:var(--gold);font-size:.7rem}
-.pricing-btn{display:block;text-align:center;background:linear-gradient(135deg,var(--gold2),var(--gold3));color:#0a0800;font-weight:700;padding:13px;border-radius:8px;text-decoration:none;font-family:'Rajdhani',sans-serif;letter-spacing:.06em;font-size:.95rem;transition:all .2s}
-.pricing-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(212,175,55,.4)}
-
-/* ── CTA section ── */
-.cta-section{text-align:center;padding:120px 40px;background:linear-gradient(180deg,transparent,rgba(212,175,55,.03),transparent)}
-.cta-title{font-family:'Orbitron',monospace;font-size:clamp(2rem,5vw,4rem);font-weight:900;margin-bottom:20px}
-.cta-sub{color:var(--text2);font-size:1.1rem;margin-bottom:40px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.7}
-
-/* ── Footer ── */
-footer{border-top:1px solid var(--border);padding:48px 40px;text-align:center;position:relative;z-index:1}
-.footer-logo{font-family:'Orbitron',monospace;font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,var(--gold2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px}
-footer p{color:var(--text3);font-size:.85rem}
-
-/* ── Glow orbs ── */
-.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0}
-.orb1{width:600px;height:600px;background:rgba(212,175,55,.04);top:-200px;right:-200px}
-.orb2{width:400px;height:400px;background:rgba(212,175,55,.03);bottom:10%;left:-150px}
-
-/* ── Animations ── */
-@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
-
-/* ── User avatar in nav ── */
-.nav-user{display:flex;align-items:center;gap:10px}
-.nav-user img{width:32px;height:32px;border-radius:50%;border:2px solid rgba(212,175,55,.3)}
-.nav-user span{font-size:.9rem;font-weight:500;color:var(--text2)}
+main{max-width:1100px;margin:0 auto;padding:80px 40px;position:relative;z-index:1;text-align:center}
+.hero-badge{display:inline-block;background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.25);padding:6px 16px;border-radius:100px;font-size:.8rem;color:var(--gold);font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:.1em;margin-bottom:24px}
+h1{font-family:'Orbitron',monospace;font-size:clamp(2rem,5vw,3.5rem);font-weight:900;margin-bottom:16px}
+h1 span{background:linear-gradient(135deg,var(--gold2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{color:var(--text2);font-size:1.05rem;max-width:560px;margin:0 auto 60px;line-height:1.7}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-bottom:80px}
+.plan{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:40px 32px;transition:all .3s;position:relative;text-align:left}
+.plan.featured{border-color:var(--gold);background:linear-gradient(160deg,var(--bg2),rgba(212,175,55,.06))}
+.plan.featured::before{content:'BEST VALUE';position:absolute;top:-1px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--gold2),var(--gold));color:#0a0800;font-size:.65rem;font-weight:700;letter-spacing:.1em;padding:4px 14px;border-radius:0 0 10px 10px;font-family:'Rajdhani',sans-serif}
+.plan-name{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:.9rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:10px}
+.plan-price{font-family:'Orbitron',monospace;font-size:3rem;font-weight:900;background:linear-gradient(135deg,var(--gold2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.plan-period{font-size:.85rem;color:var(--text3);margin-bottom:28px}
+.plan-features{list-style:none;display:flex;flex-direction:column;gap:13px;margin-bottom:36px}
+.plan-features li{display:flex;align-items:flex-start;gap:10px;font-size:.9rem;color:var(--text2)}
+.plan-features li span.check{color:var(--gold);font-size:.8rem;margin-top:2px;flex-shrink:0}
+.plan-btn{display:block;text-align:center;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#0a0800;font-weight:700;padding:14px;border-radius:10px;text-decoration:none;font-family:'Rajdhani',sans-serif;letter-spacing:.06em;font-size:1rem;transition:all .2s}
+.plan-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(212,175,55,.4)}
+.perks-title{font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;margin-bottom:12px}
+.perks-sub{color:var(--text2);margin-bottom:48px}
+.perks-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px}
+.perk{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px;text-align:left}
+.perk-icon{font-size:1.8rem;margin-bottom:12px}
+.perk-name{font-family:'Rajdhani',sans-serif;font-weight:700;font-size:1rem;margin-bottom:6px}
+.perk-desc{font-size:.85rem;color:var(--text2);line-height:1.6}
+footer{border-top:1px solid var(--border);padding:36px 40px;text-align:center;color:var(--text3);font-size:.85rem;position:relative;z-index:1}
 </style>
 </head>
 <body>
-<div class="orb orb1"></div>
-<div class="orb orb2"></div>
-
 <nav>
-  <a href="/" class="nav-logo">
-    <div style="font-family:'Orbitron',monospace;font-weight:900;font-size:1.5rem;background:linear-gradient(135deg,#FFD700,#D4AF37,#B8960C);-webkit-background-clip:text;-webkit-text-fill-color:transparent">DeS</div>
-    <span class="nav-logo-text" style="font-size:.9rem;opacity:.7">Bot™</span>
-  </a>
+  <a href="/" class="logo">DeS Bot™</a>
   <div class="nav-links">
-    <a href="/#features">Features</a>
-    <a href="/#commands">Commands</a>
-    <a href="/premium">Premium</a>
-    <a href="https://discord.gg/dotesport" target="_blank">Support</a>
-    <% if(user){ %>
-      <div class="nav-user">
-        <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="">
-        <span><%= user.username %></span>
-      </div>
-      <a href="/dashboard" class="nav-cta">Dashboard</a>
-    <% } else { %>
-      <a href="/auth/login" class="nav-cta">Login with Discord</a>
-    <% } %>
+    <a href="/">Home</a>
+    <a href="/dashboard">Dashboard</a>
+    <a href="https://discord.gg/dotesport">Support</a>
+    <% if(user){ %><a href="/dashboard" style="color:var(--gold);font-weight:600">← Dashboard</a><% } else { %><a href="/auth/login" style="background:linear-gradient(135deg,#FFD700,#D4AF37);color:#0a0800;font-weight:700;padding:8px 18px;border-radius:6px;margin-left:16px">Login</a><% } %>
   </div>
 </nav>
+<main>
+  <div class="hero-badge">💎 PREMIUM PLANS</div>
+  <h1>Unlock the <span>Full Power</span></h1>
+  <p class="sub">Take your server to the next level with exclusive commands, boosted XP, and priority support.</p>
 
-<section class="hero">
-  <div class="hero-badge">⚔️ &nbsp; DOT ESPORT OFFICIAL BOT</div>
-  <h1 class="hero-title">
-    The Ultimate
-    <span class="gold">Esport Discord Bot</span>
-  </h1>
-  <p class="hero-sub">Run professional tournaments, track player stats, manage your competitive community, and automate moderation — all in one powerful bot.</p>
-  <div class="hero-actions">
-    <% if(user){ %>
-      <a href="/dashboard" class="btn-primary">⚡ Open Dashboard</a>
-    <% } else { %>
-      <a href="/auth/login" class="btn-primary">⚡ Add to Discord</a>
-    <% } %>
-    <a href="/premium" class="btn-secondary">💎 View Premium</a>
+  <div class="plans">
+    <div class="plan">
+      <div class="plan-name">Basic</div>
+      <div class="plan-price">$2.99</div>
+      <div class="plan-period">per month / cancel anytime</div>
+      <ul class="plan-features">
+        <li><span class="check">✦</span> 💎 Premium badge on profile</li>
+        <li><span class="check">✦</span> 🎨 Custom embed color</li>
+        <li><span class="check">✦</span> ⚡ 1.5× XP boost</li>
+        <li><span class="check">✦</span> 🪙 Daily coins ×1.5</li>
+        <li><span class="check">✦</span> 📊 Advanced statistics</li>
+        <li><span class="check">✦</span> 🎟️ Priority support</li>
+      </ul>
+      <a href="https://discord.gg/dotesport" class="plan-btn">Get Basic</a>
+    </div>
+    <div class="plan featured">
+      <div class="plan-name">Pro</div>
+      <div class="plan-price">$6.99</div>
+      <div class="plan-period">per month / cancel anytime</div>
+      <ul class="plan-features">
+        <li><span class="check">✦</span> Everything in Basic</li>
+        <li><span class="check">✦</span> 🚀 2× XP boost (24h activatable)</li>
+        <li><span class="check">✦</span> 📝 Custom profile bio (200 chars)</li>
+        <li><span class="check">✦</span> 🪙 Daily coins ×2</li>
+        <li><span class="check">✦</span> 🏆 Tournament priority seeding</li>
+        <li><span class="check">✦</span> 🎖️ Exclusive Pro badge</li>
+        <li><span class="check">✦</span> ⭐ Dedicated support queue</li>
+      </ul>
+      <a href="https://discord.gg/dotesport" class="plan-btn">Get Pro</a>
+    </div>
+    <div class="plan">
+      <div class="plan-name">Elite</div>
+      <div class="plan-price">$12.99</div>
+      <div class="plan-period">per month / cancel anytime</div>
+      <ul class="plan-features">
+        <li><span class="check">✦</span> Everything in Pro</li>
+        <li><span class="check">✦</span> 🔥 3× XP boost</li>
+        <li><span class="check">✦</span> 👑 Exclusive Elite badge</li>
+        <li><span class="check">✦</span> 🪙 Daily coins ×3</li>
+        <li><span class="check">✦</span> 🔔 All future Premium features</li>
+        <li><span class="check">✦</span> 💬 1-on-1 support channel</li>
+        <li><span class="check">✦</span> 🗳️ Vote on new features</li>
+      </ul>
+      <a href="https://discord.gg/dotesport" class="plan-btn">Get Elite</a>
+    </div>
   </div>
 
-  <div class="stats-bar">
-    <div class="stat-item"><div class="stat-val">100+</div><div class="stat-label">Commands</div></div>
-    <div class="stat-item"><div class="stat-val">24/7</div><div class="stat-label">Online</div></div>
-    <div class="stat-item"><div class="stat-val">Anti-Nuke</div><div class="stat-label">Protection</div></div>
-    <div class="stat-item"><div class="stat-val">Free</div><div class="stat-label">To Use</div></div>
+  <div class="perks-title">What You Get</div>
+  <p class="perks-sub">Every premium tier includes these core benefits</p>
+  <div class="perks-grid">
+    <div class="perk"><div class="perk-icon">💎</div><div class="perk-name">Premium Badge</div><div class="perk-desc">Displayed on your profile, rank card, and leaderboard entries.</div></div>
+    <div class="perk"><div class="perk-icon">🚀</div><div class="perk-name">XP Boost</div><div class="perk-desc">Level up faster with permanent multiplied XP per message.</div></div>
+    <div class="perk"><div class="perk-icon">🪙</div><div class="perk-name">Bonus Coins</div><div class="perk-desc">More coins from daily and weekly rewards. Dominate the economy leaderboard.</div></div>
+    <div class="perk"><div class="perk-icon">🎟️</div><div class="perk-name">Priority Support</div><div class="perk-desc">Your tickets get seen first. Dedicated support channels for Elite.</div></div>
+    <div class="perk"><div class="perk-icon">🎨</div><div class="perk-name">Custom Color</div><div class="perk-desc">Set any hex color for your embeds. Stand out from the crowd.</div></div>
+    <div class="perk"><div class="perk-icon">⚔️</div><div class="perk-name">Tournament Perks</div><div class="perk-desc">Priority seeding in tournaments. Exclusive premium-only events.</div></div>
   </div>
-</section>
-
-<section id="features" style="background:var(--bg2)">
-  <div class="section-header">
-    <div class="section-badge">Features</div>
-    <h2 class="section-title">Everything You Need</h2>
-    <p class="section-sub">Built specifically for competitive gaming communities and esports organizations.</p>
-  </div>
-  <div class="features-grid">
-    <div class="feature-card">
-      <div class="feature-icon">🏆</div>
-      <div class="feature-name">Tournament System</div>
-      <div class="feature-desc">Full bracket management, team registration, match reporting — supports Single/Double Elimination, Round Robin, and Swiss formats.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">📊</div>
-      <div class="feature-name">Player Statistics</div>
-      <div class="feature-desc">Track wins, losses, points, levels, XP, and streaks. Compare players, view rank cards, and server-wide leaderboards.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🎫</div>
-      <div class="feature-name">Ultra Ticket System</div>
-      <div class="feature-desc">Priority tickets, staff claiming, transcripts, multiple ticket types. Beautiful panel embed with one-click opening.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🛡️</div>
-      <div class="feature-name">Full Moderation</div>
-      <div class="feature-desc">Ban, kick, mute, warn, purge, slowmode, lockdown — all with full audit logging and case tracking.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🚨</div>
-      <div class="feature-name">Anti-Raid & Anti-Nuke</div>
-      <div class="feature-desc">Real-time join flood detection with automatic action. Anti-nuke protects against mass deletions and bans.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">👋</div>
-      <div class="feature-name">Welcome & Farewell</div>
-      <div class="feature-desc">Fully customizable welcome/farewell messages with embeds, DM support, ping options, and banner images.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🎉</div>
-      <div class="feature-name">Giveaway System</div>
-      <div class="feature-desc">Role-gated giveaways with auto-draw, reroll support, and scheduled end times.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🪙</div>
-      <div class="feature-name">Economy & XP</div>
-      <div class="feature-desc">Full economy with daily/weekly rewards, gambling, transfers. XP leveling with role rewards and level-up announcements.</div>
-    </div>
-    <div class="feature-card">
-      <div class="feature-icon">🌐</div>
-      <div class="feature-name">Live Dashboard</div>
-      <div class="feature-desc">Configure every bot setting from a sleek web dashboard. Real-time updates via WebSocket.</div>
-    </div>
-  </div>
-</section>
-
-<section id="commands">
-  <div class="section-header">
-    <div class="section-badge">Commands</div>
-    <h2 class="section-title">100+ Commands</h2>
-    <p class="section-sub">Every command has been carefully designed with gold-tier embeds and clear responses.</p>
-  </div>
-  <div class="commands-grid">
-    <div class="cmd-category">
-      <div class="cmd-cat-title">🛡️ Moderation</div>
-      <ul class="cmd-list">
-        <li><code>/mod ban</code> Permanently ban</li>
-        <li><code>/mod kick</code> Remove member</li>
-        <li><code>/mod mute</code> Timeout member</li>
-        <li><code>/mod warn</code> Issue warning</li>
-        <li><code>/mod purge</code> Bulk delete</li>
-        <li><code>/mod lock</code> Lock channel</li>
-      </ul>
-    </div>
-    <div class="cmd-category">
-      <div class="cmd-cat-title">🏆 Tournaments</div>
-      <ul class="cmd-list">
-        <li><code>/tournament create</code> New tournament</li>
-        <li><code>/tournament join</code> Register team</li>
-        <li><code>/tournament start</code> Begin bracket</li>
-        <li><code>/tournament end</code> Complete</li>
-        <li><code>/tournament teams</code> View teams</li>
-        <li><code>/tournament info</code> Details</li>
-      </ul>
-    </div>
-    <div class="cmd-category">
-      <div class="cmd-cat-title">🎫 Tickets</div>
-      <ul class="cmd-list">
-        <li><code>/ticket setup</code> Configure</li>
-        <li><code>/ticket panel</code> Post panel</li>
-        <li><code>/ticket create</code> Open ticket</li>
-        <li><code>/ticket claim</code> Claim ticket</li>
-        <li><code>/ticket close</code> Close ticket</li>
-        <li><code>/ticket transcript</code> Save log</li>
-      </ul>
-    </div>
-    <div class="cmd-category">
-      <div class="cmd-cat-title">📊 Stats</div>
-      <ul class="cmd-list">
-        <li><code>/stats view</code> Player stats</li>
-        <li><code>/stats rank</code> Rank card</li>
-        <li><code>/stats leaderboard</code> Top players</li>
-        <li><code>/stats compare</code> vs another</li>
-        <li><code>/economy balance</code> Wallet</li>
-        <li><code>/economy gamble</code> Risk it all</li>
-      </ul>
-    </div>
-    <div class="cmd-category">
-      <div class="cmd-cat-title">⚙️ Setup</div>
-      <ul class="cmd-list">
-        <li><code>/setup wizard</code> Full guide</li>
-        <li><code>/setup antiraid</code> Raid protect</li>
-        <li><code>/setup antinuke</code> Nuke protect</li>
-        <li><code>/setup automod</code> AutoMod</li>
-        <li><code>/setup leveling</code> XP system</li>
-        <li><code>/welcome setup</code> Welcomes</li>
-      </ul>
-    </div>
-    <div class="cmd-category">
-      <div class="cmd-cat-title">🔧 Utility</div>
-      <ul class="cmd-list">
-        <li><code>/util stealemoji</code> Steal emojis</li>
-        <li><code>/util serverinfo</code> Server info</li>
-        <li><code>/util avatar</code> Get avatar</li>
-        <li><code>/poll create</code> Create poll</li>
-        <li><code>/reminder set</code> Set reminder</li>
-        <li><code>/suggest submit</code> Suggestions</li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<section id="pricing" style="background:var(--bg2)">
-  <div class="section-header">
-    <div class="section-badge">Premium</div>
-    <h2 class="section-title">Unlock More Power</h2>
-    <p class="section-sub">Exclusive commands and perks for serious esports communities.</p>
-  </div>
-  <div class="pricing-grid">
-    <div class="pricing-card">
-      <div class="pricing-plan">Basic</div>
-      <div class="pricing-price">$2.99</div>
-      <div class="pricing-period">per month</div>
-      <ul class="pricing-features">
-        <li>Premium badge</li>
-        <li>Custom embed color</li>
-        <li>1.5x XP boost</li>
-        <li>Advanced statistics</li>
-        <li>Priority support</li>
-      </ul>
-      <a href="/premium" class="pricing-btn">Get Basic</a>
-    </div>
-    <div class="pricing-card featured">
-      <div class="pricing-plan">Pro</div>
-      <div class="pricing-price">$6.99</div>
-      <div class="pricing-period">per month</div>
-      <ul class="pricing-features">
-        <li>Everything in Basic</li>
-        <li>2x XP boost</li>
-        <li>Custom profile bio</li>
-        <li>Daily bonus coins ×2</li>
-        <li>Tournament priority seed</li>
-        <li>Exclusive Pro badge</li>
-      </ul>
-      <a href="/premium" class="pricing-btn">Get Pro</a>
-    </div>
-    <div class="pricing-card">
-      <div class="pricing-plan">Elite</div>
-      <div class="pricing-price">$12.99</div>
-      <div class="pricing-period">per month</div>
-      <ul class="pricing-features">
-        <li>Everything in Pro</li>
-        <li>3x XP boost</li>
-        <li>Exclusive Elite badge</li>
-        <li>All Premium commands</li>
-        <li>Dedicated support</li>
-      </ul>
-      <a href="/premium" class="pricing-btn">Get Elite</a>
-    </div>
-  </div>
-</section>
-
-<div class="cta-section" style="position:relative;z-index:1">
-  <h2 class="cta-title">Ready to<br><span style="background:linear-gradient(135deg,#FFD700,#D4AF37);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Dominate?</span></h2>
-  <p class="cta-sub">Add DeS Bot™ to your server and take your esports community to the next level.</p>
-  <a href="/auth/login" class="btn-primary" style="font-size:1.1rem;padding:16px 40px">⚡ Add DeS Bot™ — It's Free</a>
-</div>
-
+</main>
 <footer>
-  <div class="footer-logo">DeS Bot™</div>
-  <p>© 2026 DOT Esport. All rights reserved. &nbsp;·&nbsp; <a href="/premium" style="color:var(--gold);text-decoration:none">Premium</a> &nbsp;·&nbsp; <a href="https://discord.gg/dotesport" style="color:var(--text3);text-decoration:none">Support Server</a></p>
+  © 2026 DOT Esport · <a href="/" style="color:var(--gold);text-decoration:none">DeS Bot™</a> · All rights reserved
 </footer>
 </body>
 </html>
