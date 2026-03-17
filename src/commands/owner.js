@@ -259,15 +259,21 @@ module.exports = {
 
     // ── SERVERS ───────────────────────────────────────────────
     else if (sub === 'servers') {
-      const page = (interaction.options.getInteger('page') || 1) - 1;
+      let page = (interaction.options.getInteger('page') || 1) - 1;
       const perPage = 15;
       const all = [...client.guilds.cache.values()];
       const total = all.length;
+      const maxPages = Math.ceil(total / perPage) || 1;
+      
+      // Validate page number
+      if (page < 0) page = 0;
+      if (page >= maxPages) page = maxPages - 1;
+      
       const slice = all.slice(page * perPage, (page + 1) * perPage);
       const desc = slice.map((g, i) =>
         `**${page * perPage + i + 1}.** ${g.name}\n  \`${g.id}\` — 👥 ${g.memberCount} members`
       ).join('\n\n');
-      await interaction.editReply({ embeds: [E.gold(`🌐 Servers (${total} total) — Page ${page+1}/${Math.ceil(total/perPage)}`, desc)] });
+      await interaction.editReply({ embeds: [E.gold(`🌐 Servers (${total} total) — Page ${page+1}/${maxPages}`, desc)] });
     }
 
     // ── LEAVE SERVER ──────────────────────────────────────────
