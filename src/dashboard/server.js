@@ -51,10 +51,23 @@ passport.use(new DiscordStrategy({
   clientSecret: process.env.CLIENT_SECRET,
   callbackURL: `${process.env.DOMAIN || 'http://localhost:3000'}/auth/callback`,
   scope: ['identify', 'guilds'],
-}, (accessToken, refreshToken, profile, done) => done(null, profile)));
+}, (accessToken, refreshToken, profile, done) => {
+  done(null, profile);
+}));
 
-passport.serializeUser((user, done) => done(null, user));
-passport.deserializeUser((user, done) => done(null, user));
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+passport.deserializeUser((user, done) => {
+  done(null, user);
+});
+
+// ── Middleware to set res.locals ──────────────────────────────
+app.use((req, res, next) => {
+  res.locals.user = req.user || null;
+  next();
+});
 
 // ── Auth middleware ───────────────────────────────────────────
 function isAuth(req, res, next) {
@@ -62,6 +75,7 @@ function isAuth(req, res, next) {
   req.session.returnTo = req.originalUrl;
   res.redirect('/auth/login');
 }
+
 function isOwner(req, res, next) {
   const owners = (process.env.OWNER_IDS || '').split(',').map(s => s.trim());
   if (req.isAuthenticated() && owners.includes(req.user.id)) return next();
@@ -70,31 +84,76 @@ function isOwner(req, res, next) {
 
 // ── Routes ────────────────────────────────────────────────────
 const routes = require('./routes/index');
-app.use('/', (req, res, next) => { res.locals.user = req.user; next(); }, routes(io));
+app.use('/', routes(io));
 
 // ── Auth Routes ───────────────────────────────────────────────
 app.get('/auth/login', passport.authenticate('discord'));
+
 app.get('/auth/callback', passport.authenticate('discord', { failureRedirect: '/' }), (req, res) => {
-  res.redirect(req.session.returnTo || '/dashboard');
+  const returnTo = req.session.returnTo || '/dashboard';
   delete req.session.returnTo;
+  res.redirect(returnTo);
 });
-app.get('/auth/logout', (req, res) => { req.logout(() => res.redirect('/')); });
+
+app.get('/auth/logout', (req, res) => {
+  req.logout((err) => {
+    if (err) {
+      logger.error(`Logout error: ${err.message}`);
+    }
+    res.redirect('/');
+  });
+});
 
 // ── Socket.io ─────────────────────────────────────────────────
-io.use((socket, next) => { sessionMiddleware(socket.request, {}, next); });
-io.on('connection', (socket) => {
-  socket.on('join-guild', (guildId) => socket.join(`guild:${guildId}`));
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
 });
 
-// ── 404 ───────────────────────────────────────────────────────
-app.use((req, res) => res.status(404).render('error', { user: req.user, message: 'Page not found.' }));
+io.on('connection', (socket) => {
+  socket.on('join-guild', (guildId) => {
+    socket.join(`guild:${guildId}`);
+  });
+});
+
+// ── 404 Handler ───────────────────────────────────────────────
+app.use((req, res) => {
+  logger.warn(`404 Not Found: ${req.method} ${req.originalUrl}`);
+  res.status(404).render('error', { user: req.user || null, message: 'Page not found.' });
+});
+
+// ── Global Error Handler ──────────────────────────────────────
+app.use((err, req, res, next) => {
+  logger.error(`Global error handler: ${err.message}`);
+  logger.error(`Stack: ${err.stack}`);
+  
+  // Don't leak error details in production
+  const message = process.env.NODE_ENV === 'production' 
+    ? 'An error occurred' 
+    : err.message;
+  
+  res.status(err.status || 500).render('error', { 
+    user: req.user || null, 
+    message: message 
+  }).catch(renderErr => {
+    logger.error(`Error rendering error page: ${renderErr.message}`);
+    res.status(500).send('Internal Server Error');
+  });
+});
 
 // ── Start ─────────────────────────────────────────────────────
 function startDashboard(client) {
   app.locals.client = client;
   app.locals.io = io;
   const PORT = process.env.PORT || 3000;
-  server.listen(PORT, () => logger.info(`🌐 Dashboard running on port ${PORT}`));
+  
+  server.listen(PORT, () => {
+    logger.info(`🌐 Dashboard running on port ${PORT}`);
+  });
+  
+  // Handle server errors
+  server.on('error', (err) => {
+    logger.error(`Server error: ${err.message}`);
+  });
 }
 
 module.exports = { startDashboard };
