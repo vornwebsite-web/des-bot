@@ -49,7 +49,7 @@ app.use(passport.session());
 passport.use(new DiscordStrategy({
   clientID: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET,
-  callbackURL: `${process.env.DOMAIN || 'http://localhost:3000'}/auth/callback`,
+  callbackURL: 'https://www.dotsbot.site/callback',
   scope: ['identify', 'guilds'],
 }, (accessToken, refreshToken, profile, done) => {
   done(null, profile);
