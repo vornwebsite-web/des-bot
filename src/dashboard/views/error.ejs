@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Error — DeS Bot™</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@900&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#070709;color:#F0EDE8;font-family:'Inter',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px}
+.card{max-width:500px}
+.code{font-family:'Orbitron',monospace;font-size:5rem;font-weight:900;background:linear-gradient(135deg,#FF2B4E,#FF6B6B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:16px}
+h1{font-family:'Orbitron',monospace;font-size:1.5rem;font-weight:900;margin-bottom:12px}
+p{color:#A89F8C;margin-bottom:28px;line-height:1.7}
+a{background:linear-gradient(135deg,#FFD700,#D4AF37);color:#0a0800;font-weight:700;padding:12px 28px;border-radius:8px;text-decoration:none;font-family:'Orbitron',monospace;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="code">!</div>
+  <h1>Oops.</h1>
+  <p><%= message || 'Something went wrong.' %></p>
+  <a href="/">← Back Home</a>
+</div>
+</body>
+</html>
