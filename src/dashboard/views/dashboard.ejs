@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dashboard — DeS Bot™</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--gold:#D4AF37;--gold2:#FFD700;--bg:#070709;--bg2:#0D0D14;--bg3:#13131E;--text:#F0EDE8;--text2:#A89F8C;--text3:#6B6578;--border:rgba(212,175,55,0.15);--success:#00E676;--error:#FF2B4E}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(212,175,55,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(212,175,55,0.025) 1px,transparent 1px);background-size:50px 50px;pointer-events:none;z-index:0}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:70px;background:rgba(7,7,9,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.logo{font-family:'Orbitron',monospace;font-weight:900;font-size:1.4rem;background:linear-gradient(135deg,#FFD700,#D4AF37);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-user{display:flex;align-items:center;gap:12px}
+.nav-user img{width:36px;height:36px;border-radius:50%;border:2px solid rgba(212,175,55,.3)}
+.nav-user span{font-size:.9rem;font-weight:500;color:var(--text2)}
+.logout{color:var(--text3);text-decoration:none;font-size:.85rem;margin-left:16px;transition:color .2s}
+.logout:hover{color:var(--error)}
+
+main{max-width:1200px;margin:0 auto;padding:60px 40px;position:relative;z-index:1}
+.page-title{font-family:'Orbitron',monospace;font-size:2rem;font-weight:900;margin-bottom:8px}
+.page-title span{background:linear-gradient(135deg,var(--gold2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.page-sub{color:var(--text2);font-size:.95rem;margin-bottom:48px}
+
+.section-label{font-family:'Rajdhani',sans-serif;font-size:.8rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--text3);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.guilds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:48px}
+.guild-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px;text-decoration:none;transition:all .25s;position:relative;overflow:hidden}
+.guild-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(212,175,55,.05),transparent);opacity:0;transition:opacity .25s}
+.guild-card:hover{border-color:rgba(212,175,55,.35);transform:translateY(-4px);box-shadow:0 16px 48px rgba(0,0,0,.4)}
+.guild-card:hover::before{opacity:1}
+.guild-icon{width:64px;height:64px;border-radius:50%;border:2px solid var(--border);object-fit:cover}
+.guild-icon-placeholder{width:64px;height:64px;border-radius:50%;background:var(--bg3);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'Orbitron',monospace;font-weight:900;font-size:1.3rem;color:var(--gold)}
+.guild-name{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--text);text-align:center}
+.guild-tag{font-size:.75rem;color:var(--text3)}
+.guild-badge{position:absolute;top:12px;right:12px;width:8px;height:8px;border-radius:50%;background:var(--success);box-shadow:0 0 8px var(--success)}
+
+.invite-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;align-items:center;gap:14px;text-decoration:none;transition:all .25s;opacity:.6}
+.invite-card:hover{opacity:1;border-color:rgba(212,175,55,.3)}
+.invite-plus{width:64px;height:64px;border-radius:50%;background:var(--bg3);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:1.5rem;color:var(--text3)}
+.invite-name{font-family:'Rajdhani',sans-serif;font-size:.95rem;color:var(--text2)}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="logo">DeS Bot™</a>
+  <div class="nav-user">
+    <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="">
+    <span><%= user.username %>#<%= user.discriminator %></span>
+    <a href="/auth/logout" class="logout">Logout</a>
+  </div>
+</nav>
+<main>
+  <h1 class="page-title">Select a <span>Server</span></h1>
+  <p class="page-sub">Choose a server to configure DeS Bot™. You must have Manage Server permission.</p>
+
+  <div class="section-label">🟢 Servers with DeS Bot™</div>
+  <div class="guilds-grid">
+    <% botGuilds.forEach(g => { %>
+    <a href="/dashboard/<%= g.id %>" class="guild-card">
+      <div class="guild-badge"></div>
+      <% if(g.icon){ %>
+        <img class="guild-icon" src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.webp" alt="">
+      <% } else { %>
+        <div class="guild-icon-placeholder"><%= g.name.charAt(0) %></div>
+      <% } %>
+      <div class="guild-name"><%= g.name %></div>
+      <div class="guild-tag">Configure →</div>
+    </a>
+    <% }) %>
+    <% if(!botGuilds.length){ %>
+      <p style="color:var(--text3);font-size:.9rem;grid-column:1/-1">No servers found. Add the bot to a server first.</p>
+    <% } %>
+  </div>
+
+  <div class="section-label">⚪ Add DeS Bot™</div>
+  <div class="guilds-grid">
+    <% notInGuilds.slice(0,8).forEach(g => { %>
+    <a href="https://discord.com/api/oauth2/authorize?client_id=<%= clientId %>&permissions=8&scope=bot+applications.commands&guild_id=<%= g.id %>" target="_blank" class="invite-card">
+      <% if(g.icon){ %>
+        <img class="guild-icon" src="https://cdn.discordapp.com/icons/<%= g.id %>/<%= g.icon %>.webp" alt="" style="opacity:.5">
+      <% } else { %>
+        <div class="guild-icon-placeholder" style="opacity:.5"><%= g.name.charAt(0) %></div>
+      <% } %>
+      <div class="invite-name"><%= g.name %></div>
+      <div class="guild-tag">+ Add Bot</div>
+    </a>
+    <% }) %>
+    <a href="https://discord.com/api/oauth2/authorize?client_id=<%= clientId %>&permissions=8&scope=bot+applications.commands" target="_blank" class="invite-card">
+      <div class="invite-plus">+</div>
+      <div class="invite-name">Add to another server</div>
+    </a>
+  </div>
+</main>
+</body>
+</html>
