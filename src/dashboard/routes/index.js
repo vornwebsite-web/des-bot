@@ -1,51 +1,85 @@
 const express = require('express');
 const { Guild, User, Tournament, Ticket, Modlog } = require('../../models/index');
+const logger = require('../../utils/logger');
 
 module.exports = (io) => {
   const router = express.Router();
   const isAuth = (req, res, next) => req.isAuthenticated() ? next() : res.redirect('/auth/login');
 
   // ── Home ────────────────────────────────────────────────────
-  router.get('/', (req, res) => res.render('home', { user: req.user }));
+  router.get('/', (req, res) => {
+    try {
+      res.render('home', { user: req.user });
+    } catch (e) {
+      logger.error(`Home render error: ${e.message}`);
+      res.status(500).send('Error loading home page');
+    }
+  });
 
   // ── Dashboard Select ────────────────────────────────────────
   router.get('/dashboard', isAuth, async (req, res) => {
-    const client = req.app.locals.client;
-    const userGuilds = req.user.guilds || [];
-    const manageable = userGuilds.filter(g => (BigInt(g.permissions) & BigInt(0x20)) === BigInt(0x20));
-    const botGuilds = manageable.filter(g => client.guilds.cache.has(g.id));
-    const notInGuilds = manageable.filter(g => !client.guilds.cache.has(g.id));
-    res.render('dashboard', { user: req.user, botGuilds, notInGuilds, clientId: process.env.CLIENT_ID });
+    try {
+      const client = req.app.locals.client;
+      if (!client) return res.status(500).send('Client not initialized');
+      
+      const userGuilds = req.user.guilds || [];
+      const manageable = userGuilds.filter(g => (BigInt(g.permissions) & BigInt(0x20)) === BigInt(0x20));
+      const botGuilds = manageable.filter(g => client.guilds.cache.has(g.id));
+      const notInGuilds = manageable.filter(g => !client.guilds.cache.has(g.id));
+      
+      res.render('dashboard', { user: req.user, botGuilds, notInGuilds, clientId: process.env.CLIENT_ID });
+    } catch (e) {
+      logger.error(`Dashboard render error: ${e.message}`);
+      res.status(500).render('error', { user: req.user, message: 'Error loading dashboard' });
+    }
   });
 
   // ── Guild Dashboard ─────────────────────────────────────────
   router.get('/dashboard/:guildId', isAuth, async (req, res) => {
-    const client = req.app.locals.client;
-    const guild = client.guilds.cache.get(req.params.guildId);
-    if (!guild) return res.redirect('/dashboard');
-    const member = await guild.members.fetch(req.user.id).catch(() => null);
-    if (!member || !member.permissions.has(0x20n)) return res.status(403).render('error', { user: req.user, message: 'You do not have Manage Server permission.' });
-    const cfg = await Guild.findOne({ guildId: guild.id }) || {};
-    const stats = {
-      members: guild.memberCount,
-      channels: guild.channels.cache.size,
-      roles: guild.roles.cache.size - 1,
-      openTickets: await Ticket.countDocuments({ guildId: guild.id, status: { $in: ['open', 'claimed'] } }),
-      activeTournaments: await Tournament.countDocuments({ guildId: guild.id, status: { $in: ['open', 'ongoing'] } }),
-      totalBans: await Modlog.countDocuments({ guildId: guild.id, type: 'ban' }),
-    };
-    res.render('guild', { user: req.user, guild: { id: guild.id, name: guild.name, icon: guild.iconURL({ dynamic: true }) }, cfg, stats });
+    try {
+      const client = req.app.locals.client;
+      if (!client) return res.status(500).send('Client not initialized');
+      
+      const guild = client.guilds.cache.get(req.params.guildId);
+      if (!guild) return res.redirect('/dashboard');
+      
+      const member = await guild.members.fetch(req.user.id).catch(() => null);
+      if (!member || !member.permissions.has(0x20n)) {
+        return res.status(403).render('error', { user: req.user, message: 'You do not have Manage Server permission.' });
+      }
+      
+      const cfg = await Guild.findOne({ guildId: guild.id }) || {};
+      const stats = {
+        members: guild.memberCount,
+        channels: guild.channels.cache.size,
+        roles: guild.roles.cache.size - 1,
+        openTickets: await Ticket.countDocuments({ guildId: guild.id, status: { $in: ['open', 'claimed'] } }),
+        activeTournaments: await Tournament.countDocuments({ guildId: guild.id, status: { $in: ['open', 'ongoing'] } }),
+        totalBans: await Modlog.countDocuments({ guildId: guild.id, type: 'ban' }),
+      };
+      
+      res.render('guild', { 
+        user: req.user, 
+        guild: { id: guild.id, name: guild.name, icon: guild.iconURL({ dynamic: true }) }, 
+        cfg, 
+        stats 
+      });
+    } catch (e) {
+      logger.error(`Guild dashboard error: ${e.message}`);
+      res.status(500).render('error', { user: req.user, message: 'Error loading server dashboard' });
+    }
   });
 
   // ── Guild Save ──────────────────────────────────────────────
   router.post('/dashboard/:guildId/save', isAuth, async (req, res) => {
-    const client = req.app.locals.client;
-    const guild = client.guilds.cache.get(req.params.guildId);
-    if (!guild) return res.json({ success: false, error: 'Guild not found' });
-    const member = await guild.members.fetch(req.user.id).catch(() => null);
-    if (!member?.permissions.has(0x20n)) return res.json({ success: false, error: 'No permission' });
-
     try {
+      const client = req.app.locals.client;
+      const guild = client.guilds.cache.get(req.params.guildId);
+      if (!guild) return res.json({ success: false, error: 'Guild not found' });
+      
+      const member = await guild.members.fetch(req.user.id).catch(() => null);
+      if (!member?.permissions.has(0x20n)) return res.json({ success: false, error: 'No permission' });
+
       const body = req.body;
       const update = {};
 
@@ -94,48 +128,69 @@ module.exports = (io) => {
       io.to(`guild:${guild.id}`).emit('config-updated', { guildId: guild.id });
       res.json({ success: true });
     } catch (e) {
+      logger.error(`Guild save error: ${e.message}`);
       res.json({ success: false, error: e.message });
     }
   });
 
   // ── API endpoints ────────────────────────────────────────────
   router.get('/api/guild/:id/stats', isAuth, async (req, res) => {
-    const client = req.app.locals.client;
-    const guild = client.guilds.cache.get(req.params.id);
-    if (!guild) return res.json({ error: 'Not found' });
     try {
+      const client = req.app.locals.client;
+      const guild = client.guilds.cache.get(req.params.id);
+      if (!guild) return res.json({ error: 'Not found' });
+      
       const [tickets, tournaments, bans] = await Promise.all([
         Ticket.countDocuments({ guildId: guild.id, status: { $in: ['open', 'claimed'] } }),
         Tournament.countDocuments({ guildId: guild.id, status: { $in: ['open', 'ongoing'] } }),
         Modlog.countDocuments({ guildId: guild.id, type: 'ban' }),
       ]);
       res.json({ members: guild.memberCount, tickets, tournaments, bans, ping: client.ws.ping });
-    } catch (e) { res.json({ error: e.message }); }
+    } catch (e) { 
+      logger.error(`Stats API error: ${e.message}`);
+      res.json({ error: e.message }); 
+    }
   });
 
   router.get('/api/guild/:id/leaderboard', isAuth, async (req, res) => {
     try {
       const users = await User.find({}).sort({ points: -1 }).limit(20);
       res.json(users.map(u => ({ userId: u.userId, username: u.username, points: u.points, level: u.level, wins: u.wins })));
-    } catch (e) { res.json({ error: e.message }); }
+    } catch (e) { 
+      logger.error(`Leaderboard API error: ${e.message}`);
+      res.json({ error: e.message }); 
+    }
   });
 
   router.get('/api/guild/:id/tournaments', isAuth, async (req, res) => {
     try {
       const ts = await Tournament.find({ guildId: req.params.id }).sort({ createdAt: -1 }).limit(20);
       res.json(ts);
-    } catch (e) { res.json({ error: e.message }); }
+    } catch (e) { 
+      logger.error(`Tournaments API error: ${e.message}`);
+      res.json({ error: e.message }); 
+    }
   });
 
   router.get('/api/guild/:id/tickets', isAuth, async (req, res) => {
     try {
       const ts = await Ticket.find({ guildId: req.params.id }).sort({ createdAt: -1 }).limit(50);
       res.json(ts);
-    } catch (e) { res.json({ error: e.message }); }
+    } catch (e) { 
+      logger.error(`Tickets API error: ${e.message}`);
+      res.json({ error: e.message }); 
+    }
   });
 
   // ── Premium page ─────────────────────────────────────────────
-  router.get('/premium', (req, res) => res.render('premium', { user: req.user }));
+  router.get('/premium', (req, res) => {
+    try {
+      res.render('premium', { user: req.user });
+    } catch (e) {
+      logger.error(`Premium render error: ${e.message}`);
+      res.status(500).render('error', { user: req.user, message: 'Error loading premium page' });
+    }
+  });
 
   return router;
 };
