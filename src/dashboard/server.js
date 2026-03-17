@@ -89,7 +89,7 @@ app.use('/', routes(io));
 // ── Auth Routes ───────────────────────────────────────────────
 app.get('/auth/login', passport.authenticate('discord'));
 
-app.get('/auth/callback', passport.authenticate('discord', { failureRedirect: '/' }), (req, res) => {
+app.get('/callback', passport.authenticate('discord', { failureRedirect: '/' }), (req, res) => {
   const returnTo = req.session.returnTo || '/dashboard';
   delete req.session.returnTo;
   res.redirect(returnTo);
