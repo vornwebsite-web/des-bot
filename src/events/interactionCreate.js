@@ -8,23 +8,35 @@ module.exports = {
     // ── Button interactions ───────────────────────────────────
     if (interaction.isButton()) {
       try {
-        // Parse button customId to find command: "commandName:action:data"
-        const [commandName] = interaction.customId.split(':');
+        // Always defer/acknowledge first
+        if (!interaction.deferred && !interaction.replied) {
+          await interaction.deferUpdate().catch(() => {});
+        }
+
+        // Parse customId: "commandName:action:data"
+        const customId = interaction.customId;
+        const parts = customId.split(':');
+        const commandName = parts[0];
+        
         const command = client.commands.get(commandName);
         
         if (command?.handleButton) {
-          await command.handleButton(interaction, client);
+          const result = await command.handleButton(interaction, client);
+          if (result) {
+            logger.info(`[BUTTON] ${interaction.user.tag} clicked ${customId}`);
+          }
         } else {
-          // Silently ignore unknown buttons (they might be from old commands)
-          await interaction.deferUpdate().catch(() => {});
+          logger.warn(`[BUTTON] No handler for: ${customId}`);
         }
       } catch (error) {
         logger.error(`[BUTTON] Error: ${error.message}`);
         try {
-          if (!interaction.replied && !interaction.deferred) {
-            await interaction.reply({ embeds: [E.error('Error', 'Failed to process button.')], ephemeral: true });
+          if (!interaction.replied) {
+            await interaction.followUp({ embeds: [E.error('Error', 'Failed to process button.')], ephemeral: true }).catch(() => {});
           }
-        } catch {}
+        } catch (e) {
+          logger.error(`[BUTTON] Failed to send error message: ${e.message}`);
+        }
       }
       return;
     }
@@ -32,21 +44,33 @@ module.exports = {
     // ── Select menu interactions ──────────────────────────────
     if (interaction.isAnySelectMenu()) {
       try {
-        const [commandName] = interaction.customId.split(':');
+        if (!interaction.deferred && !interaction.replied) {
+          await interaction.deferUpdate().catch(() => {});
+        }
+
+        const customId = interaction.customId;
+        const parts = customId.split(':');
+        const commandName = parts[0];
+        
         const command = client.commands.get(commandName);
         
         if (command?.handleSelectMenu) {
-          await command.handleSelectMenu(interaction, client);
+          const result = await command.handleSelectMenu(interaction, client);
+          if (result) {
+            logger.info(`[SELECT] ${interaction.user.tag} selected in ${customId}`);
+          }
         } else {
-          await interaction.deferUpdate().catch(() => {});
+          logger.warn(`[SELECT] No handler for: ${customId}`);
         }
       } catch (error) {
         logger.error(`[SELECT] Error: ${error.message}`);
         try {
-          if (!interaction.replied && !interaction.deferred) {
-            await interaction.reply({ embeds: [E.error('Error', 'Failed to process selection.')], ephemeral: true });
+          if (!interaction.replied) {
+            await interaction.followUp({ embeds: [E.error('Error', 'Failed to process selection.')], ephemeral: true }).catch(() => {});
           }
-        } catch {}
+        } catch (e) {
+          logger.error(`[SELECT] Failed to send error message: ${e.message}`);
+        }
       }
       return;
     }
@@ -54,21 +78,29 @@ module.exports = {
     // ── Modal submissions ─────────────────────────────────────
     if (interaction.isModalSubmit()) {
       try {
-        const [commandName] = interaction.customId.split(':');
+        const customId = interaction.customId;
+        const parts = customId.split(':');
+        const commandName = parts[0];
+        
         const command = client.commands.get(commandName);
         
         if (command?.handleModal) {
-          await command.handleModal(interaction, client);
+          const result = await command.handleModal(interaction, client);
+          if (result) {
+            logger.info(`[MODAL] ${interaction.user.tag} submitted ${customId}`);
+          }
         } else {
-          await interaction.deferUpdate().catch(() => {});
+          logger.warn(`[MODAL] No handler for: ${customId}`);
         }
       } catch (error) {
         logger.error(`[MODAL] Error: ${error.message}`);
         try {
-          if (!interaction.replied && !interaction.deferred) {
-            await interaction.reply({ embeds: [E.error('Error', 'Failed to process form.')], ephemeral: true });
+          if (!interaction.replied) {
+            await interaction.reply({ embeds: [E.error('Error', 'Failed to process form.')], ephemeral: true }).catch(() => {});
           }
-        } catch {}
+        } catch (e) {
+          logger.error(`[MODAL] Failed to send error message: ${e.message}`);
+        }
       }
       return;
     }
@@ -90,28 +122,37 @@ module.exports = {
       if (u?.blacklisted) {
         return interaction.reply({ embeds: [E.error('Blacklisted', `You are blacklisted from DeS Bot™.\n**Reason:** ${u.blacklistReason || 'No reason'}\n\nContact support at [dotsbot.site](http://www.dotsbot.site) to appeal.`)], ephemeral: true });
       }
-    } catch {}
+    } catch (e) {
+      logger.error(`Blacklist check error: ${e.message}`);
+    }
 
     const command = client.commands.get(interaction.commandName);
-    if (!command) return;
+    if (!command) {
+      logger.warn(`Command not found: ${interaction.commandName}`);
+      return;
+    }
 
     try {
       await command.execute(interaction, client);
+      
       // XP for command usage
       try {
         await User.findOneAndUpdate({ userId: interaction.user.id }, { $inc: { xp: 5 } }, { upsert: true });
       } catch {}
+      
       logger.info(`[CMD] ${interaction.user.tag} used /${interaction.commandName} in ${interaction.guild?.name || 'DM'}`);
     } catch (error) {
       logger.error(`Command error [/${interaction.commandName}]: ${error.message}`);
       const errEmbed = E.error('Something Went Wrong', `An unexpected error occurred.\n\`\`\`${error.message.slice(0, 200)}\`\`\``);
       try {
         if (interaction.deferred || interaction.replied) {
-          await interaction.editReply({ embeds: [errEmbed] });
+          await interaction.editReply({ embeds: [errEmbed] }).catch(() => {});
         } else {
-          await interaction.reply({ embeds: [errEmbed], ephemeral: true });
+          await interaction.reply({ embeds: [errEmbed], ephemeral: true }).catch(() => {});
         }
-      } catch {}
+      } catch (e) {
+        logger.error(`Failed to send error message: ${e.message}`);
+      }
     }
   }
 };
