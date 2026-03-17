@@ -5,6 +5,61 @@ const { User } = require('../models/index');
 module.exports = {
   name: 'interactionCreate',
   async execute(interaction, client) {
+    // ── Button interactions ───────────────────────────────────
+    if (interaction.isButton()) {
+      const buttonId = interaction.customId;
+      
+      // Find the command that handles this button
+      let handled = false;
+      for (const [, command] of client.commands) {
+        if (command.handleButton && await command.handleButton(interaction, client)) {
+          handled = true;
+          logger.info(`[BUTTON] ${interaction.user.tag} clicked ${buttonId}`);
+          break;
+        }
+      }
+      
+      if (!handled) {
+        logger.warn(`[BUTTON] Unhandled button: ${buttonId}`);
+      }
+      return;
+    }
+
+    // ── Select menu interactions ──────────────────────────────
+    if (interaction.isStringSelectMenu() || interaction.isUserSelectMenu() || interaction.isRoleSelectMenu() || interaction.isMentionableSelectMenu() || interaction.isChannelSelectMenu()) {
+      let handled = false;
+      for (const [, command] of client.commands) {
+        if (command.handleSelectMenu && await command.handleSelectMenu(interaction, client)) {
+          handled = true;
+          logger.info(`[SELECT] ${interaction.user.tag} selected in ${interaction.customId}`);
+          break;
+        }
+      }
+      
+      if (!handled) {
+        logger.warn(`[SELECT] Unhandled menu: ${interaction.customId}`);
+      }
+      return;
+    }
+
+    // ── Modal submissions ─────────────────────────────────────
+    if (interaction.isModalSubmit()) {
+      let handled = false;
+      for (const [, command] of client.commands) {
+        if (command.handleModal && await command.handleModal(interaction, client)) {
+          handled = true;
+          logger.info(`[MODAL] ${interaction.user.tag} submitted ${interaction.customId}`);
+          break;
+        }
+      }
+      
+      if (!handled) {
+        logger.warn(`[MODAL] Unhandled modal: ${interaction.customId}`);
+      }
+      return;
+    }
+
+    // ── Chat input commands ───────────────────────────────────
     if (!interaction.isChatInputCommand()) return;
 
     // Maintenance mode
@@ -28,12 +83,10 @@ module.exports = {
 
     try {
       await command.execute(interaction, client);
-
       // XP for command usage
       try {
         await User.findOneAndUpdate({ userId: interaction.user.id }, { $inc: { xp: 5 } }, { upsert: true });
       } catch {}
-
       logger.info(`[CMD] ${interaction.user.tag} used /${interaction.commandName} in ${interaction.guild?.name || 'DM'}`);
     } catch (error) {
       logger.error(`Command error [/${interaction.commandName}]: ${error.message}`);
