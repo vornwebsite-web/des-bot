@@ -131,6 +131,8 @@ module.exports = {
       const roles = [1, 2, 3].map(n => interaction.options.getRole("role" + n)?.id).filter(Boolean);
       const unique = [...new Set(roles)];
       
+      console.log(`[TICKET TYPE-ROLES] Setting ${type} to roles:`, unique);
+      
       await Guild.findOneAndUpdate(
         { guildId: interaction.guildId },
         { $set: { ["tickets.typeRoles." + type]: unique } },
@@ -219,6 +221,7 @@ module.exports = {
         ? cfg.tickets.typeRoles[type]
         : (cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : []);
       
+      console.log(`[TICKET CREATE] Type: ${type}, typeRoles object:`, cfg.tickets.typeRoles, `Selected roles:`, typeRoles);
       cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
       await cfg.save();
 
@@ -389,6 +392,8 @@ module.exports = {
       let typeRoles = (cfg.tickets.typeRoles && cfg.tickets.typeRoles[type] && cfg.tickets.typeRoles[type].length > 0)
         ? cfg.tickets.typeRoles[type]
         : (cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : []);
+      
+      console.log(`[TICKET SELECT] Type: ${type}, typeRoles object:`, cfg.tickets.typeRoles, `Selected roles:`, typeRoles);
       cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
       await cfg.save();
 
