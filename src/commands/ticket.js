@@ -214,11 +214,10 @@ module.exports = {
       const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ["open", "claimed"] } });
       if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.editReply({ embeds: [E.warn("Limit", "Too many open")] });
 
-      // Get type-specific roles or fall back to default
-      let typeRoles = cfg.tickets.typeRoles?.[type];
-      if (!typeRoles || typeRoles.length === 0) {
-        typeRoles = cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : [];
-      }
+      // Use type-specific roles if they exist, otherwise use default support roles
+      let typeRoles = cfg.tickets.typeRoles?.[type]?.length > 0 
+        ? cfg.tickets.typeRoles[type]
+        : (cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : []);
       
       cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
       await cfg.save();
@@ -386,10 +385,10 @@ module.exports = {
       const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ["open", "claimed"] } });
       if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.followUp({ embeds: [E.warn("Limit", "Too many open")], ephemeral: true });
 
-      let typeRoles = cfg.tickets.typeRoles?.[type];
-      if (!typeRoles || typeRoles.length === 0) {
-        typeRoles = cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : [];
-      }
+      // Use type-specific roles if they exist, otherwise use default support roles
+      let typeRoles = cfg.tickets.typeRoles?.[type]?.length > 0 
+        ? cfg.tickets.typeRoles[type]
+        : (cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : []);
       cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
       await cfg.save();
 
