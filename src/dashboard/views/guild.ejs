@@ -155,10 +155,10 @@ textarea.fi{resize:vertical;min-height:72px}
 .sidebar-overlay.show ~ * .mobile-tabs,.mobile-tabs.hidden{display:none !important}
 
 /* ── Mobile bottom tab bar ── */
-.mobile-tabs{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(7,7,9,.98);border-top:1px solid var(--border);z-index:180;padding:0 4px env(safe-area-inset-bottom,0)}
+.mobile-tabs{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(7,7,9,.98);border-top:1px solid var(--border);z-index:180;padding:0 4px env(safe-area-inset-bottom,0);touch-action:pan-x}
 .mobile-tabs-inner{display:flex;overflow-x:auto;gap:0;scrollbar-width:none}
 .mobile-tabs-inner::-webkit-scrollbar{display:none}
-.mob-tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 14px;color:var(--text3);cursor:pointer;transition:color .15s;white-space:nowrap;flex-shrink:0;font-size:.62rem;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-top:2px solid transparent}
+.mob-tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 14px;color:var(--text3);cursor:pointer;transition:color .15s;white-space:nowrap;flex-shrink:0;font-size:.62rem;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-top:2px solid transparent;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
 .mob-tab .ti{font-size:1.2rem}
 .mob-tab.active{color:var(--gold);border-top-color:var(--gold)}
 .mob-tab:hover{color:var(--text)}
@@ -630,18 +630,44 @@ textarea.fi{resize:vertical;min-height:72px}
 <script>
 const GUILD = '<%= guild.id %>';
 
-// ── Sidebar navigation ─────────────────────────────────────────
+// ── Unified navigation function ────────────────────────────────
+const LOADERS = {
+  tournaments: () => loadTournaments(),
+  ticketlist:  () => loadTickets(),
+  modlogs:     () => loadModlogs(),
+  leaderboard: () => loadLeaderboard(),
+  members:     () => loadMembers(),
+};
+
+function navigateTo(p) {
+  if (!p) return;
+  // Deactivate all panels and nav items
+  document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.sb-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.mob-tab').forEach(el => el.classList.remove('active'));
+  // Activate target
+  const panel = document.getElementById('panel-' + p);
+  if (panel) panel.classList.add('active');
+  document.querySelectorAll('.sb-item[data-p="' + p + '"]').forEach(el => el.classList.add('active'));
+  document.querySelectorAll('.mob-tab[data-p="' + p + '"]').forEach(el => el.classList.add('active'));
+  // Load dynamic data if needed
+  if (LOADERS[p]) LOADERS[p]();
+  // Scroll to top
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Sidebar items ──────────────────────────────────────────────
 document.querySelectorAll('.sb-item').forEach(item => {
-  item.addEventListener('click', () => {
-    document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
-    item.classList.add('active');
-    const panel = document.getElementById('panel-' + item.dataset.p);
-    if (panel) panel.classList.add('active');
-    // Load dynamic data panels
-    const loaders = { tournaments: loadTournaments, ticketlist: loadTickets, modlogs: loadModlogs, leaderboard: loadLeaderboard, members: loadMembers };
-    if (loaders[item.dataset.p]) loaders[item.dataset.p]();
+  item.addEventListener('click', function(e) {
+    e.preventDefault();
+    navigateTo(this.dataset.p);
+    if (window.innerWidth <= 768) setTimeout(closeSidebar, 80);
   });
+  item.addEventListener('touchend', function(e) {
+    e.preventDefault();
+    navigateTo(this.dataset.p);
+    if (window.innerWidth <= 768) setTimeout(closeSidebar, 80);
+  }, { passive: false });
 });
 
 // ── Helpers ────────────────────────────────────────────────────
@@ -845,30 +871,16 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// Close sidebar on nav item click on mobile
-document.querySelectorAll('.sb-item').forEach(item => {
-  item.addEventListener('click', () => {
-    if (window.innerWidth <= 768) {
-      setTimeout(closeSidebar, 100); // slight delay so panel switches first
-    }
-    document.querySelectorAll('.mob-tab').forEach(t => t.classList.toggle('active', t.dataset.p === item.dataset.p));
-  });
-});
-
-// Mobile tab bar
+// ── Bottom tab bar (mobile) ────────────────────────────────────
 document.querySelectorAll('.mob-tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    const p = tab.dataset.p;
-    document.querySelectorAll('.sb-item').forEach(i => i.classList.toggle('active', i.dataset.p === p));
-    document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
-    document.querySelectorAll('.mob-tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    const panel = document.getElementById('panel-' + p);
-    if (panel) panel.classList.add('active');
-    const loaders = { tournaments: loadTournaments, ticketlist: loadTickets, modlogs: loadModlogs, leaderboard: loadLeaderboard, members: loadMembers };
-    if (loaders[p]) loaders[p]();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+  // Use both click and touchend for maximum iOS compatibility
+  function onTabActivate(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    navigateTo(tab.dataset.p);
+  }
+  tab.addEventListener('click', onTabActivate);
+  tab.addEventListener('touchend', onTabActivate, { passive: false });
 });
 
 // Swipe to open/close sidebar
