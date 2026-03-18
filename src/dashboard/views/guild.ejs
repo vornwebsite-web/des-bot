@@ -384,8 +384,8 @@ textarea.fi{resize:vertical;min-height:72px}
         <input type="text" class="fi" id="welcomeBanner" placeholder="https://..." value="<%= (cfg.welcome && cfg.welcome.banner) || '' %>">
       </div>
       <div class="sf">
-        <button class="btn btn-gold" onclick="save('welcome')">💾 Save Welcome</button>
-        <button class="btn btn-ghost btn-sm" onclick="action('test-welcome')">🧪 Test Now</button>
+        <button class="btn btn-gold" data-action="save" data-section="welcome">💾 Save Welcome</button>
+        <button class="btn btn-ghost btn-sm" data-action="action" data-type="test-welcome">🧪 Test Now</button>
         <span class="sm" id="sm-welcome"></span>
       </div>
     </div>
@@ -404,8 +404,8 @@ textarea.fi{resize:vertical;min-height:72px}
         <textarea class="fi" id="farewellMessage" rows="3"><%= (cfg.farewell && cfg.farewell.message) || '**{user}** has left **{server}**.' %></textarea>
       </div>
       <div class="sf">
-        <button class="btn btn-gold" onclick="save('farewell')">💾 Save Farewell</button>
-        <button class="btn btn-ghost btn-sm" onclick="action('test-farewell')">🧪 Test Now</button>
+        <button class="btn btn-gold" data-action="save" data-section="farewell">💾 Save Farewell</button>
+        <button class="btn btn-ghost btn-sm" data-action="action" data-type="test-farewell">🧪 Test Now</button>
         <span class="sm" id="sm-farewell"></span>
       </div>
     </div>
@@ -423,7 +423,7 @@ textarea.fi{resize:vertical;min-height:72px}
       <div class="fg"><label class="fl">Moderation Log Channel</label><select class="fi" id="modLogsChannel"><option value="">— None —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.modLogs === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
       <div class="fg"><label class="fl">Message Log Channel</label><select class="fi" id="msgLogsChannel"><option value="">— None —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.msgLogs === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
       <div class="fg"><label class="fl">Join/Leave Log Channel</label><select class="fi" id="joinLogsChannel"><option value="">— None —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.joinLogs === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
-      <div class="sf"><button class="btn btn-gold" onclick="save('logging')">💾 Save Logging</button><span class="sm" id="sm-logging"></span></div>
+      <div class="sf"><button class="btn btn-gold" data-action="save" data-section="logging">💾 Save Logging</button><span class="sm" id="sm-logging"></span></div>
     </div>
   </div>
 </div>
@@ -443,7 +443,7 @@ textarea.fi{resize:vertical;min-height:72px}
         <label class="fl">Bad Words <span>comma-separated</span></label>
         <input type="text" class="fi" id="badWords" placeholder="word1, word2, word3" value="<%= (cfg.moderation && cfg.moderation.badWords) ? cfg.moderation.badWords.join(', ') : '' %>">
       </div>
-      <div class="sf"><button class="btn btn-gold" onclick="save('automod')">💾 Save AutoMod</button><span class="sm" id="sm-automod"></span></div>
+      <div class="sf"><button class="btn btn-gold" data-action="save" data-section="automod">💾 Save AutoMod</button><span class="sm" id="sm-automod"></span></div>
     </div>
   </div>
 </div>
@@ -458,7 +458,7 @@ textarea.fi{resize:vertical;min-height:72px}
       <div class="fg"><label class="fl">Join Threshold <span>how many joins trigger it</span></label><input type="number" class="fi" id="antiRaidThreshold" min="2" max="50" value="<%= (cfg.antiRaid && cfg.antiRaid.threshold) || 10 %>"></div>
       <div class="fg"><label class="fl">Time Window <span>seconds</span></label><input type="number" class="fi" id="antiRaidWindow" min="5" max="60" value="<%= (cfg.antiRaid && cfg.antiRaid.window) || 10 %>"></div>
       <div class="fg"><label class="fl">Action</label><select class="fi" id="antiRaidAction"><option value="kick" <%= (!cfg.antiRaid || cfg.antiRaid.action === 'kick') ? 'selected' : '' %>>Kick raiders</option><option value="ban" <%= (cfg.antiRaid && cfg.antiRaid.action === 'ban') ? 'selected' : '' %>>Ban raiders</option></select></div>
-      <div class="sf"><button class="btn btn-gold" onclick="save('antiraid')">💾 Save Anti-Raid</button><span class="sm" id="sm-antiraid"></span></div>
+      <div class="sf"><button class="btn btn-gold" data-action="save" data-section="antiraid">💾 Save Anti-Raid</button><span class="sm" id="sm-antiraid"></span></div>
     </div>
   </div>
 </div>
@@ -472,7 +472,7 @@ textarea.fi{resize:vertical;min-height:72px}
       <div class="fg"><div class="tr"><div class="tl">Enable Anti-Nuke<small>Monitors mass deletions and bans in real-time</small></div><label class="tog"><input type="checkbox" id="antiNukeEnabled" <%= (cfg.antiNuke && cfg.antiNuke.enabled) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
       <div class="fg"><label class="fl">Action Threshold <span>actions in 10s before triggering</span></label><input type="number" class="fi" id="antiNukeThreshold" min="1" max="10" value="<%= (cfg.antiNuke && cfg.antiNuke.threshold) || 3 %>"></div>
       <div class="fg"><label class="fl">Action on Trigger</label><select class="fi" id="antiNukeAction"><option value="ban" <%= (!cfg.antiNuke || cfg.antiNuke.action === 'ban') ? 'selected' : '' %>>Ban the executor</option><option value="kick" <%= (cfg.antiNuke && cfg.antiNuke.action === 'kick') ? 'selected' : '' %>>Kick the executor</option></select></div>
-      <div class="sf"><button class="btn btn-gold" onclick="save('antinuke')">💾 Save Anti-Nuke</button><span class="sm" id="sm-antinuke"></span></div>
+      <div class="sf"><button class="btn btn-gold" data-action="save" data-section="antinuke">💾 Save Anti-Nuke</button><span class="sm" id="sm-antinuke"></span></div>
     </div>
   </div>
 </div>
@@ -487,13 +487,13 @@ textarea.fi{resize:vertical;min-height:72px}
       <div class="fg"><label class="fl">Support Staff Role</label><select class="fi" id="ticketSupportRole"><option value="">— Select Role —</option><% roles.forEach(r => { %><option value="<%= r.id %>" <%= (cfg.tickets && cfg.tickets.supportRole === r.id) ? 'selected' : '' %>>@<%= r.name %></option><% }) %></select></div>
       <div class="fg"><label class="fl">Ticket Log Channel</label><select class="fi" id="ticketLogChannel"><option value="">— None —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.ticketLogs === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
       <div class="fg"><label class="fl">Max Open Tickets Per User</label><input type="number" class="fi" id="ticketMaxOpen" min="1" max="5" value="<%= (cfg.tickets && cfg.tickets.maxOpen) || 1 %>"></div>
-      <div class="sf"><button class="btn btn-gold" onclick="save('tickets')">💾 Save Tickets</button><span class="sm" id="sm-tickets"></span></div>
+      <div class="sf"><button class="btn btn-gold" data-action="save" data-section="tickets">💾 Save Tickets</button><span class="sm" id="sm-tickets"></span></div>
     </div>
     <div class="cc">
       <div class="cc-title">📌 Post Ticket Panel</div>
       <div class="ac-desc" style="margin-bottom:14px;color:var(--text2);font-size:.85rem">Select a channel and click the button to post the ticket opening panel. Members click it to create a ticket.</div>
       <div class="fg"><label class="fl">Target Channel</label><select class="fi" id="panelChannel"><option value="">— Select Channel —</option><% channels.forEach(c => { %><option value="<%= c.id %>">#<%= c.name %></option><% }) %></select></div>
-      <button class="btn btn-success" onclick="postPanel()">📌 Post Ticket Panel</button>
+      <button class="btn btn-success" data-action="postPanel">📌 Post Ticket Panel</button>
       <div class="ac-result" id="panel-result"></div>
     </div>
   </div>
@@ -510,7 +510,7 @@ textarea.fi{resize:vertical;min-height:72px}
       <div class="fg"><label class="fl">Cooldown <span>seconds between XP gains</span></label><input type="number" class="fi" id="levelCooldown" min="5" max="300" value="<%= (cfg.leveling && cfg.leveling.cooldown) || 60 %>"></div>
       <div class="fg"><label class="fl">Level-Up Announce Channel</label><select class="fi" id="levelUpChannel"><option value="">— Same channel —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.levelUp === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
       <div class="fg"><div class="tr"><div class="tl">Announce Level-Ups<small>Send a message when someone levels up</small></div><label class="tog"><input type="checkbox" id="levelAnnounce" <%= (!cfg.leveling || cfg.leveling.announceLevel !== false) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
-      <div class="sf"><button class="btn btn-gold" onclick="save('leveling')">💾 Save Leveling</button><span class="sm" id="sm-leveling"></span></div>
+      <div class="sf"><button class="btn btn-gold" data-action="save" data-section="leveling">💾 Save Leveling</button><span class="sm" id="sm-leveling"></span></div>
     </div>
   </div>
 </div>
@@ -524,7 +524,7 @@ textarea.fi{resize:vertical;min-height:72px}
       <div class="fg"><label class="fl">Muted Role <span>applied by /mod mute</span></label><select class="fi" id="mutedRole"><option value="">— Select Role —</option><% roles.forEach(r => { %><option value="<%= r.id %>" <%= (cfg.roles && cfg.roles.muted === r.id) ? 'selected' : '' %>>@<%= r.name %></option><% }) %></select></div>
       <div class="fg"><label class="fl">Auto-Role <span>given to all new members</span></label><select class="fi" id="autoRole"><option value="">— None —</option><% roles.forEach(r => { %><option value="<%= r.id %>" <%= (cfg.roles && cfg.roles.autoRole && cfg.roles.autoRole.includes(r.id)) ? 'selected' : '' %>>@<%= r.name %></option><% }) %></select></div>
       <div style="font-size:.78rem;color:var(--text3);margin-top:4px">Saving the Muted Role will instantly set deny-SendMessages on all text channels for that role.</div>
-      <div class="sf"><button class="btn btn-gold" onclick="save('roles')">💾 Save Roles</button><span class="sm" id="sm-roles"></span></div>
+      <div class="sf"><button class="btn btn-gold" data-action="save" data-section="roles">💾 Save Roles</button><span class="sm" id="sm-roles"></span></div>
     </div>
   </div>
 </div>
@@ -536,7 +536,7 @@ textarea.fi{resize:vertical;min-height:72px}
     <div class="cc">
       <div class="cc-title">💡 Suggestion Channel</div>
       <div class="fg"><label class="fl">Suggestion Channel</label><select class="fi" id="suggestChannel"><option value="">— None —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.suggestions === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
-      <div class="sf"><button class="btn btn-gold" onclick="save('suggestions')">💾 Save</button><span class="sm" id="sm-suggestions"></span></div>
+      <div class="sf"><button class="btn btn-gold" data-action="save" data-section="suggestions">💾 Save</button><span class="sm" id="sm-suggestions"></span></div>
     </div>
   </div>
 </div>
@@ -549,29 +549,29 @@ textarea.fi{resize:vertical;min-height:72px}
       <div class="ac-title">🔨 Ban Member</div>
       <div class="ac-desc">Enter the Discord User ID to ban them from this server.</div>
       <div class="row"><div class="fg"><label class="fl">User ID</label><input type="text" class="fi" id="banUserId" placeholder="Discord User ID"></div><div class="fg"><label class="fl">Reason</label><input type="text" class="fi" id="banReason" placeholder="Reason..."></div></div>
-      <button class="btn btn-danger btn-sm" onclick="modAction('ban', {userId: val('banUserId'), reason: val('banReason')}, 'ban-result')">🔨 Ban</button>
+      <button class="btn btn-danger btn-sm" data-action="modAction" data-type="ban" data-fields='userId: val('banUserId'), reason: val('banReason')' data-result="ban-result">🔨 Ban</button>
       <div class="ac-result" id="ban-result"></div>
     </div>
     <div class="ac">
       <div class="ac-title">👢 Kick Member</div>
       <div class="ac-desc">Enter the Discord User ID to kick them from this server.</div>
       <div class="row"><div class="fg"><label class="fl">User ID</label><input type="text" class="fi" id="kickUserId" placeholder="Discord User ID"></div><div class="fg"><label class="fl">Reason</label><input type="text" class="fi" id="kickReason" placeholder="Reason..."></div></div>
-      <button class="btn btn-danger btn-sm" onclick="modAction('kick', {userId: val('kickUserId'), reason: val('kickReason')}, 'kick-result')">👢 Kick</button>
+      <button class="btn btn-danger btn-sm" data-action="modAction" data-type="kick" data-fields='userId: val('kickUserId'), reason: val('kickReason')' data-result="kick-result">👢 Kick</button>
       <div class="ac-result" id="kick-result"></div>
     </div>
     <div class="ac">
       <div class="ac-title">🗑️ Purge Messages</div>
       <div class="ac-desc">Bulk delete messages from a channel.</div>
       <div class="row"><div class="fg"><label class="fl">Channel</label><select class="fi" id="purgeChannel"><option value="">— Select —</option><% channels.forEach(c => { %><option value="<%= c.id %>">#<%= c.name %></option><% }) %></select></div><div class="fg"><label class="fl">Amount (max 100)</label><input type="number" class="fi" id="purgeAmount" min="1" max="100" value="10"></div></div>
-      <button class="btn btn-danger btn-sm" onclick="modAction('purge', {channelId: val('purgeChannel'), amount: val('purgeAmount')}, 'purge-result')">🗑️ Purge</button>
+      <button class="btn btn-danger btn-sm" data-action="modAction" data-type="purge" data-fields='channelId: val('purgeChannel'), amount: val('purgeAmount')' data-result="purge-result">🗑️ Purge</button>
       <div class="ac-result" id="purge-result"></div>
     </div>
     <div class="ac">
       <div class="ac-title">🔒 Server Lockdown</div>
       <div class="ac-desc">Lock or unlock all text channels at once. Members cannot send messages while locked.</div>
       <div style="display:flex;gap:10px">
-        <button class="btn btn-danger btn-sm" onclick="modAction('lockdown', {lock: 'true'}, 'lock-result')">🔒 Lock All</button>
-        <button class="btn btn-success btn-sm" onclick="modAction('lockdown', {lock: 'false'}, 'lock-result')">🔓 Unlock All</button>
+        <button class="btn btn-danger btn-sm" data-action="modAction" data-type="lockdown" data-fields='lock: 'true'' data-result="lock-result">🔒 Lock All</button>
+        <button class="btn btn-success btn-sm" data-action="modAction" data-type="lockdown" data-fields='lock: 'false'' data-result="lock-result">🔓 Unlock All</button>
       </div>
       <div class="ac-result" id="lock-result"></div>
     </div>
@@ -588,7 +588,7 @@ textarea.fi{resize:vertical;min-height:72px}
       <div class="fg"><label class="fl">Title</label><input type="text" class="fi" id="annTitle" placeholder="Announcement title..."></div>
       <div class="fg"><label class="fl">Message</label><textarea class="fi" id="annMessage" rows="5" placeholder="Your announcement..."></textarea></div>
       <div class="fg"><label class="fl">Color <span>(optional hex)</span></label><input type="text" class="fi" id="annColor" placeholder="#D4AF37" value="#D4AF37"></div>
-      <button class="btn btn-gold" onclick="sendAnnounce()">📢 Send Announcement</button>
+      <button class="btn btn-gold" data-action="sendAnnounce">📢 Send Announcement</button>
       <div class="ac-result" id="ann-result"></div>
     </div>
   </div>
@@ -688,14 +688,13 @@ document.querySelectorAll('.sb-item').forEach(item => {
 
 // ── Helpers ────────────────────────────────────────────────────
 const val = id => document.getElementById(id)?.value || '';
-const getChecked = id => document.getElementById(id)?.checked;
 
 function showMsg(id, ok, text) {
   const el = document.getElementById(id);
   if (!el) return;
   el.textContent = text;
   el.className = 'sm show ' + (ok ? 'ok' : 'err');
-  setTimeout(() => el.className = 'sm', 4000);
+  setTimeout(() => { if(el) el.className = 'sm'; }, 4000);
 }
 
 function showResult(id, ok, text) {
@@ -704,6 +703,41 @@ function showResult(id, ok, text) {
   el.textContent = text;
   el.className = 'ac-result show ' + (ok ? 'ok' : 'err');
 }
+
+// ── Single event delegation for ALL button actions ─────────────
+document.body.addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-action]');
+  if (!btn) return;
+  e.preventDefault();
+  e.stopPropagation();
+  const act = btn.dataset.action;
+
+  if (act === 'save') {
+    save(btn.dataset.section);
+  }
+  else if (act === 'action') {
+    action(btn.dataset.type);
+  }
+  else if (act === 'postPanel') {
+    postPanel();
+  }
+  else if (act === 'sendAnnounce') {
+    sendAnnounce();
+  }
+  else if (act === 'modAction') {
+    const type = btn.dataset.type;
+    const resultId = btn.dataset.result;
+    if (type === 'lockdown') {
+      modAction('lockdown', { lock: btn.dataset.lock }, resultId);
+    } else if (type === 'ban') {
+      modAction('ban', { userId: val('banUserId'), reason: val('banReason') }, resultId);
+    } else if (type === 'kick') {
+      modAction('kick', { userId: val('kickUserId'), reason: val('kickReason') }, resultId);
+    } else if (type === 'purge') {
+      modAction('purge', { channelId: val('purgeChannel'), amount: val('purgeAmount') }, resultId);
+    }
+  }
+});
 
 // ── Save config section ────────────────────────────────────────
 const sectionFields = {
@@ -728,63 +762,84 @@ async function save(section) {
     body[id] = el.type === 'checkbox' ? String(el.checked) : el.value;
   });
 
-  const btns = document.querySelectorAll(`#panel-${section} .btn-gold`);
+  // Find save button by data-section (works even in hidden panels)
+  const btns = document.querySelectorAll(`[data-action="save"][data-section="${section}"]`);
   btns.forEach(b => { b.disabled = true; b.textContent = '⏳ Saving...'; });
 
   try {
-    const r = await fetch(`/dashboard/${GUILD}/save`, {
+    const r = await fetch('/dashboard/' + GUILD + '/save', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
     const d = await r.json();
-    showMsg(`sm-${section}`, d.success, d.success ? `✅ Saved ${d.saved} settings!` : `❌ ${d.error}`);
+    showMsg('sm-' + section, d.success, d.success ? '✅ Saved ' + d.saved + ' settings!' : '❌ ' + (d.error || 'Failed'));
   } catch (e) {
-    showMsg(`sm-${section}`, false, '❌ Network error');
+    showMsg('sm-' + section, false, '❌ Network error: ' + e.message);
   }
 
-  btns.forEach(b => { b.disabled = false; b.textContent = '💾 Save ' + section.charAt(0).toUpperCase() + section.slice(1); });
+  const cap = section.charAt(0).toUpperCase() + section.slice(1);
+  btns.forEach(b => { b.disabled = false; b.textContent = '💾 Save ' + cap; });
 }
 
 // ── Live actions ───────────────────────────────────────────────
 async function action(type) {
   try {
-    const r = await fetch(`/dashboard/${GUILD}/action/${type}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const r = await fetch('/dashboard/' + GUILD + '/action/' + type, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}'
+    });
     const d = await r.json();
-    alert(d.success ? d.message : '❌ ' + d.error);
-  } catch { alert('❌ Network error'); }
+    alert(d.success ? d.message : '❌ ' + (d.error || 'Failed'));
+  } catch(e) { alert('❌ Network error: ' + e.message); }
 }
 
 async function modAction(type, body, resultId) {
   try {
-    const r = await fetch(`/dashboard/${GUILD}/action/${type}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    const r = await fetch('/dashboard/' + GUILD + '/action/' + type, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
     });
     const d = await r.json();
-    showResult(resultId, d.success, d.success ? d.message : '❌ ' + d.error);
-  } catch { showResult(resultId, false, '❌ Network error'); }
+    showResult(resultId, d.success, d.success ? d.message : '❌ ' + (d.error || 'Failed'));
+  } catch(e) { showResult(resultId, false, '❌ Network error'); }
 }
 
 async function postPanel() {
   const channelId = val('panelChannel');
   if (!channelId) return showResult('panel-result', false, '❌ Select a channel first.');
-  const r = await fetch(`/dashboard/${GUILD}/action/ticket-panel`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channelId }) });
-  const d = await r.json();
-  showResult('panel-result', d.success, d.success ? d.message : '❌ ' + d.error);
+  try {
+    const r = await fetch('/dashboard/' + GUILD + '/action/ticket-panel', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channelId: channelId })
+    });
+    const d = await r.json();
+    showResult('panel-result', d.success, d.success ? d.message : '❌ ' + (d.error || 'Failed'));
+  } catch(e) { showResult('panel-result', false, '❌ Network error'); }
 }
 
 async function sendAnnounce() {
-  const body = { channelId: val('annChannel'), title: val('annTitle'), message: val('annMessage'), color: val('annColor') };
-  if (!body.channelId || !body.title || !body.message) return showResult('ann-result', false, '❌ Fill in channel, title, and message.');
-  const r = await fetch(`/dashboard/${GUILD}/action/announce`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-  const d = await r.json();
-  showResult('ann-result', d.success, d.success ? d.message : '❌ ' + d.error);
+  const channelId = val('annChannel');
+  const title = val('annTitle');
+  const message = val('annMessage');
+  const color = val('annColor');
+  if (!channelId || !title || !message) return showResult('ann-result', false, '❌ Fill in channel, title, and message.');
+  try {
+    const r = await fetch('/dashboard/' + GUILD + '/action/announce', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ channelId: channelId, title: title, message: message, color: color })
+    });
+    const d = await r.json();
+    showResult('ann-result', d.success, d.success ? d.message : '❌ ' + (d.error || 'Failed'));
+  } catch(e) { showResult('ann-result', false, '❌ Network error'); }
 }
 
 // ── Data loaders ───────────────────────────────────────────────
 async function loadTournaments() {
   const wrap = document.getElementById('tourney-wrap');
-  const data = await fetch(`/api/guild/${GUILD}/tournaments`).then(r=>r.json());
+  const data = await fetch('/api/guild/' + GUILD + '/tournaments').then(r=>r.json());
   if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">🏆</div><p>No tournaments yet.</p></div>'; return; }
   const st = s => `<span class="badge ${s==='open'?'b-open':s==='ongoing'?'b-ongoing':'b-closed'}">${s.toUpperCase()}</span>`;
   wrap.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Game</th><th>Teams</th><th>Format</th><th>Prize</th><th>Status</th></tr></thead><tbody>${data.map(t=>`<tr><td style="color:var(--text);font-weight:500">${t.name}</td><td>${t.game}</td><td>${t.teams?.length||0}/${t.maxTeams}</td><td>${(t.format||'').replace('_',' ')}</td><td>${t.prize||'—'}</td><td>${st(t.status)}</td></tr>`).join('')}</tbody></table>`;
@@ -792,7 +847,7 @@ async function loadTournaments() {
 
 async function loadTickets() {
   const wrap = document.getElementById('ticket-wrap');
-  const data = await fetch(`/api/guild/${GUILD}/tickets`).then(r=>r.json());
+  const data = await fetch('/api/guild/' + GUILD + '/tickets').then(r=>r.json());
   if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">🎫</div><p>No tickets found.</p></div>'; return; }
   const st = s => `<span class="badge ${s==='open'||s==='claimed'?'b-open':'b-closed'}">${s.toUpperCase()}</span>`;
   const pri = p => ({ low:'🟢', normal:'🟡', high:'🔴', critical:'🚨' }[p]||'🟡');
@@ -801,7 +856,7 @@ async function loadTickets() {
 
 async function closeTicket(ticketId, btn) {
   btn.disabled = true; btn.textContent = '...';
-  const r = await fetch(`/dashboard/${GUILD}/action/close-ticket`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticketId }) });
+  const r = await fetch('/dashboard/' + GUILD + '/action/close-ticket', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticketId }) });
   const d = await r.json();
   if (d.success) { btn.closest('tr').querySelector('td:nth-child(5)').innerHTML = '<span class="badge b-closed">CLOSED</span>'; btn.remove(); }
   else { btn.disabled = false; btn.textContent = 'Close'; alert('❌ ' + d.error); }
@@ -809,7 +864,7 @@ async function closeTicket(ticketId, btn) {
 
 async function loadModlogs() {
   const wrap = document.getElementById('modlog-wrap');
-  const data = await fetch(`/api/guild/${GUILD}/modlogs`).then(r=>r.json());
+  const data = await fetch('/api/guild/' + GUILD + '/modlogs').then(r=>r.json());
   if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">⚖️</div><p>No mod cases yet.</p></div>'; return; }
   const colors = { ban:'b-closed', kick:'b-ongoing', mute:'b-ongoing', warn:'', unban:'b-open', unmute:'b-open' };
   wrap.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Type</th><th>User</th><th>Moderator</th><th>Reason</th><th>When</th></tr></thead><tbody>${data.map(c=>`<tr><td style="color:var(--gold);font-weight:700">${c.caseId}</td><td><span class="badge ${colors[c.type]||''}">${(c.type||'').toUpperCase()}</span></td><td style="font-size:.8rem">${c.userTag||c.userId}</td><td style="font-size:.8rem">${c.modTag||c.modId}</td><td style="color:var(--text2);font-size:.82rem">${(c.reason||'').slice(0,50)}</td><td style="font-size:.78rem;color:var(--text3)">${c.timestamp?new Date(c.timestamp).toLocaleDateString():''}</td></tr>`).join('')}</tbody></table>`;
@@ -817,7 +872,7 @@ async function loadModlogs() {
 
 async function loadLeaderboard() {
   const wrap = document.getElementById('lb-wrap');
-  const data = await fetch(`/api/guild/${GUILD}/leaderboard`).then(r=>r.json());
+  const data = await fetch('/api/guild/' + GUILD + '/leaderboard').then(r=>r.json());
   if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">🏅</div><p>No data yet. Users gain points through tournaments and XP.</p></div>'; return; }
   const medals = ['🥇','🥈','🥉'];
   wrap.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Rank</th><th>User</th><th>Points</th><th>Level</th><th>Wins</th><th>Coins</th></tr></thead><tbody>${data.map((u,i)=>`<tr><td>${medals[i]||`<strong style="color:var(--text3)">#${i+1}</strong>`}</td><td style="color:var(--text);font-weight:500">${u.username}</td><td style="color:var(--gold);font-weight:700">${u.points}</td><td>${u.level}</td><td>${u.wins}</td><td>🪙 ${u.coins}</td></tr>`).join('')}</tbody></table>`;
@@ -825,7 +880,7 @@ async function loadLeaderboard() {
 
 async function loadMembers() {
   const wrap = document.getElementById('members-wrap');
-  const data = await fetch(`/api/guild/${GUILD}/members`).then(r=>r.json());
+  const data = await fetch('/api/guild/' + GUILD + '/members').then(r=>r.json());
   if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">👥</div><p>Could not load members.</p></div>'; return; }
   wrap.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Member</th><th>Roles</th><th>Joined</th><th>Type</th></tr></thead><tbody>${data.map(m=>`<tr><td><div style="display:flex;align-items:center;gap:9px"><img src="${m.avatar}" style="width:28px;height:28px;border-radius:50%"><span style="color:var(--text)">${m.username}</span></div></td><td style="font-size:.78rem;color:var(--text3)">${m.roles.join(', ')||'—'}</td><td style="font-size:.78rem;color:var(--text3)">${m.joinedAt?new Date(m.joinedAt).toLocaleDateString():''}</td><td>${m.bot?'<span class="badge b-bot">BOT</span>':'👤'}</td></tr>`).join('')}</tbody></table>`;
 }
@@ -833,7 +888,7 @@ async function loadMembers() {
 // ── Live ping update ───────────────────────────────────────────
 async function updatePing() {
   try {
-    const d = await fetch(`/api/guild/${GUILD}/stats`).then(r=>r.json());
+    const d = await fetch('/api/guild/' + GUILD + '/stats').then(r=>r.json());
     const el = document.getElementById('bot-ping');
     if (el && d.ping !== undefined) {
       const cls = d.ping < 100 ? 'ping-good' : d.ping < 200 ? 'ping-ok' : 'ping-bad';
