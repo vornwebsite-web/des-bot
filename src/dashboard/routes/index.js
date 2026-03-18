@@ -1,4 +1,3 @@
-// DeS Bot™ Dashboard Routes — v2.1
 const express = require(‘express’);
 const { ChannelType, PermissionFlagsBits } = require(‘discord.js’);
 const { Guild, User, Tournament, Ticket, Modlog, Giveaway } = require(’../../models/index’);
@@ -33,7 +32,6 @@ return { textChannels, categories, roles };
 module.exports = (io) => {
 const router = express.Router();
 
-// ── Pages ──────────────────────────────────────────────────────
 router.get(’/’, (req, res) => res.render(‘home’, { user: req.user }));
 router.get(’/premium’, (req, res) => res.render(‘premium’, { user: req.user }));
 
@@ -57,116 +55,89 @@ const guild = client.guilds.cache.get(req.params.guildId);
 if (!guild) return res.redirect(’/dashboard’);
 if (!(await hasManage(guild, req.user.id)))
 return res.status(403).render(‘error’, { user: req.user, message: ‘You need Manage Server permission.’ });
-
-```
 const cfg = await Guild.findOne({ guildId: guild.id }) || {};
 const gd = serializeGuild(guild);
 const [openTickets, activeTournaments, totalBans, totalCases] = await Promise.all([
-  Ticket.countDocuments({ guildId: guild.id, status: { $in: ['open', 'claimed'] } }),
-  Tournament.countDocuments({ guildId: guild.id, status: { $in: ['open', 'ongoing'] } }),
-  Modlog.countDocuments({ guildId: guild.id, type: 'ban' }),
-  Modlog.countDocuments({ guildId: guild.id }),
+Ticket.countDocuments({ guildId: guild.id, status: { $in: [‘open’, ‘claimed’] } }),
+Tournament.countDocuments({ guildId: guild.id, status: { $in: [‘open’, ‘ongoing’] } }),
+Modlog.countDocuments({ guildId: guild.id, type: ‘ban’ }),
+Modlog.countDocuments({ guildId: guild.id }),
 ]);
-
-res.render('guild', {
-  user: req.user,
-  guild: { id: guild.id, name: guild.name, icon: guild.iconURL({ dynamic: true, size: 128 }) },
-  cfg,
-  channels: gd.textChannels,
-  categories: gd.categories,
-  roles: gd.roles,
-  stats: { members: guild.memberCount, channels: guild.channels.cache.size, roles: guild.roles.cache.size - 1, openTickets, activeTournaments, totalBans, totalCases },
+res.render(‘guild’, {
+user: req.user,
+guild: { id: guild.id, name: guild.name, icon: guild.iconURL({ dynamic: true, size: 128 }) },
+cfg,
+channels: gd.textChannels,
+categories: gd.categories,
+roles: gd.roles,
+stats: { members: guild.memberCount, channels: guild.channels.cache.size, roles: guild.roles.cache.size - 1, openTickets, activeTournaments, totalBans, totalCases },
 });
-```
-
 });
 
-// ── Save config ────────────────────────────────────────────────
 router.post(’/dashboard/:guildId/save’, isAuth, async (req, res) => {
 const client = req.app.locals.client;
 const guild = client.guilds.cache.get(req.params.guildId);
 if (!guild) return res.json({ success: false, error: ‘Bot is not in this server.’ });
 if (!(await hasManage(guild, req.user.id))) return res.json({ success: false, error: ‘No permission.’ });
-
-```
 try {
-  const b = req.body;
-  const set = {};
-  const bool = v => v === 'true' || v === true;
-
-  // Welcome
-  if (b.welcomeEnabled !== undefined) set['welcome.enabled'] = bool(b.welcomeEnabled);
-  if (b.welcomeChannel !== undefined) set['channels.welcome'] = b.welcomeChannel;
-  if (b.welcomeMessage !== undefined) set['welcome.message'] = b.welcomeMessage;
-  if (b.welcomePing !== undefined) set['welcome.ping'] = bool(b.welcomePing);
-  if (b.welcomeDm !== undefined) set['welcome.dm'] = bool(b.welcomeDm);
-  if (b.welcomeDmMessage !== undefined) set['welcome.dmMsg'] = b.welcomeDmMessage;
-  if (b.welcomeBanner !== undefined) set['welcome.banner'] = b.welcomeBanner;
-  // Farewell
-  if (b.farewellEnabled !== undefined) set['farewell.enabled'] = bool(b.farewellEnabled);
-  if (b.farewellChannel !== undefined) set['channels.farewell'] = b.farewellChannel;
-  if (b.farewellMessage !== undefined) set['farewell.message'] = b.farewellMessage;
-  // Logging
-  if (b.logsEnabled !== undefined) set['logging.enabled'] = bool(b.logsEnabled);
-  if (b.logsChannel !== undefined) set['channels.logs'] = b.logsChannel;
-  if (b.modLogsChannel !== undefined) set['channels.modLogs'] = b.modLogsChannel;
-  if (b.msgLogsChannel !== undefined) set['channels.msgLogs'] = b.msgLogsChannel;
-  if (b.joinLogsChannel !== undefined) set['channels.joinLogs'] = b.joinLogsChannel;
-  // AutoMod
-  if (b.autoMod !== undefined) set['moderation.autoMod'] = bool(b.autoMod);
-  if (b.antiSpam !== undefined) set['moderation.antiSpam'] = bool(b.antiSpam);
-  if (b.antiLinks !== undefined) set['moderation.antiLinks'] = bool(b.antiLinks);
-  if (b.antiInvites !== undefined) set['moderation.antiInvites'] = bool(b.antiInvites);
-  if (b.antiCaps !== undefined) set['moderation.antiCaps'] = bool(b.antiCaps);
-  if (b.badWords !== undefined) set['moderation.badWords'] = b.badWords.split(',').map(w => w.trim()).filter(Boolean);
-  // Anti-Raid
-  if (b.antiRaidEnabled !== undefined) set['antiRaid.enabled'] = bool(b.antiRaidEnabled);
-  if (b.antiRaidThreshold !== undefined) set['antiRaid.threshold'] = parseInt(b.antiRaidThreshold) || 10;
-  if (b.antiRaidWindow !== undefined) set['antiRaid.window'] = parseInt(b.antiRaidWindow) || 10;
-  if (b.antiRaidAction !== undefined) set['antiRaid.action'] = b.antiRaidAction;
-  // Anti-Nuke
-  if (b.antiNukeEnabled !== undefined) set['antiNuke.enabled'] = bool(b.antiNukeEnabled);
-  if (b.antiNukeThreshold !== undefined) set['antiNuke.threshold'] = parseInt(b.antiNukeThreshold) || 3;
-  if (b.antiNukeAction !== undefined) set['antiNuke.action'] = b.antiNukeAction;
-  // Tickets
-  if (b.ticketsEnabled !== undefined) set['tickets.enabled'] = bool(b.ticketsEnabled);
-  if (b.ticketLogChannel !== undefined) { set['channels.ticketLogs'] = b.ticketLogChannel; set['tickets.logChannel'] = b.ticketLogChannel; }
-  if (b.ticketCategoryId !== undefined) set['tickets.categoryId'] = b.ticketCategoryId;
-  if (b.ticketMaxOpen !== undefined) set['tickets.maxOpen'] = parseInt(b.ticketMaxOpen) || 1;
-  // Leveling
-  if (b.levelingEnabled !== undefined) set['leveling.enabled'] = bool(b.levelingEnabled);
-  if (b.xpPerMsg !== undefined) set['leveling.xpPerMsg'] = Math.min(100, Math.max(1, parseInt(b.xpPerMsg) || 15));
-  if (b.levelCooldown !== undefined) set['leveling.cooldown'] = Math.min(300, Math.max(5, parseInt(b.levelCooldown) || 60));
-  if (b.levelUpChannel !== undefined) set['channels.levelUp'] = b.levelUpChannel;
-  if (b.levelAnnounce !== undefined) set['leveling.announceLevel'] = bool(b.levelAnnounce);
-  // Roles
-  if (b.mutedRole !== undefined) set['roles.muted'] = b.mutedRole;
-  if (b.autoRole !== undefined) set['roles.autoRole'] = [b.autoRole].flat().filter(Boolean);
-  // Suggestions
-  if (b.suggestChannel !== undefined) set['channels.suggestions'] = b.suggestChannel;
-
-  await Guild.findOneAndUpdate({ guildId: guild.id }, { $set: set }, { upsert: true, new: true });
-
-  // Live: apply muted role perms immediately
-  if (b.mutedRole) {
-    const role = guild.roles.cache.get(b.mutedRole);
-    if (role) {
-      for (const [, ch] of guild.channels.cache.filter(c => c.type === ChannelType.GuildText)) {
-        ch.permissionOverwrites.edit(role, { SendMessages: false, AddReactions: false }).catch(() => {});
-      }
-    }
-  }
-
-  io.to(`guild:${guild.id}`).emit('config-updated', { guildId: guild.id });
-  res.json({ success: true, saved: Object.keys(set).length });
-} catch (e) {
-  res.json({ success: false, error: e.message });
+const b = req.body;
+const set = {};
+const bool = v => v === ‘true’ || v === true;
+if (b.welcomeEnabled !== undefined) set[‘welcome.enabled’] = bool(b.welcomeEnabled);
+if (b.welcomeChannel !== undefined) set[‘channels.welcome’] = b.welcomeChannel;
+if (b.welcomeMessage !== undefined) set[‘welcome.message’] = b.welcomeMessage;
+if (b.welcomePing !== undefined) set[‘welcome.ping’] = bool(b.welcomePing);
+if (b.welcomeDm !== undefined) set[‘welcome.dm’] = bool(b.welcomeDm);
+if (b.welcomeDmMessage !== undefined) set[‘welcome.dmMsg’] = b.welcomeDmMessage;
+if (b.welcomeBanner !== undefined) set[‘welcome.banner’] = b.welcomeBanner;
+if (b.farewellEnabled !== undefined) set[‘farewell.enabled’] = bool(b.farewellEnabled);
+if (b.farewellChannel !== undefined) set[‘channels.farewell’] = b.farewellChannel;
+if (b.farewellMessage !== undefined) set[‘farewell.message’] = b.farewellMessage;
+if (b.logsEnabled !== undefined) set[‘logging.enabled’] = bool(b.logsEnabled);
+if (b.logsChannel !== undefined) set[‘channels.logs’] = b.logsChannel;
+if (b.modLogsChannel !== undefined) set[‘channels.modLogs’] = b.modLogsChannel;
+if (b.msgLogsChannel !== undefined) set[‘channels.msgLogs’] = b.msgLogsChannel;
+if (b.joinLogsChannel !== undefined) set[‘channels.joinLogs’] = b.joinLogsChannel;
+if (b.autoMod !== undefined) set[‘moderation.autoMod’] = bool(b.autoMod);
+if (b.antiSpam !== undefined) set[‘moderation.antiSpam’] = bool(b.antiSpam);
+if (b.antiLinks !== undefined) set[‘moderation.antiLinks’] = bool(b.antiLinks);
+if (b.antiInvites !== undefined) set[‘moderation.antiInvites’] = bool(b.antiInvites);
+if (b.antiCaps !== undefined) set[‘moderation.antiCaps’] = bool(b.antiCaps);
+if (b.badWords !== undefined) set[‘moderation.badWords’] = b.badWords.split(’,’).map(w => w.trim()).filter(Boolean);
+if (b.antiRaidEnabled !== undefined) set[‘antiRaid.enabled’] = bool(b.antiRaidEnabled);
+if (b.antiRaidThreshold !== undefined) set[‘antiRaid.threshold’] = parseInt(b.antiRaidThreshold) || 10;
+if (b.antiRaidWindow !== undefined) set[‘antiRaid.window’] = parseInt(b.antiRaidWindow) || 10;
+if (b.antiRaidAction !== undefined) set[‘antiRaid.action’] = b.antiRaidAction;
+if (b.antiNukeEnabled !== undefined) set[‘antiNuke.enabled’] = bool(b.antiNukeEnabled);
+if (b.antiNukeThreshold !== undefined) set[‘antiNuke.threshold’] = parseInt(b.antiNukeThreshold) || 3;
+if (b.antiNukeAction !== undefined) set[‘antiNuke.action’] = b.antiNukeAction;
+if (b.ticketsEnabled !== undefined) set[‘tickets.enabled’] = bool(b.ticketsEnabled);
+if (b.ticketLogChannel !== undefined) { set[‘channels.ticketLogs’] = b.ticketLogChannel; set[‘tickets.logChannel’] = b.ticketLogChannel; }
+if (b.ticketCategoryId !== undefined) set[‘tickets.categoryId’] = b.ticketCategoryId;
+if (b.ticketMaxOpen !== undefined) set[‘tickets.maxOpen’] = parseInt(b.ticketMaxOpen) || 1;
+if (b.levelingEnabled !== undefined) set[‘leveling.enabled’] = bool(b.levelingEnabled);
+if (b.xpPerMsg !== undefined) set[‘leveling.xpPerMsg’] = Math.min(100, Math.max(1, parseInt(b.xpPerMsg) || 15));
+if (b.levelCooldown !== undefined) set[‘leveling.cooldown’] = Math.min(300, Math.max(5, parseInt(b.levelCooldown) || 60));
+if (b.levelUpChannel !== undefined) set[‘channels.levelUp’] = b.levelUpChannel;
+if (b.levelAnnounce !== undefined) set[‘leveling.announceLevel’] = bool(b.levelAnnounce);
+if (b.mutedRole !== undefined) set[‘roles.muted’] = b.mutedRole;
+if (b.autoRole !== undefined) set[‘roles.autoRole’] = [b.autoRole].flat().filter(Boolean);
+if (b.suggestChannel !== undefined) set[‘channels.suggestions’] = b.suggestChannel;
+await Guild.findOneAndUpdate({ guildId: guild.id }, { $set: set }, { upsert: true, new: true });
+if (b.mutedRole) {
+const role = guild.roles.cache.get(b.mutedRole);
+if (role) {
+for (const [, ch] of guild.channels.cache.filter(c => c.type === ChannelType.GuildText)) {
+ch.permissionOverwrites.edit(role, { SendMessages: false, AddReactions: false }).catch(() => {});
 }
-```
-
+}
+}
+io.to(‘guild:’ + guild.id).emit(‘config-updated’, { guildId: guild.id });
+res.json({ success: true, saved: Object.keys(set).length });
+} catch (e) {
+res.json({ success: false, error: e.message });
+}
 });
-
-// ── Live bot actions ───────────────────────────────────────────
 
 router.post(’/dashboard/:guildId/action/test-welcome’, isAuth, async (req, res) => {
 const client = req.app.locals.client;
@@ -178,8 +149,8 @@ try {
 const ch = await client.channels.fetch(cfg.channels.welcome);
 const member = await guild.members.fetch(req.user.id);
 const E = require(’../../utils/embeds’);
-await ch.send({ content: cfg.welcome.ping ? `<@${req.user.id}>` : undefined, embeds: [E.welcome(member, cfg.welcome)] });
-res.json({ success: true, message: `✅ Test welcome sent to #${ch.name}` });
+await ch.send({ content: cfg.welcome.ping ? ‘<@’ + req.user.id + ‘>’ : undefined, embeds: [E.welcome(member, cfg.welcome)] });
+res.json({ success: true, message: ‘Test welcome sent to #’ + ch.name });
 } catch (e) { res.json({ success: false, error: e.message }); }
 });
 
@@ -194,7 +165,7 @@ const ch = await client.channels.fetch(cfg.channels.farewell);
 const member = await guild.members.fetch(req.user.id);
 const E = require(’../../utils/embeds’);
 await ch.send({ embeds: [E.bye(member, cfg.farewell)] });
-res.json({ success: true, message: `✅ Test farewell sent to #${ch.name}` });
+res.json({ success: true, message: ‘Test farewell sent to #’ + ch.name });
 } catch (e) { res.json({ success: false, error: e.message }); }
 });
 
@@ -208,15 +179,48 @@ try {
 const { ButtonBuilder, ButtonStyle, ActionRowBuilder } = require(‘discord.js’);
 const E = require(’../../utils/embeds’);
 const ch = await client.channels.fetch(channelId);
-const embed = E.ticket(‘🎫 Support Tickets — DOT Esport’,
-‘> Need help? Click below to open a support ticket.\n\n`🎮` Game Support  `🏆` Tournament  `💎` Premium\n`🐛` Bug Report  `💬` General  `🚨` Report User’,
-[{ name: ‘📋 Rules’, value: ‘• Be respectful\n• One ticket at a time\n• Describe your issue clearly’, inline: false }]
-);
+const embed = E.ticket(‘Support Tickets’, ‘> Click below to open a support ticket.’);
 const row = new ActionRowBuilder().addComponents(
 new ButtonBuilder().setCustomId(‘ticket_open_general’).setLabel(‘Open a Ticket’).setStyle(ButtonStyle.Primary).setEmoji(‘🎫’)
 );
 await ch.send({ embeds: [embed], components: [row] });
-res.json({ success: true, message: `✅ Ticket panel posted to #${ch.name}` });
+res.json({ success: true, message: ‘Ticket panel posted to #’ + ch.name });
+} catch (e) { res.json({ success: false, error: e.message }); }
+});
+
+router.post(’/dashboard/:guildId/action/ticket-addrole’, isAuth, async (req, res) => {
+const client = req.app.locals.client;
+const guild = client.guilds.cache.get(req.params.guildId);
+if (!guild || !(await hasManage(guild, req.user.id))) return res.json({ success: false, error: ‘No access.’ });
+const { roleId } = req.body;
+if (!roleId) return res.json({ success: false, error: ‘No role ID.’ });
+const role = guild.roles.cache.get(roleId);
+if (!role) return res.json({ success: false, error: ‘Role not found.’ });
+try {
+const cfg = await Guild.findOne({ guildId: guild.id });
+const current = cfg?.tickets?.supportRoles?.length ? cfg.tickets.supportRoles : cfg?.tickets?.supportRole ? [cfg.tickets.supportRole] : [];
+if (current.includes(roleId)) return res.json({ success: false, error: ‘Already a support role.’ });
+if (current.length >= 10) return res.json({ success: false, error: ‘Maximum 10 support roles.’ });
+const updated = […current, roleId];
+await Guild.findOneAndUpdate({ guildId: guild.id }, { $set: { ‘tickets.supportRoles’: updated, ‘tickets.supportRole’: updated[0] } }, { upsert: true });
+res.json({ success: true, message: role.name + ’ added.’, roleName: role.name });
+} catch (e) { res.json({ success: false, error: e.message }); }
+});
+
+router.post(’/dashboard/:guildId/action/ticket-removerole’, isAuth, async (req, res) => {
+const client = req.app.locals.client;
+const guild = client.guilds.cache.get(req.params.guildId);
+if (!guild || !(await hasManage(guild, req.user.id))) return res.json({ success: false, error: ‘No access.’ });
+const { roleId } = req.body;
+if (!roleId) return res.json({ success: false, error: ‘No role ID.’ });
+try {
+const cfg = await Guild.findOne({ guildId: guild.id });
+const current = cfg?.tickets?.supportRoles || [];
+if (!current.includes(roleId)) return res.json({ success: false, error: ‘Not a support role.’ });
+const updated = current.filter(r => r !== roleId);
+await Guild.findOneAndUpdate({ guildId: guild.id }, { $set: { ‘tickets.supportRoles’: updated, ‘tickets.supportRole’: updated[0] || null } }, { upsert: true });
+const role = guild.roles.cache.get(roleId);
+res.json({ success: true, message: (role?.name || roleId) + ’ removed.’ });
 } catch (e) { res.json({ success: false, error: e.message }); }
 });
 
@@ -229,7 +233,7 @@ let count = 0;
 for (const [, ch] of guild.channels.cache.filter(c => c.type === ChannelType.GuildText)) {
 try { await ch.permissionOverwrites.edit(guild.roles.everyone, { SendMessages: lock ? false : null }); count++; } catch {}
 }
-res.json({ success: true, message: `${lock ? '🔒 Locked' : '🔓 Unlocked'} ${count} channels.` });
+res.json({ success: true, message: (lock ? ’Locked ’ : ’Unlocked ‘) + count + ’ channels.’ });
 });
 
 router.post(’/dashboard/:guildId/action/purge’, isAuth, async (req, res) => {
@@ -241,7 +245,7 @@ if (!channelId || !amount) return res.json({ success: false, error: ‘Missing c
 try {
 const ch = await client.channels.fetch(channelId);
 const deleted = await ch.bulkDelete(Math.min(100, parseInt(amount) || 10), true);
-res.json({ success: true, message: `🗑️ Deleted ${deleted.size} messages from #${ch.name}` });
+res.json({ success: true, message: ‘Deleted ’ + deleted.size + ’ messages from #’ + ch.name });
 } catch (e) { res.json({ success: false, error: e.message }); }
 });
 
@@ -250,12 +254,12 @@ const client = req.app.locals.client;
 const guild = client.guilds.cache.get(req.params.guildId);
 if (!guild || !(await hasManage(guild, req.user.id))) return res.json({ success: false, error: ‘No access.’ });
 const { userId, reason } = req.body;
-if (!userId) return res.json({ success: false, error: ‘No user ID provided.’ });
+if (!userId) return res.json({ success: false, error: ‘No user ID.’ });
 try {
-await guild.members.ban(userId, { reason: reason || `Dashboard ban by ${req.user.username}` });
+await guild.members.ban(userId, { reason: reason || ’Dashboard ban by ’ + req.user.username });
 const caseId = await Modlog.countDocuments({ guildId: guild.id }) + 1;
 await Modlog.create({ caseId, guildId: guild.id, type: ‘ban’, userId, modId: req.user.id, modTag: req.user.username, reason: reason || ‘Dashboard ban’ });
-res.json({ success: true, message: `🔨 User ${userId} banned. Case #${caseId}` });
+res.json({ success: true, message: ‘User ’ + userId + ’ banned. Case #’ + caseId });
 } catch (e) { res.json({ success: false, error: e.message }); }
 });
 
@@ -264,11 +268,11 @@ const client = req.app.locals.client;
 const guild = client.guilds.cache.get(req.params.guildId);
 if (!guild || !(await hasManage(guild, req.user.id))) return res.json({ success: false, error: ‘No access.’ });
 const { userId, reason } = req.body;
-if (!userId) return res.json({ success: false, error: ‘No user ID provided.’ });
+if (!userId) return res.json({ success: false, error: ‘No user ID.’ });
 try {
 const member = await guild.members.fetch(userId);
-await member.kick(reason || `Dashboard kick by ${req.user.username}`);
-res.json({ success: true, message: `👢 User kicked.` });
+await member.kick(reason || ’Dashboard kick by ’ + req.user.username);
+res.json({ success: true, message: ‘User kicked.’ });
 } catch (e) { res.json({ success: false, error: e.message }); }
 });
 
@@ -285,50 +289,10 @@ await ticket.save();
 const ch = await client.channels.fetch(ticket.channelId).catch(() => null);
 if (ch) {
 const E = require(’../../utils/embeds’);
-await ch.send({ embeds: [E.ticket(‘Ticket Closed’, `Closed from dashboard by **${req.user.username}**.`)] });
+await ch.send({ embeds: [E.ticket(‘Ticket Closed’, ’Closed from dashboard by ’ + req.user.username + ‘.’)] });
 setTimeout(() => ch.delete(‘Dashboard close’).catch(() => {}), 5000);
 }
-res.json({ success: true, message: `🎫 Ticket ${ticketId} closed.` });
-} catch (e) { res.json({ success: false, error: e.message }); }
-});
-
-// ── Ticket support role add ──────────────────────────────────
-router.post(’/dashboard/:guildId/action/ticket-addrole’, isAuth, async (req, res) => {
-const client = req.app.locals.client;
-const guild = client.guilds.cache.get(req.params.guildId);
-if (!guild || !(await hasManage(guild, req.user.id))) return res.json({ success: false, error: ‘No access.’ });
-const { roleId } = req.body;
-if (!roleId) return res.json({ success: false, error: ‘No role ID.’ });
-const role = guild.roles.cache.get(roleId);
-if (!role) return res.json({ success: false, error: ‘Role not found.’ });
-try {
-const cfg = await Guild.findOne({ guildId: guild.id });
-const current = cfg?.tickets?.supportRoles?.length
-? cfg.tickets.supportRoles
-: cfg?.tickets?.supportRole ? [cfg.tickets.supportRole] : [];
-if (current.includes(roleId)) return res.json({ success: false, error: ‘Role is already a support role.’ });
-if (current.length >= 10) return res.json({ success: false, error: ‘Maximum 10 support roles.’ });
-const updated = […current, roleId];
-await Guild.findOneAndUpdate({ guildId: guild.id }, { $set: { ‘tickets.supportRoles’: updated, ‘tickets.supportRole’: updated[0] } }, { upsert: true });
-res.json({ success: true, message: role.name + ’ added as support role.’, roleName: role.name });
-} catch (e) { res.json({ success: false, error: e.message }); }
-});
-
-// ── Ticket support role remove ────────────────────────────────
-router.post(’/dashboard/:guildId/action/ticket-removerole’, isAuth, async (req, res) => {
-const client = req.app.locals.client;
-const guild = client.guilds.cache.get(req.params.guildId);
-if (!guild || !(await hasManage(guild, req.user.id))) return res.json({ success: false, error: ‘No access.’ });
-const { roleId } = req.body;
-if (!roleId) return res.json({ success: false, error: ‘No role ID.’ });
-try {
-const cfg = await Guild.findOne({ guildId: guild.id });
-const current = cfg?.tickets?.supportRoles || [];
-if (!current.includes(roleId)) return res.json({ success: false, error: ‘Role is not a support role.’ });
-const updated = current.filter(r => r !== roleId);
-await Guild.findOneAndUpdate({ guildId: guild.id }, { $set: { ‘tickets.supportRoles’: updated, ‘tickets.supportRole’: updated[0] || null } }, { upsert: true });
-const role = guild.roles.cache.get(roleId);
-res.json({ success: true, message: (role?.name || roleId) + ’ removed from support roles.’ });
+res.json({ success: true, message: ‘Ticket ’ + ticketId + ’ closed.’ });
 } catch (e) { res.json({ success: false, error: e.message }); }
 });
 
@@ -342,12 +306,10 @@ try {
 const E = require(’../../utils/embeds’);
 const ch = await client.channels.fetch(channelId);
 const c = color ? parseInt(color.replace(’#’, ‘’), 16) : E.C.GOLD;
-await ch.send({ embeds: [E.make(isNaN(c) ? E.C.GOLD : c).setTitle(`📢  ${title}`).setDescription(message).setFooter({ text: `Announced by ${req.user.username}  ·  DeS Bot™` }).setTimestamp()] });
-res.json({ success: true, message: `📢 Announcement sent to #${ch.name}` });
+await ch.send({ embeds: [E.make(isNaN(c) ? E.C.GOLD : c).setTitle(’📢  ’ + title).setDescription(message).setFooter({ text: ‘Announced by ’ + req.user.username + ’  ·  DeS Bot’ }).setTimestamp()] });
+res.json({ success: true, message: ‘Announcement sent to #’ + ch.name });
 } catch (e) { res.json({ success: false, error: e.message }); }
 });
-
-// ── Data APIs ──────────────────────────────────────────────────
 
 router.get(’/api/guild/:id/stats’, isAuth, async (req, res) => {
 const client = req.app.locals.client;
