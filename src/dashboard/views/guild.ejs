@@ -2,100 +2,144 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title><%= guild.name %> — DeS Bot™ Dashboard</title>
+<title><%= guild.name %> — DeS Bot™</title>
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--gold:#D4AF37;--gold2:#FFD700;--bg:#070709;--bg2:#0D0D14;--bg3:#13131E;--bg4:#1A1A28;--text:#F0EDE8;--text2:#A89F8C;--text3:#6B6578;--border:rgba(212,175,55,0.15);--success:#00E676;--error:#FF2B4E;--warn:#FFB300}
+:root{--gold:#D4AF37;--gold2:#FFD700;--bg:#070709;--bg2:#0D0D14;--bg3:#13131E;--bg4:#1A1A28;--text:#F0EDE8;--text2:#A89F8C;--text3:#6B6578;--border:rgba(212,175,55,0.13);--success:#00E676;--error:#FF2B4E;--warn:#FFB300}
 body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;display:flex;flex-direction:column}
-body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(212,175,55,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(212,175,55,.02) 1px,transparent 1px);background-size:50px 50px;pointer-events:none;z-index:0}
-nav{display:flex;align-items:center;gap:16px;padding:0 32px;height:64px;background:rgba(7,7,9,.92);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200}
-.logo{font-family:'Orbitron',monospace;font-weight:900;font-size:1.2rem;background:linear-gradient(135deg,#FFD700,#D4AF37);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;margin-right:8px}
-.nav-sep{color:var(--text3);font-size:.9rem}
-.nav-guild{display:flex;align-items:center;gap:8px}
-.nav-guild img{width:28px;height:28px;border-radius:50%}
-.nav-guild span{font-size:.9rem;font-weight:600;color:var(--text)}
-.nav-spacer{flex:1}
-.nav-user{display:flex;align-items:center;gap:10px}
-.nav-user img{width:32px;height:32px;border-radius:50%;border:2px solid rgba(212,175,55,.3)}
-.nav-user span{font-size:.85rem;color:var(--text2)}
-.nav-back{color:var(--text3);text-decoration:none;font-size:.85rem;transition:color .2s;display:flex;align-items:center;gap:6px}
-.nav-back:hover{color:var(--gold)}
+body::after{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(212,175,55,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(212,175,55,.018) 1px,transparent 1px);background-size:50px 50px;pointer-events:none;z-index:0}
 
-.layout{display:flex;flex:1;position:relative;z-index:1}
+/* Nav */
+nav{display:flex;align-items:center;gap:14px;padding:0 28px;height:62px;background:rgba(7,7,9,.94);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:200;flex-shrink:0}
+.logo{font-family:'Orbitron',monospace;font-weight:900;font-size:1.15rem;background:linear-gradient(135deg,#FFD700,#D4AF37);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-sep{color:var(--text3)}
+.nav-guild{display:flex;align-items:center;gap:8px}
+.nav-guild img{width:26px;height:26px;border-radius:50%}
+.nav-guild span{font-size:.9rem;font-weight:600}
+.spacer{flex:1}
+.nav-user{display:flex;align-items:center;gap:9px}
+.nav-user img{width:30px;height:30px;border-radius:50%;border:2px solid rgba(212,175,55,.3)}
+.nav-user span{font-size:.82rem;color:var(--text2)}
+a.back{color:var(--text3);text-decoration:none;font-size:.83rem;transition:color .2s}
+a.back:hover{color:var(--gold)}
+
+/* Layout */
+.layout{display:flex;flex:1;position:relative;z-index:1;overflow:hidden}
 
 /* Sidebar */
-aside{width:240px;min-height:calc(100vh - 64px);background:var(--bg2);border-right:1px solid var(--border);padding:24px 0;flex-shrink:0;position:sticky;top:64px;height:calc(100vh - 64px);overflow-y:auto}
-.sidebar-section{margin-bottom:8px}
-.sidebar-label{font-size:.7rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);padding:8px 20px;font-family:'Rajdhani',sans-serif}
-.sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 20px;color:var(--text2);text-decoration:none;font-size:.88rem;font-weight:500;transition:all .15s;cursor:pointer;border-left:2px solid transparent}
-.sidebar-item:hover{background:rgba(212,175,55,.04);color:var(--text);border-left-color:rgba(212,175,55,.3)}
-.sidebar-item.active{background:rgba(212,175,55,.08);color:var(--gold);border-left-color:var(--gold);font-weight:600}
-.sidebar-item .icon{font-size:1rem;width:20px;text-align:center}
+aside{width:232px;background:var(--bg2);border-right:1px solid var(--border);flex-shrink:0;overflow-y:auto;position:sticky;top:62px;height:calc(100vh - 62px)}
+.sb-sec{margin-bottom:4px;padding-top:8px}
+.sb-lbl{font-size:.68rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--text3);padding:6px 18px 4px;font-family:'Rajdhani',sans-serif}
+.sb-item{display:flex;align-items:center;gap:9px;padding:9px 18px;color:var(--text2);font-size:.86rem;font-weight:500;transition:all .14s;cursor:pointer;border-left:2px solid transparent;user-select:none}
+.sb-item:hover{background:rgba(212,175,55,.04);color:var(--text);border-left-color:rgba(212,175,55,.25)}
+.sb-item.active{background:rgba(212,175,55,.08);color:var(--gold);border-left-color:var(--gold);font-weight:600}
+.sb-item .ic{width:18px;text-align:center;font-size:.95rem}
 
-/* Main content */
-.main-content{flex:1;padding:40px;overflow-y:auto}
+/* Content */
+.content{flex:1;overflow-y:auto;padding:36px 40px}
+.panel{display:none;animation:fadeIn .18s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* Page header */
+.ph{margin-bottom:28px}
+.ph h2{font-family:'Orbitron',monospace;font-size:1.25rem;font-weight:900;margin-bottom:4px}
+.ph p{color:var(--text2);font-size:.88rem}
 
 /* Stats row */
-.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:36px}
-.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:6px}
-.stat-card-val{font-family:'Orbitron',monospace;font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,var(--gold2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.stat-card-label{font-size:.78rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-family:'Rajdhani',sans-serif;font-weight:600}
+.srow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;margin-bottom:28px}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:18px}
+.sc-val{font-family:'Orbitron',monospace;font-size:1.7rem;font-weight:900;background:linear-gradient(135deg,var(--gold2),var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.sc-lbl{font-size:.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;font-family:'Rajdhani',sans-serif;font-weight:600;margin-top:5px}
 
-/* Panels */
-.panel{display:none}
-.panel.active{display:block}
-.panel-title{font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:900;margin-bottom:6px}
-.panel-sub{color:var(--text2);font-size:.9rem;margin-bottom:32px}
+/* Config grid */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.cc{background:var(--bg2);border:1px solid var(--border);border-radius:13px;padding:24px}
+.cc-title{font-family:'Rajdhani',sans-serif;font-size:.95rem;font-weight:700;letter-spacing:.04em;color:var(--text);margin-bottom:18px;display:flex;align-items:center;gap:7px}
 
-/* Config cards */
-.config-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px}
-.config-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:28px}
-.config-card-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;letter-spacing:.04em;margin-bottom:20px;display:flex;align-items:center;gap:8px;color:var(--text)}
-.form-group{margin-bottom:18px}
-.form-label{display:block;font-size:.8rem;font-weight:600;color:var(--text2);margin-bottom:7px;letter-spacing:.03em}
-.form-input,.form-select,.form-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--text);font-size:.9rem;font-family:'Inter',sans-serif;transition:border-color .2s;outline:none}
-.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:rgba(212,175,55,.5)}
-.form-textarea{resize:vertical;min-height:80px}
-.form-select option{background:var(--bg3)}
+/* Form */
+.fg{margin-bottom:15px}
+.fl{display:block;font-size:.77rem;font-weight:600;color:var(--text2);margin-bottom:6px;letter-spacing:.03em}
+.fl span{color:var(--text3);font-weight:400;font-size:.72rem;margin-left:5px}
+select.fi,input.fi,textarea.fi{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:9px 12px;color:var(--text);font-size:.88rem;font-family:'Inter',sans-serif;outline:none;transition:border-color .18s;-webkit-appearance:none}
+select.fi{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236B6578' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+select.fi option{background:var(--bg3)}
+select.fi:focus,input.fi:focus,textarea.fi:focus{border-color:rgba(212,175,55,.45)}
+textarea.fi{resize:vertical;min-height:72px}
 
-/* Toggle switch */
-.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:16px}
-.toggle-label{font-size:.88rem;color:var(--text2)}
-.toggle{position:relative;width:44px;height:24px;flex-shrink:0}
-.toggle input{opacity:0;width:0;height:0}
-.toggle-slider{position:absolute;inset:0;background:var(--bg4);border:1px solid var(--border);border-radius:100px;cursor:pointer;transition:all .25s}
-.toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;top:50%;transform:translateY(-50%);background:var(--text3);border-radius:50%;transition:all .25s}
-.toggle input:checked + .toggle-slider{background:rgba(212,175,55,.15);border-color:rgba(212,175,55,.4)}
-.toggle input:checked + .toggle-slider::before{transform:translateX(20px) translateY(-50%);background:var(--gold)}
+/* Toggle */
+.tr{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:4px 0}
+.tl{font-size:.86rem;color:var(--text2);flex:1}
+.tl small{display:block;font-size:.75rem;color:var(--text3);margin-top:2px}
+.tog{position:relative;width:42px;height:22px;flex-shrink:0}
+.tog input{opacity:0;width:0;height:0}
+.ts{position:absolute;inset:0;background:var(--bg4);border:1px solid rgba(255,255,255,.08);border-radius:100px;cursor:pointer;transition:all .22s}
+.ts::before{content:'';position:absolute;height:14px;width:14px;left:3px;top:50%;transform:translateY(-50%);background:var(--text3);border-radius:50%;transition:all .22s}
+.tog input:checked+.ts{background:rgba(212,175,55,.18);border-color:rgba(212,175,55,.45)}
+.tog input:checked+.ts::before{transform:translateX(20px) translateY(-50%);background:var(--gold)}
 
-/* Save button */
-.save-btn{background:linear-gradient(135deg,var(--gold2),var(--gold),#B8960C);color:#0a0800;font-weight:700;padding:12px 28px;border-radius:8px;border:none;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:1rem;letter-spacing:.06em;transition:all .2s;display:flex;align-items:center;gap:8px}
-.save-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(212,175,55,.4)}
-.save-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.save-footer{margin-top:28px;display:flex;align-items:center;gap:16px}
-.save-msg{font-size:.85rem;opacity:0;transition:opacity .3s}
-.save-msg.show{opacity:1}
-.save-msg.success{color:var(--success)}
-.save-msg.error{color:var(--error)}
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:7px;font-weight:700;font-family:'Rajdhani',sans-serif;font-size:.9rem;letter-spacing:.05em;cursor:pointer;border:none;transition:all .18s}
+.btn-gold{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#0a0800}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(212,175,55,.35)}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text2)}
+.btn-ghost:hover{border-color:rgba(212,175,55,.35);color:var(--text)}
+.btn-danger{background:rgba(255,43,78,.12);border:1px solid rgba(255,43,78,.25);color:var(--error)}
+.btn-danger:hover{background:rgba(255,43,78,.2)}
+.btn-success{background:rgba(0,230,118,.1);border:1px solid rgba(0,230,118,.25);color:var(--success)}
+.btn-sm{padding:7px 14px;font-size:.82rem}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none !important}
+
+/* Save footer */
+.sf{margin-top:22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.sm{font-size:.83rem;transition:opacity .25s;opacity:0}
+.sm.show{opacity:1}
+.sm.ok{color:var(--success)}
+.sm.err{color:var(--error)}
+
+/* Action card */
+.ac{background:var(--bg2);border:1px solid var(--border);border-radius:13px;padding:22px;display:flex;flex-direction:column;gap:14px}
+.ac-title{font-family:'Rajdhani',sans-serif;font-size:.92rem;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px}
+.ac-desc{font-size:.83rem;color:var(--text3);line-height:1.5}
+.ac-result{font-size:.82rem;padding:8px 12px;border-radius:6px;background:rgba(212,175,55,.06);border:1px solid var(--border);color:var(--text2);display:none}
+.ac-result.show{display:block}
+.ac-result.ok{background:rgba(0,230,118,.06);border-color:rgba(0,230,118,.2);color:var(--success)}
+.ac-result.err{background:rgba(255,43,78,.06);border-color:rgba(255,43,78,.2);color:var(--error)}
 
 /* Table */
-.data-table{width:100%;border-collapse:collapse;font-size:.88rem}
-.data-table th{text-align:left;padding:10px 14px;font-family:'Rajdhani',sans-serif;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)}
-.data-table td{padding:12px 14px;border-bottom:1px solid rgba(212,175,55,.06);color:var(--text2)}
-.data-table tr:hover td{background:rgba(212,175,55,.02)}
-.status-badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:.72rem;font-weight:700;font-family:'Rajdhani',sans-serif;letter-spacing:.06em}
-.status-open{background:rgba(0,230,118,.1);color:var(--success);border:1px solid rgba(0,230,118,.2)}
-.status-closed{background:rgba(255,43,78,.1);color:var(--error);border:1px solid rgba(255,43,78,.2)}
-.status-ongoing{background:rgba(255,179,0,.1);color:var(--warn);border:1px solid rgba(255,179,0,.2)}
+.tbl{width:100%;border-collapse:collapse;font-size:.85rem}
+.tbl th{text-align:left;padding:9px 12px;font-family:'Rajdhani',sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);border-bottom:1px solid var(--border)}
+.tbl td{padding:11px 12px;border-bottom:1px solid rgba(212,175,55,.05);color:var(--text2);vertical-align:middle}
+.tbl tr:hover td{background:rgba(212,175,55,.02)}
+.badge{display:inline-block;padding:2px 9px;border-radius:100px;font-size:.7rem;font-weight:700;font-family:'Rajdhani',sans-serif;letter-spacing:.06em}
+.b-open{background:rgba(0,230,118,.1);color:var(--success);border:1px solid rgba(0,230,118,.2)}
+.b-closed{background:rgba(255,43,78,.1);color:var(--error);border:1px solid rgba(255,43,78,.2)}
+.b-ongoing{background:rgba(255,179,0,.1);color:var(--warn);border:1px solid rgba(255,179,0,.2)}
+.b-bot{background:rgba(108,99,255,.1);color:#9b94ff;border:1px solid rgba(108,99,255,.2)}
 
 /* Empty state */
-.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
-.empty-state .icon{font-size:3rem;margin-bottom:12px;opacity:.4}
-.empty-state p{font-size:.9rem}
+.empty{text-align:center;padding:48px 20px;color:var(--text3)}
+.empty .ei{font-size:2.5rem;margin-bottom:10px;opacity:.3}
+.empty p{font-size:.88rem}
 
-@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.panel.active{animation:fadeIn .2s ease}
+/* Quick status grid */
+.qs{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px}
+.qs-item{background:var(--bg3);border:1px solid var(--border);border-radius:9px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between}
+.qs-name{font-size:.82rem;color:var(--text2)}
+.qs-val{font-size:.78rem;font-weight:700;font-family:'Rajdhani',sans-serif;letter-spacing:.05em}
+.qs-on{color:var(--success)}
+.qs-off{color:var(--text3)}
+
+/* Ping indicator */
+.ping-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+.ping-good{background:var(--success);box-shadow:0 0 6px var(--success)}
+.ping-ok{background:var(--warn);box-shadow:0 0 6px var(--warn)}
+.ping-bad{background:var(--error);box-shadow:0 0 6px var(--error)}
+
+/* Row helpers */
+.row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.row .fg{flex:1;min-width:140px}
 </style>
 </head>
 <body>
@@ -106,347 +150,545 @@ aside{width:240px;min-height:calc(100vh - 64px);background:var(--bg2);border-rig
     <% if(guild.icon){ %><img src="<%= guild.icon %>" alt=""><% } %>
     <span><%= guild.name %></span>
   </div>
-  <div class="nav-spacer"></div>
-  <a href="/dashboard" class="nav-back">← All Servers</a>
-  <div class="nav-user" style="margin-left:20px">
+  <div class="spacer"></div>
+  <a href="/dashboard" class="back">← All Servers</a>
+  <div class="nav-user" style="margin-left:16px">
     <img src="https://cdn.discordapp.com/avatars/<%= user.id %>/<%= user.avatar %>.png" alt="">
     <span><%= user.username %></span>
   </div>
 </nav>
 
 <div class="layout">
-  <aside>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Overview</div>
-      <a class="sidebar-item active" data-panel="overview"><span class="icon">📊</span> Overview</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Configuration</div>
-      <a class="sidebar-item" data-panel="welcome"><span class="icon">👋</span> Welcome/Farewell</a>
-      <a class="sidebar-item" data-panel="moderation"><span class="icon">🛡️</span> Moderation</a>
-      <a class="sidebar-item" data-panel="automod"><span class="icon">🤖</span> AutoMod</a>
-      <a class="sidebar-item" data-panel="antiraid"><span class="icon">🚨</span> Anti-Raid</a>
-      <a class="sidebar-item" data-panel="antinuke"><span class="icon">💣</span> Anti-Nuke</a>
-      <a class="sidebar-item" data-panel="tickets"><span class="icon">🎫</span> Tickets</a>
-      <a class="sidebar-item" data-panel="leveling"><span class="icon">📈</span> Leveling</a>
-      <a class="sidebar-item" data-panel="logs"><span class="icon">📝</span> Logging</a>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-label">Data</div>
-      <a class="sidebar-item" data-panel="tournaments"><span class="icon">🏆</span> Tournaments</a>
-      <a class="sidebar-item" data-panel="ticketlist"><span class="icon">📋</span> Ticket List</a>
-      <a class="sidebar-item" data-panel="leaderboard"><span class="icon">🏅</span> Leaderboard</a>
-    </div>
-  </aside>
+<aside>
+  <div class="sb-sec">
+    <div class="sb-lbl">Overview</div>
+    <div class="sb-item active" data-p="overview"><span class="ic">📊</span> Overview</div>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Configuration</div>
+    <div class="sb-item" data-p="welcome"><span class="ic">👋</span> Welcome/Farewell</div>
+    <div class="sb-item" data-p="logging"><span class="ic">📝</span> Logging</div>
+    <div class="sb-item" data-p="automod"><span class="ic">🤖</span> AutoMod</div>
+    <div class="sb-item" data-p="antiraid"><span class="ic">🚨</span> Anti-Raid</div>
+    <div class="sb-item" data-p="antinuke"><span class="ic">💣</span> Anti-Nuke</div>
+    <div class="sb-item" data-p="tickets"><span class="ic">🎫</span> Tickets</div>
+    <div class="sb-item" data-p="leveling"><span class="ic">📈</span> Leveling</div>
+    <div class="sb-item" data-p="roles"><span class="ic">🎭</span> Roles</div>
+    <div class="sb-item" data-p="suggestions"><span class="ic">💡</span> Suggestions</div>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Actions</div>
+    <div class="sb-item" data-p="modactions"><span class="ic">🛡️</span> Mod Actions</div>
+    <div class="sb-item" data-p="announce"><span class="ic">📢</span> Announce</div>
+  </div>
+  <div class="sb-sec">
+    <div class="sb-lbl">Data</div>
+    <div class="sb-item" data-p="tournaments"><span class="ic">🏆</span> Tournaments</div>
+    <div class="sb-item" data-p="ticketlist"><span class="ic">📋</span> Ticket List</div>
+    <div class="sb-item" data-p="modlogs"><span class="ic">⚖️</span> Mod Logs</div>
+    <div class="sb-item" data-p="leaderboard"><span class="ic">🏅</span> Leaderboard</div>
+    <div class="sb-item" data-p="members"><span class="ic">👥</span> Members</div>
+  </div>
+</aside>
 
-  <div class="main-content">
+<div class="content">
 
-    <!-- Overview -->
-    <div class="panel active" id="panel-overview">
-      <div class="panel-title">Server Overview</div>
-      <div class="panel-sub">Real-time statistics for <strong><%= guild.name %></strong></div>
-      <div class="stats-row">
-        <div class="stat-card"><div class="stat-card-val" id="stat-members"><%= stats.members %></div><div class="stat-card-label">Members</div></div>
-        <div class="stat-card"><div class="stat-card-val" id="stat-tickets"><%= stats.openTickets %></div><div class="stat-card-label">Open Tickets</div></div>
-        <div class="stat-card"><div class="stat-card-val" id="stat-tournaments"><%= stats.activeTournaments %></div><div class="stat-card-label">Active Tourneys</div></div>
-        <div class="stat-card"><div class="stat-card-val"><%= stats.channels %></div><div class="stat-card-label">Channels</div></div>
-        <div class="stat-card"><div class="stat-card-val"><%= stats.roles %></div><div class="stat-card-label">Roles</div></div>
-        <div class="stat-card"><div class="stat-card-val"><%= stats.totalBans %></div><div class="stat-card-label">Total Bans</div></div>
-      </div>
-      <div class="config-grid">
-        <div class="config-card">
-          <div class="config-card-title">⚙️ Quick Status</div>
-          <% const items = [
-            ['👋 Welcome', cfg.welcome?.enabled],
-            ['👋 Farewell', cfg.farewell?.enabled],
-            ['🛡️ AutoMod', cfg.moderation?.autoMod],
-            ['🚨 Anti-Raid', cfg.antiRaid?.enabled],
-            ['💣 Anti-Nuke', cfg.antiNuke?.enabled],
-            ['🎫 Tickets', cfg.tickets?.enabled],
-            ['📈 Leveling', cfg.leveling?.enabled],
-            ['📝 Logging', cfg.logging?.enabled],
-          ]; %>
-          <% items.forEach(([label, val]) => { %>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(212,175,55,.06)">
-            <span style="font-size:.9rem;color:var(--text2)"><%= label %></span>
-            <span style="font-size:.8rem;font-weight:700;font-family:'Rajdhani',sans-serif;color:<%= val ? 'var(--success)' : 'var(--text3)' %>"><%= val ? '✅ ENABLED' : '❌ DISABLED' %></span>
-          </div>
-          <% }) %>
+<!-- ── OVERVIEW ── -->
+<div class="panel active" id="panel-overview">
+  <div class="ph"><h2>Server Overview</h2><p>Real-time stats and configuration status for <strong><%= guild.name %></strong></p></div>
+  <div class="srow">
+    <div class="sc"><div class="sc-val"><%= stats.members %></div><div class="sc-lbl">Members</div></div>
+    <div class="sc"><div class="sc-val" id="stat-tickets"><%= stats.openTickets %></div><div class="sc-lbl">Open Tickets</div></div>
+    <div class="sc"><div class="sc-val"><%= stats.activeTournaments %></div><div class="sc-lbl">Tournaments</div></div>
+    <div class="sc"><div class="sc-val"><%= stats.totalBans %></div><div class="sc-lbl">Total Bans</div></div>
+    <div class="sc"><div class="sc-val"><%= stats.totalCases %></div><div class="sc-lbl">Mod Cases</div></div>
+    <div class="sc"><div class="sc-val"><%= stats.channels %></div><div class="sc-lbl">Channels</div></div>
+  </div>
+  <div class="cgrid">
+    <div class="cc">
+      <div class="cc-title">⚙️ Feature Status</div>
+      <div class="qs">
+        <%
+        const feats = [
+          ['Welcome', cfg.welcome && cfg.welcome.enabled],
+          ['Farewell', cfg.farewell && cfg.farewell.enabled],
+          ['AutoMod', cfg.moderation && cfg.moderation.autoMod],
+          ['Anti-Raid', cfg.antiRaid && cfg.antiRaid.enabled],
+          ['Anti-Nuke', cfg.antiNuke && cfg.antiNuke.enabled],
+          ['Tickets', cfg.tickets && cfg.tickets.enabled],
+          ['Leveling', cfg.leveling && cfg.leveling.enabled],
+          ['Logging', cfg.logging && cfg.logging.enabled],
+        ];
+        feats.forEach(([name, on]) => { %>
+        <div class="qs-item">
+          <span class="qs-name"><%= name %></span>
+          <span class="qs-val <%= on ? 'qs-on' : 'qs-off' %>"><%= on ? '✅ ON' : '❌ OFF' %></span>
         </div>
-        <div class="config-card">
-          <div class="config-card-title">💡 Quick Start</div>
-          <p style="font-size:.88rem;color:var(--text2);line-height:1.7;margin-bottom:16px">Configure your server using the panels on the left. Don't forget to save each section!</p>
-          <p style="font-size:.82rem;color:var(--text3);line-height:1.7">You can also use <code style="background:rgba(212,175,55,.08);padding:2px 6px;border-radius:4px;color:var(--gold)">/setup wizard</code> in Discord for a guided setup.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Welcome/Farewell -->
-    <div class="panel" id="panel-welcome">
-      <div class="panel-title">Welcome & Farewell</div>
-      <div class="panel-sub">Configure join and leave messages for your server.</div>
-      <div class="config-grid">
-        <div class="config-card">
-          <div class="config-card-title">👋 Welcome Messages</div>
-          <div class="form-group">
-            <div class="toggle-row">
-              <span class="toggle-label">Enable Welcome Messages</span>
-              <label class="toggle"><input type="checkbox" id="welcomeEnabled" <%= cfg.welcome?.enabled ? 'checked' : '' %>><span class="toggle-slider"></span></label>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Welcome Channel ID</label>
-            <input type="text" class="form-input" id="welcomeChannel" placeholder="Channel ID" value="<%= cfg.channels?.welcome || '' %>">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Welcome Message <span style="color:var(--text3);font-size:.75rem">— {user} {server} {count}</span></label>
-            <textarea class="form-textarea" id="welcomeMessage" placeholder="Welcome {user} to {server}! You are member #{count}!"><%= cfg.welcome?.message || '' %></textarea>
-          </div>
-          <div class="form-group">
-            <div class="toggle-row">
-              <span class="toggle-label">Ping on Join</span>
-              <label class="toggle"><input type="checkbox" id="welcomePing" <%= cfg.welcome?.ping ? 'checked' : '' %>><span class="toggle-slider"></span></label>
-            </div>
-          </div>
-          <div class="form-group">
-            <div class="toggle-row">
-              <span class="toggle-label">DM New Members</span>
-              <label class="toggle"><input type="checkbox" id="welcomeDm" <%= cfg.welcome?.dm ? 'checked' : '' %>><span class="toggle-slider"></span></label>
-            </div>
-          </div>
-        </div>
-        <div class="config-card">
-          <div class="config-card-title">👋 Farewell Messages</div>
-          <div class="form-group">
-            <div class="toggle-row">
-              <span class="toggle-label">Enable Farewell Messages</span>
-              <label class="toggle"><input type="checkbox" id="farewellEnabled" <%= cfg.farewell?.enabled ? 'checked' : '' %>><span class="toggle-slider"></span></label>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Farewell Channel ID</label>
-            <input type="text" class="form-input" id="farewellChannel" placeholder="Channel ID" value="<%= cfg.channels?.farewell || '' %>">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Farewell Message <span style="color:var(--text3);font-size:.75rem">— {user} {server} {count}</span></label>
-            <textarea class="form-textarea" id="farewellMessage" placeholder="{user} has left {server}."><%= cfg.farewell?.message || '' %></textarea>
-          </div>
-        </div>
-      </div>
-      <div class="save-footer">
-        <button class="save-btn" onclick="save()">💾 Save Changes</button>
-        <span class="save-msg" id="save-msg"></span>
+        <% }) %>
       </div>
     </div>
-
-    <!-- AutoMod -->
-    <div class="panel" id="panel-automod">
-      <div class="panel-title">Auto-Moderation</div>
-      <div class="panel-sub">Automatically moderate messages in your server.</div>
-      <div class="config-grid">
-        <div class="config-card">
-          <div class="config-card-title">🤖 AutoMod Settings</div>
-          <div class="form-group"><div class="toggle-row"><span class="toggle-label">Enable AutoMod</span><label class="toggle"><input type="checkbox" id="autoMod" <%= cfg.moderation?.autoMod ? 'checked' : '' %>><span class="toggle-slider"></span></label></div></div>
-          <div class="form-group"><div class="toggle-row"><span class="toggle-label">Anti-Spam (5 msgs/5s)</span><label class="toggle"><input type="checkbox" id="antiSpam" <%= cfg.moderation?.antiSpam ? 'checked' : '' %>><span class="toggle-slider"></span></label></div></div>
-          <div class="form-group"><div class="toggle-row"><span class="toggle-label">Block External Links</span><label class="toggle"><input type="checkbox" id="antiLinks" <%= cfg.moderation?.antiLinks ? 'checked' : '' %>><span class="toggle-slider"></span></label></div></div>
-          <div class="form-group"><div class="toggle-row"><span class="toggle-label">Block Discord Invites</span><label class="toggle"><input type="checkbox" id="antiInvites" <%= cfg.moderation?.antiInvites ? 'checked' : '' %>><span class="toggle-slider"></span></label></div></div>
-        </div>
+    <div class="cc">
+      <div class="cc-title">🤖 Bot Status</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="qs-item"><span class="qs-name">Status</span><span class="qs-val qs-on">🟢 Online</span></div>
+        <div class="qs-item"><span class="qs-name">Ping</span><span class="qs-val" id="bot-ping">Loading...</span></div>
+        <div class="qs-item"><span class="qs-name">Commands</span><span class="qs-val" style="color:var(--gold)">16 Loaded</span></div>
       </div>
-      <div class="save-footer"><button class="save-btn" onclick="save()">💾 Save Changes</button><span class="save-msg" id="save-msg"></span></div>
-    </div>
-
-    <!-- Anti-Raid -->
-    <div class="panel" id="panel-antiraid">
-      <div class="panel-title">Anti-Raid</div>
-      <div class="panel-sub">Protect your server from join-flood raids.</div>
-      <div class="config-grid">
-        <div class="config-card">
-          <div class="config-card-title">🚨 Anti-Raid Settings</div>
-          <div class="form-group"><div class="toggle-row"><span class="toggle-label">Enable Anti-Raid</span><label class="toggle"><input type="checkbox" id="antiRaidEnabled" <%= cfg.antiRaid?.enabled ? 'checked' : '' %>><span class="toggle-slider"></span></label></div></div>
-          <div class="form-group"><label class="form-label">Join Threshold (joins to trigger)</label><input type="number" class="form-input" id="antiRaidThreshold" min="2" max="50" value="<%= cfg.antiRaid?.threshold || 10 %>"></div>
-          <div class="form-group"><label class="form-label">Time Window (seconds)</label><input type="number" class="form-input" id="antiRaidWindow" min="5" max="60" value="<%= cfg.antiRaid?.window || 10 %>"></div>
-          <div class="form-group"><label class="form-label">Action on Trigger</label>
-            <select class="form-select" id="antiRaidAction">
-              <option value="kick" <%= cfg.antiRaid?.action==='kick' ? 'selected' : '' %>>Kick</option>
-              <option value="ban" <%= cfg.antiRaid?.action==='ban' ? 'selected' : '' %>>Ban</option>
-            </select>
-          </div>
-        </div>
+      <div style="margin-top:16px;font-size:.8rem;color:var(--text3);line-height:1.6">
+        Use the sidebar to configure each feature. Changes are saved to the database and take effect immediately on Discord.
       </div>
-      <div class="save-footer"><button class="save-btn" onclick="save()">💾 Save Changes</button><span class="save-msg" id="save-msg"></span></div>
     </div>
+  </div>
+</div>
 
-    <!-- Anti-Nuke -->
-    <div class="panel" id="panel-antinuke">
-      <div class="panel-title">Anti-Nuke</div>
-      <div class="panel-sub">Protect against mass deletions, bans, and nuke attacks.</div>
-      <div class="config-grid">
-        <div class="config-card">
-          <div class="config-card-title">💣 Anti-Nuke Settings</div>
-          <div class="form-group"><div class="toggle-row"><span class="toggle-label">Enable Anti-Nuke</span><label class="toggle"><input type="checkbox" id="antiNukeEnabled" <%= cfg.antiNuke?.enabled ? 'checked' : '' %>><span class="toggle-slider"></span></label></div></div>
-          <div class="form-group"><label class="form-label">Action Threshold (before triggering)</label><input type="number" class="form-input" id="antiNukeThreshold" min="1" max="10" value="<%= cfg.antiNuke?.threshold || 3 %>"></div>
-          <div class="form-group"><label class="form-label">Action on Trigger</label>
-            <select class="form-select" id="antiNukeAction">
-              <option value="ban" <%= cfg.antiNuke?.action==='ban' ? 'selected' : '' %>>Ban</option>
-              <option value="kick" <%= cfg.antiNuke?.action==='kick' ? 'selected' : '' %>>Kick</option>
-            </select>
-          </div>
-        </div>
+<!-- ── WELCOME / FAREWELL ── -->
+<div class="panel" id="panel-welcome">
+  <div class="ph"><h2>Welcome & Farewell</h2><p>Configure join and leave messages. Changes apply immediately.</p></div>
+  <div class="cgrid">
+    <div class="cc">
+      <div class="cc-title">👋 Welcome Messages</div>
+      <div class="fg"><div class="tr"><div class="tl">Enable Welcome Messages<small>Send a message when someone joins</small></div><label class="tog"><input type="checkbox" id="welcomeEnabled" <%= (cfg.welcome && cfg.welcome.enabled) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg">
+        <label class="fl">Welcome Channel</label>
+        <select class="fi" id="welcomeChannel">
+          <option value="">— Select Channel —</option>
+          <% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.welcome === c.id) ? 'selected' : '' %>>#<%= c.name %> (<%= c.category %>)</option><% }) %>
+        </select>
       </div>
-      <div class="save-footer"><button class="save-btn" onclick="save()">💾 Save Changes</button><span class="save-msg" id="save-msg"></span></div>
-    </div>
-
-    <!-- Moderation -->
-    <div class="panel" id="panel-moderation">
-      <div class="panel-title">Moderation Logs</div>
-      <div class="panel-sub">Configure moderation log channels.</div>
-      <div class="config-grid">
-        <div class="config-card">
-          <div class="config-card-title">🛡️ Log Channels</div>
-          <div class="form-group"><div class="toggle-row"><span class="toggle-label">Enable Logging</span><label class="toggle"><input type="checkbox" id="logsEnabled" <%= cfg.logging?.enabled ? 'checked' : '' %>><span class="toggle-slider"></span></label></div></div>
-          <div class="form-group"><label class="form-label">General Log Channel ID</label><input type="text" class="form-input" id="logsChannel" placeholder="Channel ID" value="<%= cfg.channels?.logs || '' %>"></div>
-          <div class="form-group"><label class="form-label">Mod Log Channel ID</label><input type="text" class="form-input" id="modLogsChannel" placeholder="Channel ID" value="<%= cfg.channels?.modLogs || '' %>"></div>
-        </div>
+      <div class="fg">
+        <label class="fl">Welcome Message <span>Variables: {user} {server} {count}</span></label>
+        <textarea class="fi" id="welcomeMessage" rows="3"><%= (cfg.welcome && cfg.welcome.message) || 'Welcome {user} to **{server}**! You are member **#{count}**! 🎮' %></textarea>
       </div>
-      <div class="save-footer"><button class="save-btn" onclick="save()">💾 Save Changes</button><span class="save-msg" id="save-msg"></span></div>
-    </div>
-
-    <!-- Tickets -->
-    <div class="panel" id="panel-tickets">
-      <div class="panel-title">Ticket System</div>
-      <div class="panel-sub">Configure the support ticket system.</div>
-      <div class="config-grid">
-        <div class="config-card">
-          <div class="config-card-title">🎫 Ticket Settings</div>
-          <div class="form-group"><div class="toggle-row"><span class="toggle-label">Enable Ticket System</span><label class="toggle"><input type="checkbox" id="ticketsEnabled" <%= cfg.tickets?.enabled ? 'checked' : '' %>><span class="toggle-slider"></span></label></div></div>
-          <div class="form-group"><label class="form-label">Support Role ID</label><input type="text" class="form-input" id="ticketSupportRole" placeholder="Role ID" value="<%= cfg.tickets?.supportRole || '' %>"></div>
-          <p style="font-size:.82rem;color:var(--text3);margin-top:12px">After saving, use <code style="background:rgba(212,175,55,.08);padding:2px 6px;border-radius:4px;color:var(--gold)">/ticket panel</code> in Discord to post the ticket panel.</p>
-        </div>
+      <div class="fg"><div class="tr"><div class="tl">Ping on Join<small>Mention the member in the message</small></div><label class="tog"><input type="checkbox" id="welcomePing" <%= (cfg.welcome && cfg.welcome.ping) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg"><div class="tr"><div class="tl">DM New Members<small>Send them a DM when they join</small></div><label class="tog"><input type="checkbox" id="welcomeDm" <%= (cfg.welcome && cfg.welcome.dm) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg">
+        <label class="fl">DM Message <span>(optional)</span></label>
+        <textarea class="fi" id="welcomeDmMessage" rows="2"><%= (cfg.welcome && cfg.welcome.dmMsg) || '' %></textarea>
       </div>
-      <div class="save-footer"><button class="save-btn" onclick="save()">💾 Save Changes</button><span class="save-msg" id="save-msg"></span></div>
-    </div>
-
-    <!-- Leveling -->
-    <div class="panel" id="panel-leveling">
-      <div class="panel-title">Leveling & XP</div>
-      <div class="panel-sub">Configure the XP and leveling system.</div>
-      <div class="config-grid">
-        <div class="config-card">
-          <div class="config-card-title">📈 Leveling Settings</div>
-          <div class="form-group"><div class="toggle-row"><span class="toggle-label">Enable Leveling</span><label class="toggle"><input type="checkbox" id="levelingEnabled" <%= cfg.leveling?.enabled ? 'checked' : '' %>><span class="toggle-slider"></span></label></div></div>
-          <div class="form-group"><label class="form-label">XP per Message</label><input type="number" class="form-input" id="xpPerMsg" min="1" max="100" value="<%= cfg.leveling?.xpPerMsg || 15 %>"></div>
-          <div class="form-group"><label class="form-label">XP Cooldown (seconds)</label><input type="number" class="form-input" id="levelCooldown" min="5" max="300" value="<%= cfg.leveling?.cooldown || 60 %>"></div>
-        </div>
+      <div class="fg">
+        <label class="fl">Banner Image URL <span>(optional)</span></label>
+        <input type="text" class="fi" id="welcomeBanner" placeholder="https://..." value="<%= (cfg.welcome && cfg.welcome.banner) || '' %>">
       </div>
-      <div class="save-footer"><button class="save-btn" onclick="save()">💾 Save Changes</button><span class="save-msg" id="save-msg"></span></div>
-    </div>
-
-    <!-- Logs -->
-    <div class="panel" id="panel-logs">
-      <div class="panel-title">Message Logging</div>
-      <div class="panel-sub">Track message edits, deletions, and member events.</div>
-      <div class="config-grid">
-        <div class="config-card">
-          <div class="config-card-title">📝 Message Log Channel</div>
-          <div class="form-group"><label class="form-label">Message Log Channel ID</label><input type="text" class="form-input" id="msgLogsChannel" placeholder="Channel ID" value="<%= cfg.channels?.msgLogs || '' %>"></div>
-          <p style="font-size:.82rem;color:var(--text3);margin-top:8px">Logs deleted and edited messages to this channel.</p>
-        </div>
+      <div class="sf">
+        <button class="btn btn-gold" onclick="save('welcome')">💾 Save Welcome</button>
+        <button class="btn btn-ghost btn-sm" onclick="action('test-welcome')">🧪 Test Now</button>
+        <span class="sm" id="sm-welcome"></span>
       </div>
-      <div class="save-footer"><button class="save-btn" onclick="save()">💾 Save Changes</button><span class="save-msg" id="save-msg"></span></div>
     </div>
-
-    <!-- Tournaments -->
-    <div class="panel" id="panel-tournaments">
-      <div class="panel-title">Tournaments</div>
-      <div class="panel-sub">Active and recent tournaments in this server.</div>
-      <div id="tournament-table-wrap"><div class="empty-state"><div class="icon">🏆</div><p>Loading...</p></div></div>
+    <div class="cc">
+      <div class="cc-title">👋 Farewell Messages</div>
+      <div class="fg"><div class="tr"><div class="tl">Enable Farewell Messages<small>Send a message when someone leaves</small></div><label class="tog"><input type="checkbox" id="farewellEnabled" <%= (cfg.farewell && cfg.farewell.enabled) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg">
+        <label class="fl">Farewell Channel</label>
+        <select class="fi" id="farewellChannel">
+          <option value="">— Select Channel —</option>
+          <% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.farewell === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %>
+        </select>
+      </div>
+      <div class="fg">
+        <label class="fl">Farewell Message <span>Variables: {user} {server} {count}</span></label>
+        <textarea class="fi" id="farewellMessage" rows="3"><%= (cfg.farewell && cfg.farewell.message) || '**{user}** has left **{server}**.' %></textarea>
+      </div>
+      <div class="sf">
+        <button class="btn btn-gold" onclick="save('farewell')">💾 Save Farewell</button>
+        <button class="btn btn-ghost btn-sm" onclick="action('test-farewell')">🧪 Test Now</button>
+        <span class="sm" id="sm-farewell"></span>
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- Ticket List -->
-    <div class="panel" id="panel-ticketlist">
-      <div class="panel-title">Open Tickets</div>
-      <div class="panel-sub">All active support tickets.</div>
-      <div id="ticket-table-wrap"><div class="empty-state"><div class="icon">🎫</div><p>Loading...</p></div></div>
+<!-- ── LOGGING ── -->
+<div class="panel" id="panel-logging">
+  <div class="ph"><h2>Logging</h2><p>Track message edits, deletions, bans, joins and more.</p></div>
+  <div class="cgrid">
+    <div class="cc">
+      <div class="cc-title">📝 Log Channels</div>
+      <div class="fg"><div class="tr"><div class="tl">Enable Logging</div><label class="tog"><input type="checkbox" id="logsEnabled" <%= (cfg.logging && cfg.logging.enabled) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg"><label class="fl">General Log Channel</label><select class="fi" id="logsChannel"><option value="">— None —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.logs === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
+      <div class="fg"><label class="fl">Moderation Log Channel</label><select class="fi" id="modLogsChannel"><option value="">— None —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.modLogs === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
+      <div class="fg"><label class="fl">Message Log Channel</label><select class="fi" id="msgLogsChannel"><option value="">— None —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.msgLogs === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
+      <div class="fg"><label class="fl">Join/Leave Log Channel</label><select class="fi" id="joinLogsChannel"><option value="">— None —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.joinLogs === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
+      <div class="sf"><button class="btn btn-gold" onclick="save('logging')">💾 Save Logging</button><span class="sm" id="sm-logging"></span></div>
     </div>
+  </div>
+</div>
 
-    <!-- Leaderboard -->
-    <div class="panel" id="panel-leaderboard">
-      <div class="panel-title">Leaderboard</div>
-      <div class="panel-sub">Top players by points.</div>
-      <div id="lb-table-wrap"><div class="empty-state"><div class="icon">🏅</div><p>Loading...</p></div></div>
+<!-- ── AUTOMOD ── -->
+<div class="panel" id="panel-automod">
+  <div class="ph"><h2>Auto-Moderation</h2><p>Automatically filter messages in your server. Active immediately after saving.</p></div>
+  <div class="cgrid">
+    <div class="cc">
+      <div class="cc-title">🤖 AutoMod Rules</div>
+      <div class="fg"><div class="tr"><div class="tl">Enable AutoMod<small>Master switch for all auto-mod rules</small></div><label class="tog"><input type="checkbox" id="autoMod" <%= (cfg.moderation && cfg.moderation.autoMod) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg"><div class="tr"><div class="tl">Anti-Spam<small>Delete if 5+ messages in 5 seconds</small></div><label class="tog"><input type="checkbox" id="antiSpam" <%= (cfg.moderation && cfg.moderation.antiSpam) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg"><div class="tr"><div class="tl">Block External Links<small>Delete messages containing URLs</small></div><label class="tog"><input type="checkbox" id="antiLinks" <%= (cfg.moderation && cfg.moderation.antiLinks) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg"><div class="tr"><div class="tl">Block Discord Invites<small>Delete discord.gg invite links</small></div><label class="tog"><input type="checkbox" id="antiInvites" <%= (cfg.moderation && cfg.moderation.antiInvites) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg"><div class="tr"><div class="tl">Anti-Caps<small>Delete if >70% caps (10+ char messages)</small></div><label class="tog"><input type="checkbox" id="antiCaps" <%= (cfg.moderation && cfg.moderation.antiCaps) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg">
+        <label class="fl">Bad Words <span>comma-separated</span></label>
+        <input type="text" class="fi" id="badWords" placeholder="word1, word2, word3" value="<%= (cfg.moderation && cfg.moderation.badWords) ? cfg.moderation.badWords.join(', ') : '' %>">
+      </div>
+      <div class="sf"><button class="btn btn-gold" onclick="save('automod')">💾 Save AutoMod</button><span class="sm" id="sm-automod"></span></div>
     </div>
+  </div>
+</div>
 
-  </div><!-- main-content -->
+<!-- ── ANTI-RAID ── -->
+<div class="panel" id="panel-antiraid">
+  <div class="ph"><h2>Anti-Raid</h2><p>Automatically detect and stop join-flood attacks.</p></div>
+  <div class="cgrid">
+    <div class="cc">
+      <div class="cc-title">🚨 Anti-Raid Settings</div>
+      <div class="fg"><div class="tr"><div class="tl">Enable Anti-Raid</div><label class="tog"><input type="checkbox" id="antiRaidEnabled" <%= (cfg.antiRaid && cfg.antiRaid.enabled) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg"><label class="fl">Join Threshold <span>how many joins trigger it</span></label><input type="number" class="fi" id="antiRaidThreshold" min="2" max="50" value="<%= (cfg.antiRaid && cfg.antiRaid.threshold) || 10 %>"></div>
+      <div class="fg"><label class="fl">Time Window <span>seconds</span></label><input type="number" class="fi" id="antiRaidWindow" min="5" max="60" value="<%= (cfg.antiRaid && cfg.antiRaid.window) || 10 %>"></div>
+      <div class="fg"><label class="fl">Action</label><select class="fi" id="antiRaidAction"><option value="kick" <%= (!cfg.antiRaid || cfg.antiRaid.action === 'kick') ? 'selected' : '' %>>Kick raiders</option><option value="ban" <%= (cfg.antiRaid && cfg.antiRaid.action === 'ban') ? 'selected' : '' %>>Ban raiders</option></select></div>
+      <div class="sf"><button class="btn btn-gold" onclick="save('antiraid')">💾 Save Anti-Raid</button><span class="sm" id="sm-antiraid"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ANTI-NUKE ── -->
+<div class="panel" id="panel-antinuke">
+  <div class="ph"><h2>Anti-Nuke</h2><p>Detect and stop mass channel/role deletions and mass bans.</p></div>
+  <div class="cgrid">
+    <div class="cc">
+      <div class="cc-title">💣 Anti-Nuke Settings</div>
+      <div class="fg"><div class="tr"><div class="tl">Enable Anti-Nuke<small>Monitors mass deletions and bans in real-time</small></div><label class="tog"><input type="checkbox" id="antiNukeEnabled" <%= (cfg.antiNuke && cfg.antiNuke.enabled) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg"><label class="fl">Action Threshold <span>actions in 10s before triggering</span></label><input type="number" class="fi" id="antiNukeThreshold" min="1" max="10" value="<%= (cfg.antiNuke && cfg.antiNuke.threshold) || 3 %>"></div>
+      <div class="fg"><label class="fl">Action on Trigger</label><select class="fi" id="antiNukeAction"><option value="ban" <%= (!cfg.antiNuke || cfg.antiNuke.action === 'ban') ? 'selected' : '' %>>Ban the executor</option><option value="kick" <%= (cfg.antiNuke && cfg.antiNuke.action === 'kick') ? 'selected' : '' %>>Kick the executor</option></select></div>
+      <div class="sf"><button class="btn btn-gold" onclick="save('antinuke')">💾 Save Anti-Nuke</button><span class="sm" id="sm-antinuke"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TICKETS ── -->
+<div class="panel" id="panel-tickets">
+  <div class="ph"><h2>Ticket System</h2><p>Configure support tickets. Post the panel to a channel to go live.</p></div>
+  <div class="cgrid">
+    <div class="cc">
+      <div class="cc-title">🎫 Ticket Settings</div>
+      <div class="fg"><div class="tr"><div class="tl">Enable Ticket System</div><label class="tog"><input type="checkbox" id="ticketsEnabled" <%= (cfg.tickets && cfg.tickets.enabled) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg"><label class="fl">Support Staff Role</label><select class="fi" id="ticketSupportRole"><option value="">— Select Role —</option><% roles.forEach(r => { %><option value="<%= r.id %>" <%= (cfg.tickets && cfg.tickets.supportRole === r.id) ? 'selected' : '' %>>@<%= r.name %></option><% }) %></select></div>
+      <div class="fg"><label class="fl">Ticket Log Channel</label><select class="fi" id="ticketLogChannel"><option value="">— None —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.ticketLogs === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
+      <div class="fg"><label class="fl">Max Open Tickets Per User</label><input type="number" class="fi" id="ticketMaxOpen" min="1" max="5" value="<%= (cfg.tickets && cfg.tickets.maxOpen) || 1 %>"></div>
+      <div class="sf"><button class="btn btn-gold" onclick="save('tickets')">💾 Save Tickets</button><span class="sm" id="sm-tickets"></span></div>
+    </div>
+    <div class="cc">
+      <div class="cc-title">📌 Post Ticket Panel</div>
+      <div class="ac-desc" style="margin-bottom:14px;color:var(--text2);font-size:.85rem">Select a channel and click the button to post the ticket opening panel. Members click it to create a ticket.</div>
+      <div class="fg"><label class="fl">Target Channel</label><select class="fi" id="panelChannel"><option value="">— Select Channel —</option><% channels.forEach(c => { %><option value="<%= c.id %>">#<%= c.name %></option><% }) %></select></div>
+      <button class="btn btn-success" onclick="postPanel()">📌 Post Ticket Panel</button>
+      <div class="ac-result" id="panel-result"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── LEVELING ── -->
+<div class="panel" id="panel-leveling">
+  <div class="ph"><h2>Leveling & XP</h2><p>Configure the XP system. Changes apply to new messages immediately.</p></div>
+  <div class="cgrid">
+    <div class="cc">
+      <div class="cc-title">📈 Leveling Settings</div>
+      <div class="fg"><div class="tr"><div class="tl">Enable Leveling<small>Award XP for messages</small></div><label class="tog"><input type="checkbox" id="levelingEnabled" <%= (cfg.leveling && cfg.leveling.enabled) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg"><label class="fl">XP per Message <span>1–100</span></label><input type="number" class="fi" id="xpPerMsg" min="1" max="100" value="<%= (cfg.leveling && cfg.leveling.xpPerMsg) || 15 %>"></div>
+      <div class="fg"><label class="fl">Cooldown <span>seconds between XP gains</span></label><input type="number" class="fi" id="levelCooldown" min="5" max="300" value="<%= (cfg.leveling && cfg.leveling.cooldown) || 60 %>"></div>
+      <div class="fg"><label class="fl">Level-Up Announce Channel</label><select class="fi" id="levelUpChannel"><option value="">— Same channel —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.levelUp === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
+      <div class="fg"><div class="tr"><div class="tl">Announce Level-Ups<small>Send a message when someone levels up</small></div><label class="tog"><input type="checkbox" id="levelAnnounce" <%= (!cfg.leveling || cfg.leveling.announceLevel !== false) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="sf"><button class="btn btn-gold" onclick="save('leveling')">💾 Save Leveling</button><span class="sm" id="sm-leveling"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ROLES ── -->
+<div class="panel" id="panel-roles">
+  <div class="ph"><h2>Roles</h2><p>Configure auto-role and muted role settings.</p></div>
+  <div class="cgrid">
+    <div class="cc">
+      <div class="cc-title">🎭 Role Settings</div>
+      <div class="fg"><label class="fl">Muted Role <span>applied by /mod mute</span></label><select class="fi" id="mutedRole"><option value="">— Select Role —</option><% roles.forEach(r => { %><option value="<%= r.id %>" <%= (cfg.roles && cfg.roles.muted === r.id) ? 'selected' : '' %>>@<%= r.name %></option><% }) %></select></div>
+      <div class="fg"><label class="fl">Auto-Role <span>given to all new members</span></label><select class="fi" id="autoRole"><option value="">— None —</option><% roles.forEach(r => { %><option value="<%= r.id %>" <%= (cfg.roles && cfg.roles.autoRole && cfg.roles.autoRole.includes(r.id)) ? 'selected' : '' %>>@<%= r.name %></option><% }) %></select></div>
+      <div style="font-size:.78rem;color:var(--text3);margin-top:4px">Saving the Muted Role will instantly set deny-SendMessages on all text channels for that role.</div>
+      <div class="sf"><button class="btn btn-gold" onclick="save('roles')">💾 Save Roles</button><span class="sm" id="sm-roles"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SUGGESTIONS ── -->
+<div class="panel" id="panel-suggestions">
+  <div class="ph"><h2>Suggestions</h2><p>Choose where /suggest submit posts ideas.</p></div>
+  <div class="cgrid">
+    <div class="cc">
+      <div class="cc-title">💡 Suggestion Channel</div>
+      <div class="fg"><label class="fl">Suggestion Channel</label><select class="fi" id="suggestChannel"><option value="">— None —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.suggestions === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
+      <div class="sf"><button class="btn btn-gold" onclick="save('suggestions')">💾 Save</button><span class="sm" id="sm-suggestions"></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MOD ACTIONS ── -->
+<div class="panel" id="panel-modactions">
+  <div class="ph"><h2>Mod Actions</h2><p>Perform moderation actions directly from the dashboard.</p></div>
+  <div class="cgrid">
+    <div class="ac">
+      <div class="ac-title">🔨 Ban Member</div>
+      <div class="ac-desc">Enter the Discord User ID to ban them from this server.</div>
+      <div class="row"><div class="fg"><label class="fl">User ID</label><input type="text" class="fi" id="banUserId" placeholder="Discord User ID"></div><div class="fg"><label class="fl">Reason</label><input type="text" class="fi" id="banReason" placeholder="Reason..."></div></div>
+      <button class="btn btn-danger btn-sm" onclick="modAction('ban', {userId: val('banUserId'), reason: val('banReason')}, 'ban-result')">🔨 Ban</button>
+      <div class="ac-result" id="ban-result"></div>
+    </div>
+    <div class="ac">
+      <div class="ac-title">👢 Kick Member</div>
+      <div class="ac-desc">Enter the Discord User ID to kick them from this server.</div>
+      <div class="row"><div class="fg"><label class="fl">User ID</label><input type="text" class="fi" id="kickUserId" placeholder="Discord User ID"></div><div class="fg"><label class="fl">Reason</label><input type="text" class="fi" id="kickReason" placeholder="Reason..."></div></div>
+      <button class="btn btn-danger btn-sm" onclick="modAction('kick', {userId: val('kickUserId'), reason: val('kickReason')}, 'kick-result')">👢 Kick</button>
+      <div class="ac-result" id="kick-result"></div>
+    </div>
+    <div class="ac">
+      <div class="ac-title">🗑️ Purge Messages</div>
+      <div class="ac-desc">Bulk delete messages from a channel.</div>
+      <div class="row"><div class="fg"><label class="fl">Channel</label><select class="fi" id="purgeChannel"><option value="">— Select —</option><% channels.forEach(c => { %><option value="<%= c.id %>">#<%= c.name %></option><% }) %></select></div><div class="fg"><label class="fl">Amount (max 100)</label><input type="number" class="fi" id="purgeAmount" min="1" max="100" value="10"></div></div>
+      <button class="btn btn-danger btn-sm" onclick="modAction('purge', {channelId: val('purgeChannel'), amount: val('purgeAmount')}, 'purge-result')">🗑️ Purge</button>
+      <div class="ac-result" id="purge-result"></div>
+    </div>
+    <div class="ac">
+      <div class="ac-title">🔒 Server Lockdown</div>
+      <div class="ac-desc">Lock or unlock all text channels at once. Members cannot send messages while locked.</div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-danger btn-sm" onclick="modAction('lockdown', {lock: 'true'}, 'lock-result')">🔒 Lock All</button>
+        <button class="btn btn-success btn-sm" onclick="modAction('lockdown', {lock: 'false'}, 'lock-result')">🔓 Unlock All</button>
+      </div>
+      <div class="ac-result" id="lock-result"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ANNOUNCE ── -->
+<div class="panel" id="panel-announce">
+  <div class="ph"><h2>Announcement</h2><p>Send a styled embed announcement to any channel instantly.</p></div>
+  <div class="cgrid">
+    <div class="ac" style="max-width:560px">
+      <div class="ac-title">📢 Send Announcement</div>
+      <div class="fg"><label class="fl">Channel</label><select class="fi" id="annChannel"><option value="">— Select Channel —</option><% channels.forEach(c => { %><option value="<%= c.id %>">#<%= c.name %></option><% }) %></select></div>
+      <div class="fg"><label class="fl">Title</label><input type="text" class="fi" id="annTitle" placeholder="Announcement title..."></div>
+      <div class="fg"><label class="fl">Message</label><textarea class="fi" id="annMessage" rows="5" placeholder="Your announcement..."></textarea></div>
+      <div class="fg"><label class="fl">Color <span>(optional hex)</span></label><input type="text" class="fi" id="annColor" placeholder="#D4AF37" value="#D4AF37"></div>
+      <button class="btn btn-gold" onclick="sendAnnounce()">📢 Send Announcement</button>
+      <div class="ac-result" id="ann-result"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOURNAMENTS ── -->
+<div class="panel" id="panel-tournaments">
+  <div class="ph"><h2>Tournaments</h2><p>All tournaments in this server.</p></div>
+  <div id="tourney-wrap"><div class="empty"><div class="ei">🏆</div><p>Loading...</p></div></div>
+</div>
+
+<!-- ── TICKET LIST ── -->
+<div class="panel" id="panel-ticketlist">
+  <div class="ph"><h2>Open Tickets</h2><p>All active support tickets. You can close them from here.</p></div>
+  <div id="ticket-wrap"><div class="empty"><div class="ei">🎫</div><p>Loading...</p></div></div>
+</div>
+
+<!-- ── MOD LOGS ── -->
+<div class="panel" id="panel-modlogs">
+  <div class="ph"><h2>Mod Logs</h2><p>Recent moderation cases.</p></div>
+  <div id="modlog-wrap"><div class="empty"><div class="ei">⚖️</div><p>Loading...</p></div></div>
+</div>
+
+<!-- ── LEADERBOARD ── -->
+<div class="panel" id="panel-leaderboard">
+  <div class="ph"><h2>Leaderboard</h2><p>Top players by points.</p></div>
+  <div id="lb-wrap"><div class="empty"><div class="ei">🏅</div><p>Loading...</p></div></div>
+</div>
+
+<!-- ── MEMBERS ── -->
+<div class="panel" id="panel-members">
+  <div class="ph"><h2>Members</h2><p>Recent members (up to 100).</p></div>
+  <div id="members-wrap"><div class="empty"><div class="ei">👥</div><p>Loading...</p></div></div>
+</div>
+
+</div><!-- content -->
 </div><!-- layout -->
 
 <script>
-const GUILD_ID = '<%= guild.id %>';
+const GUILD = '<%= guild.id %>';
 
-// Sidebar navigation
-document.querySelectorAll('.sidebar-item').forEach(item => {
+// ── Sidebar navigation ─────────────────────────────────────────
+document.querySelectorAll('.sb-item').forEach(item => {
   item.addEventListener('click', () => {
-    document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.sb-item').forEach(i => i.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     item.classList.add('active');
-    const panelId = 'panel-' + item.dataset.panel;
-    const panel = document.getElementById(panelId);
+    const panel = document.getElementById('panel-' + item.dataset.p);
     if (panel) panel.classList.add('active');
-    // Load dynamic data
-    if (item.dataset.panel === 'tournaments') loadTournaments();
-    if (item.dataset.panel === 'ticketlist') loadTickets();
-    if (item.dataset.panel === 'leaderboard') loadLeaderboard();
+    // Load dynamic data panels
+    const loaders = { tournaments: loadTournaments, ticketlist: loadTickets, modlogs: loadModlogs, leaderboard: loadLeaderboard, members: loadMembers };
+    if (loaders[item.dataset.p]) loaders[item.dataset.p]();
   });
 });
 
-// Save function
-async function save() {
-  const btn = document.querySelector('.panel.active .save-btn');
-  const msg = document.querySelector('.panel.active .save-msg');
-  if (!btn) return;
-  btn.disabled = true; btn.textContent = '⏳ Saving...';
+// ── Helpers ────────────────────────────────────────────────────
+const val = id => document.getElementById(id)?.value || '';
+const getChecked = id => document.getElementById(id)?.checked;
 
-  const body = {};
-  document.querySelectorAll('.panel.active input[type="checkbox"]').forEach(el => { body[el.id] = String(el.checked); });
-  document.querySelectorAll('.panel.active input[type="text"], .panel.active input[type="number"]').forEach(el => { if (el.value) body[el.id] = el.value; });
-  document.querySelectorAll('.panel.active textarea').forEach(el => { if (el.value) body[el.id] = el.value; });
-  document.querySelectorAll('.panel.active select').forEach(el => { body[el.id] = el.value; });
+function showMsg(id, ok, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'sm show ' + (ok ? 'ok' : 'err');
+  setTimeout(() => el.className = 'sm', 4000);
+}
+
+function showResult(id, ok, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = text;
+  el.className = 'ac-result show ' + (ok ? 'ok' : 'err');
+}
+
+// ── Save config section ────────────────────────────────────────
+const sectionFields = {
+  welcome:     ['welcomeEnabled','welcomeChannel','welcomeMessage','welcomePing','welcomeDm','welcomeDmMessage','welcomeBanner'],
+  farewell:    ['farewellEnabled','farewellChannel','farewellMessage'],
+  logging:     ['logsEnabled','logsChannel','modLogsChannel','msgLogsChannel','joinLogsChannel'],
+  automod:     ['autoMod','antiSpam','antiLinks','antiInvites','antiCaps','badWords'],
+  antiraid:    ['antiRaidEnabled','antiRaidThreshold','antiRaidWindow','antiRaidAction'],
+  antinuke:    ['antiNukeEnabled','antiNukeThreshold','antiNukeAction'],
+  tickets:     ['ticketsEnabled','ticketSupportRole','ticketLogChannel','ticketMaxOpen'],
+  leveling:    ['levelingEnabled','xpPerMsg','levelCooldown','levelUpChannel','levelAnnounce'],
+  roles:       ['mutedRole','autoRole'],
+  suggestions: ['suggestChannel'],
+};
+
+async function save(section) {
+  const fields = sectionFields[section] || [];
+  const body = { _section: section };
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    body[id] = el.type === 'checkbox' ? String(el.checked) : el.value;
+  });
+
+  const btns = document.querySelectorAll(`#panel-${section} .btn-gold`);
+  btns.forEach(b => { b.disabled = true; b.textContent = '⏳ Saving...'; });
 
   try {
-    const res = await fetch(`/dashboard/${GUILD_ID}/save`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    const data = await res.json();
-    msg.textContent = data.success ? '✅ Saved successfully!' : '❌ ' + (data.error || 'Save failed');
-    msg.className = 'save-msg show ' + (data.success ? 'success' : 'error');
+    const r = await fetch(`/dashboard/${GUILD}/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    showMsg(`sm-${section}`, d.success, d.success ? `✅ Saved ${d.saved} settings!` : `❌ ${d.error}`);
   } catch (e) {
-    msg.textContent = '❌ Network error'; msg.className = 'save-msg show error';
+    showMsg(`sm-${section}`, false, '❌ Network error');
   }
-  btn.disabled = false; btn.textContent = '💾 Save Changes';
-  setTimeout(() => { msg.className = 'save-msg'; }, 3000);
+
+  btns.forEach(b => { b.disabled = false; b.textContent = '💾 Save ' + section.charAt(0).toUpperCase() + section.slice(1); });
 }
 
+// ── Live actions ───────────────────────────────────────────────
+async function action(type) {
+  try {
+    const r = await fetch(`/dashboard/${GUILD}/action/${type}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const d = await r.json();
+    alert(d.success ? d.message : '❌ ' + d.error);
+  } catch { alert('❌ Network error'); }
+}
+
+async function modAction(type, body, resultId) {
+  try {
+    const r = await fetch(`/dashboard/${GUILD}/action/${type}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+    });
+    const d = await r.json();
+    showResult(resultId, d.success, d.success ? d.message : '❌ ' + d.error);
+  } catch { showResult(resultId, false, '❌ Network error'); }
+}
+
+async function postPanel() {
+  const channelId = val('panelChannel');
+  if (!channelId) return showResult('panel-result', false, '❌ Select a channel first.');
+  const r = await fetch(`/dashboard/${GUILD}/action/ticket-panel`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ channelId }) });
+  const d = await r.json();
+  showResult('panel-result', d.success, d.success ? d.message : '❌ ' + d.error);
+}
+
+async function sendAnnounce() {
+  const body = { channelId: val('annChannel'), title: val('annTitle'), message: val('annMessage'), color: val('annColor') };
+  if (!body.channelId || !body.title || !body.message) return showResult('ann-result', false, '❌ Fill in channel, title, and message.');
+  const r = await fetch(`/dashboard/${GUILD}/action/announce`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const d = await r.json();
+  showResult('ann-result', d.success, d.success ? d.message : '❌ ' + d.error);
+}
+
+// ── Data loaders ───────────────────────────────────────────────
 async function loadTournaments() {
-  const wrap = document.getElementById('tournament-table-wrap');
-  const res = await fetch(`/api/guild/${GUILD_ID}/tournaments`);
-  const data = await res.json();
-  if (!data.length) { wrap.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>No tournaments yet.</p></div>'; return; }
-  const statusBadge = s => `<span class="status-badge status-${s==='open'?'open':s==='ongoing'?'ongoing':'closed'}">${s.toUpperCase()}</span>`;
-  wrap.innerHTML = `<table class="data-table"><thead><tr><th>Name</th><th>Game</th><th>Teams</th><th>Format</th><th>Status</th></tr></thead><tbody>${data.map(t=>`<tr><td style="color:var(--text);font-weight:500">${t.name}</td><td>${t.game}</td><td>${t.teams?.length||0}/${t.maxTeams}</td><td>${t.format?.replace('_',' ')}</td><td>${statusBadge(t.status)}</td></tr>`).join('')}</tbody></table>`;
+  const wrap = document.getElementById('tourney-wrap');
+  const data = await fetch(`/api/guild/${GUILD}/tournaments`).then(r=>r.json());
+  if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">🏆</div><p>No tournaments yet.</p></div>'; return; }
+  const st = s => `<span class="badge ${s==='open'?'b-open':s==='ongoing'?'b-ongoing':'b-closed'}">${s.toUpperCase()}</span>`;
+  wrap.innerHTML = `<table class="tbl"><thead><tr><th>Name</th><th>Game</th><th>Teams</th><th>Format</th><th>Prize</th><th>Status</th></tr></thead><tbody>${data.map(t=>`<tr><td style="color:var(--text);font-weight:500">${t.name}</td><td>${t.game}</td><td>${t.teams?.length||0}/${t.maxTeams}</td><td>${(t.format||'').replace('_',' ')}</td><td>${t.prize||'—'}</td><td>${st(t.status)}</td></tr>`).join('')}</tbody></table>`;
 }
+
 async function loadTickets() {
-  const wrap = document.getElementById('ticket-table-wrap');
-  const res = await fetch(`/api/guild/${GUILD_ID}/tickets`);
-  const data = await res.json();
-  if (!data.length) { wrap.innerHTML = '<div class="empty-state"><div class="icon">🎫</div><p>No tickets found.</p></div>'; return; }
-  const statusBadge = s => `<span class="status-badge status-${s==='open'||s==='claimed'?'open':'closed'}">${s.toUpperCase()}</span>`;
-  wrap.innerHTML = `<table class="data-table"><thead><tr><th>ID</th><th>Type</th><th>Subject</th><th>Priority</th><th>Status</th></tr></thead><tbody>${data.map(t=>`<tr><td style="font-family:monospace;color:var(--gold);font-size:.8rem">${t.ticketId}</td><td>${t.type}</td><td style="color:var(--text)">${(t.subject||'').slice(0,40)}</td><td>${t.priority||'normal'}</td><td>${statusBadge(t.status)}</td></tr>`).join('')}</tbody></table>`;
+  const wrap = document.getElementById('ticket-wrap');
+  const data = await fetch(`/api/guild/${GUILD}/tickets`).then(r=>r.json());
+  if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">🎫</div><p>No tickets found.</p></div>'; return; }
+  const st = s => `<span class="badge ${s==='open'||s==='claimed'?'b-open':'b-closed'}">${s.toUpperCase()}</span>`;
+  const pri = p => ({ low:'🟢', normal:'🟡', high:'🔴', critical:'🚨' }[p]||'🟡');
+  wrap.innerHTML = `<table class="tbl"><thead><tr><th>ID</th><th>Type</th><th>Subject</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead><tbody>${data.map(t=>`<tr><td style="font-family:monospace;color:var(--gold);font-size:.78rem">${t.ticketId}</td><td>${t.type}</td><td style="color:var(--text)">${(t.subject||'').slice(0,40)}</td><td>${pri(t.priority)} ${t.priority||'normal'}</td><td>${st(t.status)}</td><td>${t.status!=='closed'?`<button class="btn btn-danger btn-sm" onclick="closeTicket('${t.ticketId}',this)">Close</button>`:'—'}</td></tr>`).join('')}</tbody></table>`;
 }
+
+async function closeTicket(ticketId, btn) {
+  btn.disabled = true; btn.textContent = '...';
+  const r = await fetch(`/dashboard/${GUILD}/action/close-ticket`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ticketId }) });
+  const d = await r.json();
+  if (d.success) { btn.closest('tr').querySelector('td:nth-child(5)').innerHTML = '<span class="badge b-closed">CLOSED</span>'; btn.remove(); }
+  else { btn.disabled = false; btn.textContent = 'Close'; alert('❌ ' + d.error); }
+}
+
+async function loadModlogs() {
+  const wrap = document.getElementById('modlog-wrap');
+  const data = await fetch(`/api/guild/${GUILD}/modlogs`).then(r=>r.json());
+  if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">⚖️</div><p>No mod cases yet.</p></div>'; return; }
+  const colors = { ban:'b-closed', kick:'b-ongoing', mute:'b-ongoing', warn:'', unban:'b-open', unmute:'b-open' };
+  wrap.innerHTML = `<table class="tbl"><thead><tr><th>#</th><th>Type</th><th>User</th><th>Moderator</th><th>Reason</th><th>When</th></tr></thead><tbody>${data.map(c=>`<tr><td style="color:var(--gold);font-weight:700">${c.caseId}</td><td><span class="badge ${colors[c.type]||''}">${(c.type||'').toUpperCase()}</span></td><td style="font-size:.8rem">${c.userTag||c.userId}</td><td style="font-size:.8rem">${c.modTag||c.modId}</td><td style="color:var(--text2);font-size:.82rem">${(c.reason||'').slice(0,50)}</td><td style="font-size:.78rem;color:var(--text3)">${c.timestamp?new Date(c.timestamp).toLocaleDateString():''}</td></tr>`).join('')}</tbody></table>`;
+}
+
 async function loadLeaderboard() {
-  const wrap = document.getElementById('lb-table-wrap');
-  const res = await fetch(`/api/guild/${GUILD_ID}/leaderboard`);
-  const data = await res.json();
-  if (!data.length) { wrap.innerHTML = '<div class="empty-state"><div class="icon">🏅</div><p>No data yet.</p></div>'; return; }
+  const wrap = document.getElementById('lb-wrap');
+  const data = await fetch(`/api/guild/${GUILD}/leaderboard`).then(r=>r.json());
+  if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">🏅</div><p>No data yet. Users gain points through tournaments and XP.</p></div>'; return; }
   const medals = ['🥇','🥈','🥉'];
-  wrap.innerHTML = `<table class="data-table"><thead><tr><th>#</th><th>User</th><th>Points</th><th>Level</th><th>Wins</th></tr></thead><tbody>${data.map((u,i)=>`<tr><td style="font-size:1.1rem">${medals[i]||`<strong>${i+1}</strong>`}</td><td style="color:var(--text);font-weight:500">${u.username||u.userId}</td><td style="color:var(--gold);font-weight:700">${u.points}</td><td>${u.level}</td><td>${u.wins}</td></tr>`).join('')}</tbody></table>`;
+  wrap.innerHTML = `<table class="tbl"><thead><tr><th>Rank</th><th>User</th><th>Points</th><th>Level</th><th>Wins</th><th>Coins</th></tr></thead><tbody>${data.map((u,i)=>`<tr><td>${medals[i]||`<strong style="color:var(--text3)">#${i+1}</strong>`}</td><td style="color:var(--text);font-weight:500">${u.username}</td><td style="color:var(--gold);font-weight:700">${u.points}</td><td>${u.level}</td><td>${u.wins}</td><td>🪙 ${u.coins}</td></tr>`).join('')}</tbody></table>`;
 }
+
+async function loadMembers() {
+  const wrap = document.getElementById('members-wrap');
+  const data = await fetch(`/api/guild/${GUILD}/members`).then(r=>r.json());
+  if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">👥</div><p>Could not load members.</p></div>'; return; }
+  wrap.innerHTML = `<table class="tbl"><thead><tr><th>Member</th><th>Roles</th><th>Joined</th><th>Type</th></tr></thead><tbody>${data.map(m=>`<tr><td><div style="display:flex;align-items:center;gap:9px"><img src="${m.avatar}" style="width:28px;height:28px;border-radius:50%"><span style="color:var(--text)">${m.username}</span></div></td><td style="font-size:.78rem;color:var(--text3)">${m.roles.join(', ')||'—'}</td><td style="font-size:.78rem;color:var(--text3)">${m.joinedAt?new Date(m.joinedAt).toLocaleDateString():''}</td><td>${m.bot?'<span class="badge b-bot">BOT</span>':'👤'}</td></tr>`).join('')}</tbody></table>`;
+}
+
+// ── Live ping update ───────────────────────────────────────────
+async function updatePing() {
+  try {
+    const d = await fetch(`/api/guild/${GUILD}/stats`).then(r=>r.json());
+    const el = document.getElementById('bot-ping');
+    if (el && d.ping !== undefined) {
+      const cls = d.ping < 100 ? 'ping-good' : d.ping < 200 ? 'ping-ok' : 'ping-bad';
+      el.innerHTML = `<span class="ping-dot ${cls}"></span>${d.ping}ms`;
+    }
+    const tEl = document.getElementById('stat-tickets');
+    if (tEl && d.tickets !== undefined) tEl.textContent = d.tickets;
+  } catch {}
+}
+updatePing();
+setInterval(updatePing, 15000);
 </script>
 </body>
 </html>
