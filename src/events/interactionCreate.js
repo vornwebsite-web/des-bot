@@ -187,4 +187,4 @@ async function handleTicketOpen(interaction, client) {
 async function handleTicketClaim() {}
 async function handleTicketClose() {}
 async function handleTournamentJoin() {}
-async function handleTournamentInfo() {}}
+async function handleTournamentInfo() {}
