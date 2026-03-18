@@ -142,9 +142,9 @@ textarea.fi{resize:vertical;min-height:72px}
 .row .fg{flex:1;min-width:140px}
 
 /* ── Mobile hamburger button ── */
-.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;cursor:pointer;padding:4px;border-radius:6px;transition:background .15s;flex-shrink:0}
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:44px;height:44px;cursor:pointer;padding:8px;border-radius:8px;transition:background .15s;flex-shrink:0;position:relative;z-index:300;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .hamburger:hover{background:rgba(212,175,55,.08)}
-.hamburger span{display:block;height:2px;background:var(--text2);border-radius:2px;transition:all .25s}
+.hamburger span{display:block;height:2.5px;background:var(--gold2);border-radius:3px;transition:all .25s;width:100%}
 .hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
 .hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
 .hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
@@ -165,21 +165,22 @@ textarea.fi{resize:vertical;min-height:72px}
 /* ── Responsive breakpoints ── */
 @media(max-width:768px){
   /* Nav adjustments */
-  nav{padding:0 16px;height:56px;gap:10px}
+  nav{padding:0 12px;height:58px;gap:8px;z-index:300}
   .nav-sep,.nav-user span,.back{display:none}
-  .nav-guild span{font-size:.82rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .hamburger{display:flex}
+  .nav-guild span{font-size:.82rem;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hamburger{display:flex !important;z-index:301}
   .nav-user{margin-left:0 !important}
   .nav-user img{width:28px;height:28px}
   .logo{font-size:1rem}
+  body::after{display:none}
 
   /* Sidebar becomes slide-in drawer */
   aside{
     position:fixed;
-    top:56px;
+    top:58px;
     left:-100%;
     width:280px;
-    height:calc(100vh - 56px);
+    height:calc(100vh - 58px);
     z-index:160;
     transition:left .28s cubic-bezier(.4,0,.2,1);
     box-shadow:4px 0 40px rgba(0,0,0,.5);
@@ -246,7 +247,7 @@ textarea.fi{resize:vertical;min-height:72px}
 </head>
 <body>
 <nav>
-  <div class="hamburger" id="hamburger" onclick="toggleSidebar()">
+  <div class="hamburger" id="hamburger" role="button" aria-label="Open menu" tabindex="0">
     <span></span><span></span><span></span>
   </div>
   <a href="/" class="logo">DeS</a>
@@ -262,7 +263,7 @@ textarea.fi{resize:vertical;min-height:72px}
     <span><%= user.username %></span>
   </div>
 </nav>
-<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
 
 <div class="layout">
 <aside id="sidebar">
@@ -797,14 +798,16 @@ updatePing();
 setInterval(updatePing, 15000);
 
 // ── Mobile sidebar toggle ─────────────────────────────────────
-function toggleSidebar() {
+function toggleSidebar(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
   const hamburger = document.getElementById('hamburger');
-  sidebar.classList.toggle('open');
-  overlay.classList.toggle('show');
-  hamburger.classList.toggle('open');
-  document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+  const isOpen = sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', !isOpen);
+  overlay.classList.toggle('show', !isOpen);
+  hamburger.classList.toggle('open', !isOpen);
+  document.body.style.overflow = !isOpen ? 'hidden' : '';
 }
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
@@ -812,6 +815,20 @@ function closeSidebar() {
   document.getElementById('hamburger').classList.remove('open');
   document.body.style.overflow = '';
 }
+
+// Attach both click and touchend to hamburger for max compatibility
+document.addEventListener('DOMContentLoaded', function() {
+  const hb = document.getElementById('hamburger');
+  if (hb) {
+    hb.addEventListener('click', toggleSidebar, { passive: false });
+    hb.addEventListener('touchend', function(e) { e.preventDefault(); toggleSidebar(e); }, { passive: false });
+  }
+  const ov = document.getElementById('sidebar-overlay');
+  if (ov) {
+    ov.addEventListener('click', closeSidebar);
+    ov.addEventListener('touchend', function(e) { e.preventDefault(); closeSidebar(); }, { passive: false });
+  }
+});
 
 // Close sidebar on nav item click on mobile
 document.querySelectorAll('.sb-item').forEach(item => {
