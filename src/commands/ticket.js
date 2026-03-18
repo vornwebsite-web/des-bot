@@ -332,7 +332,6 @@ module.exports = {
 
     try {
       const type = interaction.values[0];
-      await interaction.deferReply({ flags: 64 });
 
       const cfg = await Guild.findOne({ guildId: interaction.guildId });
       if (!cfg?.tickets?.enabled) return interaction.followUp({ embeds: [E.error("Not setup", "Run setup first")], ephemeral: true });
