@@ -627,6 +627,22 @@ textarea.fi{resize:vertical;min-height:72px}
 </div><!-- content -->
 </div><!-- layout -->
 
+<!-- Mobile bottom tab bar — placed in DOM BEFORE script runs -->
+<nav class="mobile-tabs" id="mobile-tabs">
+  <div class="mobile-tabs-inner">
+    <div class="mob-tab active" data-p="overview"><span class="ti">📊</span>Overview</div>
+    <div class="mob-tab" data-p="welcome"><span class="ti">👋</span>Welcome</div>
+    <div class="mob-tab" data-p="automod"><span class="ti">🤖</span>AutoMod</div>
+    <div class="mob-tab" data-p="antiraid"><span class="ti">🚨</span>Anti-Raid</div>
+    <div class="mob-tab" data-p="antinuke"><span class="ti">💣</span>Anti-Nuke</div>
+    <div class="mob-tab" data-p="tickets"><span class="ti">🎫</span>Tickets</div>
+    <div class="mob-tab" data-p="leveling"><span class="ti">📈</span>Leveling</div>
+    <div class="mob-tab" data-p="modactions"><span class="ti">🛡️</span>Mod</div>
+    <div class="mob-tab" data-p="announce"><span class="ti">📢</span>Announce</div>
+    <div class="mob-tab" data-p="leaderboard"><span class="ti">🏅</span>Leaders</div>
+  </div>
+</nav>
+
 <script>
 const GUILD = '<%= guild.id %>';
 
@@ -871,17 +887,17 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
-// ── Bottom tab bar (mobile) ────────────────────────────────────
-document.querySelectorAll('.mob-tab').forEach(tab => {
-  // Use both click and touchend for maximum iOS compatibility
-  function onTabActivate(e) {
-    e.preventDefault();
-    e.stopPropagation();
-    navigateTo(tab.dataset.p);
-  }
-  tab.addEventListener('click', onTabActivate);
-  tab.addEventListener('touchend', onTabActivate, { passive: false });
-});
+// ── Bottom tab bar — event delegation on document body ────────
+// Using delegation means it works regardless of when DOM is ready
+function handleTabEvent(e) {
+  const tab = e.target.closest('.mob-tab');
+  if (!tab) return;
+  e.preventDefault();
+  e.stopPropagation();
+  navigateTo(tab.dataset.p);
+}
+document.body.addEventListener('click', handleTabEvent);
+document.body.addEventListener('touchend', handleTabEvent, { passive: false });
 
 // Swipe to open/close sidebar
 let _tx = 0;
@@ -894,21 +910,5 @@ document.addEventListener('touchend', e => {
 
 window.addEventListener('resize', () => { if (window.innerWidth > 768) closeSidebar(); });
 </script>
-
-<!-- Mobile bottom tab bar -->
-<nav class="mobile-tabs">
-  <div class="mobile-tabs-inner">
-    <div class="mob-tab active" data-p="overview"><span class="ti">📊</span>Overview</div>
-    <div class="mob-tab" data-p="welcome"><span class="ti">👋</span>Welcome</div>
-    <div class="mob-tab" data-p="automod"><span class="ti">🤖</span>AutoMod</div>
-    <div class="mob-tab" data-p="antiraid"><span class="ti">🚨</span>Anti-Raid</div>
-    <div class="mob-tab" data-p="antinuke"><span class="ti">💣</span>Anti-Nuke</div>
-    <div class="mob-tab" data-p="tickets"><span class="ti">🎫</span>Tickets</div>
-    <div class="mob-tab" data-p="leveling"><span class="ti">📈</span>Leveling</div>
-    <div class="mob-tab" data-p="modactions"><span class="ti">🛡️</span>Mod</div>
-    <div class="mob-tab" data-p="announce"><span class="ti">📢</span>Announce</div>
-    <div class="mob-tab" data-p="leaderboard"><span class="ti">🏅</span>Leaders</div>
-  </div>
-</nav>
 </body>
 </html>
