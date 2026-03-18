@@ -174,7 +174,6 @@ module.exports = {
 
     else if (sub === "panel") {
       if (!(await requirePerm(interaction, PermissionFlagsBits.ManageGuild))) return;
-      await interaction.deferReply({ ephemeral: true });
       
       const embed = E.make(0x2F3136)
         .setTitle("🎫 Support Ticket System")
