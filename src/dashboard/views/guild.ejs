@@ -140,10 +140,115 @@ textarea.fi{resize:vertical;min-height:72px}
 /* Row helpers */
 .row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
 .row .fg{flex:1;min-width:140px}
+
+/* ── Mobile hamburger button ── */
+.hamburger{display:none;flex-direction:column;justify-content:center;gap:5px;width:36px;height:36px;cursor:pointer;padding:4px;border-radius:6px;transition:background .15s;flex-shrink:0}
+.hamburger:hover{background:rgba(212,175,55,.08)}
+.hamburger span{display:block;height:2px;background:var(--text2);border-radius:2px;transition:all .25s}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* ── Sidebar overlay (mobile) ── */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:150;backdrop-filter:blur(2px)}
+.sidebar-overlay.show{display:block}
+
+/* ── Mobile bottom tab bar ── */
+.mobile-tabs{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(13,13,20,.96);border-top:1px solid var(--border);backdrop-filter:blur(20px);z-index:180;padding:0 4px env(safe-area-inset-bottom,0)}
+.mobile-tabs-inner{display:flex;overflow-x:auto;gap:0;scrollbar-width:none}
+.mobile-tabs-inner::-webkit-scrollbar{display:none}
+.mob-tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 14px;color:var(--text3);cursor:pointer;transition:color .15s;white-space:nowrap;flex-shrink:0;font-size:.62rem;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-top:2px solid transparent}
+.mob-tab .ti{font-size:1.2rem}
+.mob-tab.active{color:var(--gold);border-top-color:var(--gold)}
+.mob-tab:hover{color:var(--text)}
+
+/* ── Responsive breakpoints ── */
+@media(max-width:768px){
+  /* Nav adjustments */
+  nav{padding:0 16px;height:56px;gap:10px}
+  .nav-sep,.nav-user span,.back{display:none}
+  .nav-guild span{font-size:.82rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .hamburger{display:flex}
+  .nav-user{margin-left:0 !important}
+  .nav-user img{width:28px;height:28px}
+  .logo{font-size:1rem}
+
+  /* Sidebar becomes slide-in drawer */
+  aside{
+    position:fixed;
+    top:56px;
+    left:-100%;
+    width:280px;
+    height:calc(100vh - 56px);
+    z-index:160;
+    transition:left .28s cubic-bezier(.4,0,.2,1);
+    box-shadow:4px 0 40px rgba(0,0,0,.5);
+  }
+  aside.open{left:0}
+
+  /* Layout stack */
+  .layout{flex-direction:column;overflow:visible}
+  .content{padding:20px 16px 100px;overflow:visible}
+
+  /* Stats row — 2 columns on mobile */
+  .srow{grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px}
+  .sc{padding:14px}
+  .sc-val{font-size:1.4rem}
+  .sc-lbl{font-size:.68rem}
+
+  /* Config grid — single column */
+  .cgrid{grid-template-columns:1fr;gap:14px}
+  .cc{padding:18px}
+
+  /* Quick status — 1 col */
+  .qs{grid-template-columns:1fr 1fr}
+
+  /* Panel header */
+  .ph{margin-bottom:20px}
+  .ph h2{font-size:1.1rem}
+
+  /* Row wraps */
+  .row{flex-direction:column}
+  .row .fg{min-width:0}
+
+  /* Tables — scrollable */
+  .tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .tbl{min-width:520px}
+
+  /* Action cards */
+  .ac{padding:16px}
+
+  /* Buttons full width on mobile */
+  .sf{flex-direction:column;align-items:stretch}
+  .sf .btn{justify-content:center}
+
+  /* Show mobile tab bar */
+  .mobile-tabs{display:block}
+
+  /* Hide desktop sidebar labels on small screens inside drawer */
+  .sb-lbl{font-size:.65rem}
+}
+
+@media(max-width:480px){
+  nav{padding:0 12px}
+  .nav-guild span{max-width:80px}
+  .content{padding:16px 12px 100px}
+  .srow{grid-template-columns:repeat(2,1fr);gap:8px}
+  .sc{padding:12px}
+  .sc-val{font-size:1.2rem}
+  .cgrid{gap:10px}
+  .cc{padding:14px}
+  .qs{grid-template-columns:1fr}
+  .ph h2{font-size:1rem}
+  .btn{font-size:.82rem;padding:9px 16px}
+}
 </style>
 </head>
 <body>
 <nav>
+  <div class="hamburger" id="hamburger" onclick="toggleSidebar()">
+    <span></span><span></span><span></span>
+  </div>
   <a href="/" class="logo">DeS</a>
   <span class="nav-sep">/</span>
   <div class="nav-guild">
@@ -157,9 +262,10 @@ textarea.fi{resize:vertical;min-height:72px}
     <span><%= user.username %></span>
   </div>
 </nav>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
 <div class="layout">
-<aside>
+<aside id="sidebar">
   <div class="sb-sec">
     <div class="sb-lbl">Overview</div>
     <div class="sb-item active" data-p="overview"><span class="ic">📊</span> Overview</div>
@@ -631,7 +737,7 @@ async function loadTournaments() {
   const data = await fetch(`/api/guild/${GUILD}/tournaments`).then(r=>r.json());
   if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">🏆</div><p>No tournaments yet.</p></div>'; return; }
   const st = s => `<span class="badge ${s==='open'?'b-open':s==='ongoing'?'b-ongoing':'b-closed'}">${s.toUpperCase()}</span>`;
-  wrap.innerHTML = `<table class="tbl"><thead><tr><th>Name</th><th>Game</th><th>Teams</th><th>Format</th><th>Prize</th><th>Status</th></tr></thead><tbody>${data.map(t=>`<tr><td style="color:var(--text);font-weight:500">${t.name}</td><td>${t.game}</td><td>${t.teams?.length||0}/${t.maxTeams}</td><td>${(t.format||'').replace('_',' ')}</td><td>${t.prize||'—'}</td><td>${st(t.status)}</td></tr>`).join('')}</tbody></table>`;
+  wrap.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Name</th><th>Game</th><th>Teams</th><th>Format</th><th>Prize</th><th>Status</th></tr></thead><tbody>${data.map(t=>`<tr><td style="color:var(--text);font-weight:500">${t.name}</td><td>${t.game}</td><td>${t.teams?.length||0}/${t.maxTeams}</td><td>${(t.format||'').replace('_',' ')}</td><td>${t.prize||'—'}</td><td>${st(t.status)}</td></tr>`).join('')}</tbody></table>`;
 }
 
 async function loadTickets() {
@@ -640,7 +746,7 @@ async function loadTickets() {
   if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">🎫</div><p>No tickets found.</p></div>'; return; }
   const st = s => `<span class="badge ${s==='open'||s==='claimed'?'b-open':'b-closed'}">${s.toUpperCase()}</span>`;
   const pri = p => ({ low:'🟢', normal:'🟡', high:'🔴', critical:'🚨' }[p]||'🟡');
-  wrap.innerHTML = `<table class="tbl"><thead><tr><th>ID</th><th>Type</th><th>Subject</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead><tbody>${data.map(t=>`<tr><td style="font-family:monospace;color:var(--gold);font-size:.78rem">${t.ticketId}</td><td>${t.type}</td><td style="color:var(--text)">${(t.subject||'').slice(0,40)}</td><td>${pri(t.priority)} ${t.priority||'normal'}</td><td>${st(t.status)}</td><td>${t.status!=='closed'?`<button class="btn btn-danger btn-sm" onclick="closeTicket('${t.ticketId}',this)">Close</button>`:'—'}</td></tr>`).join('')}</tbody></table>`;
+  wrap.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>ID</th><th>Type</th><th>Subject</th><th>Priority</th><th>Status</th><th>Action</th></tr></thead><tbody>${data.map(t=>`<tr><td style="font-family:monospace;color:var(--gold);font-size:.78rem">${t.ticketId}</td><td>${t.type}</td><td style="color:var(--text)">${(t.subject||'').slice(0,40)}</td><td>${pri(t.priority)} ${t.priority||'normal'}</td><td>${st(t.status)}</td><td>${t.status!=='closed'?`<button class="btn btn-danger btn-sm" onclick="closeTicket('${t.ticketId}',this)">Close</button>`:'—'}</td></tr>`).join('')}</tbody></table>`;
 }
 
 async function closeTicket(ticketId, btn) {
@@ -656,7 +762,7 @@ async function loadModlogs() {
   const data = await fetch(`/api/guild/${GUILD}/modlogs`).then(r=>r.json());
   if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">⚖️</div><p>No mod cases yet.</p></div>'; return; }
   const colors = { ban:'b-closed', kick:'b-ongoing', mute:'b-ongoing', warn:'', unban:'b-open', unmute:'b-open' };
-  wrap.innerHTML = `<table class="tbl"><thead><tr><th>#</th><th>Type</th><th>User</th><th>Moderator</th><th>Reason</th><th>When</th></tr></thead><tbody>${data.map(c=>`<tr><td style="color:var(--gold);font-weight:700">${c.caseId}</td><td><span class="badge ${colors[c.type]||''}">${(c.type||'').toUpperCase()}</span></td><td style="font-size:.8rem">${c.userTag||c.userId}</td><td style="font-size:.8rem">${c.modTag||c.modId}</td><td style="color:var(--text2);font-size:.82rem">${(c.reason||'').slice(0,50)}</td><td style="font-size:.78rem;color:var(--text3)">${c.timestamp?new Date(c.timestamp).toLocaleDateString():''}</td></tr>`).join('')}</tbody></table>`;
+  wrap.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>#</th><th>Type</th><th>User</th><th>Moderator</th><th>Reason</th><th>When</th></tr></thead><tbody>${data.map(c=>`<tr><td style="color:var(--gold);font-weight:700">${c.caseId}</td><td><span class="badge ${colors[c.type]||''}">${(c.type||'').toUpperCase()}</span></td><td style="font-size:.8rem">${c.userTag||c.userId}</td><td style="font-size:.8rem">${c.modTag||c.modId}</td><td style="color:var(--text2);font-size:.82rem">${(c.reason||'').slice(0,50)}</td><td style="font-size:.78rem;color:var(--text3)">${c.timestamp?new Date(c.timestamp).toLocaleDateString():''}</td></tr>`).join('')}</tbody></table>`;
 }
 
 async function loadLeaderboard() {
@@ -664,14 +770,14 @@ async function loadLeaderboard() {
   const data = await fetch(`/api/guild/${GUILD}/leaderboard`).then(r=>r.json());
   if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">🏅</div><p>No data yet. Users gain points through tournaments and XP.</p></div>'; return; }
   const medals = ['🥇','🥈','🥉'];
-  wrap.innerHTML = `<table class="tbl"><thead><tr><th>Rank</th><th>User</th><th>Points</th><th>Level</th><th>Wins</th><th>Coins</th></tr></thead><tbody>${data.map((u,i)=>`<tr><td>${medals[i]||`<strong style="color:var(--text3)">#${i+1}</strong>`}</td><td style="color:var(--text);font-weight:500">${u.username}</td><td style="color:var(--gold);font-weight:700">${u.points}</td><td>${u.level}</td><td>${u.wins}</td><td>🪙 ${u.coins}</td></tr>`).join('')}</tbody></table>`;
+  wrap.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Rank</th><th>User</th><th>Points</th><th>Level</th><th>Wins</th><th>Coins</th></tr></thead><tbody>${data.map((u,i)=>`<tr><td>${medals[i]||`<strong style="color:var(--text3)">#${i+1}</strong>`}</td><td style="color:var(--text);font-weight:500">${u.username}</td><td style="color:var(--gold);font-weight:700">${u.points}</td><td>${u.level}</td><td>${u.wins}</td><td>🪙 ${u.coins}</td></tr>`).join('')}</tbody></table>`;
 }
 
 async function loadMembers() {
   const wrap = document.getElementById('members-wrap');
   const data = await fetch(`/api/guild/${GUILD}/members`).then(r=>r.json());
   if (!data.length) { wrap.innerHTML = '<div class="empty"><div class="ei">👥</div><p>Could not load members.</p></div>'; return; }
-  wrap.innerHTML = `<table class="tbl"><thead><tr><th>Member</th><th>Roles</th><th>Joined</th><th>Type</th></tr></thead><tbody>${data.map(m=>`<tr><td><div style="display:flex;align-items:center;gap:9px"><img src="${m.avatar}" style="width:28px;height:28px;border-radius:50%"><span style="color:var(--text)">${m.username}</span></div></td><td style="font-size:.78rem;color:var(--text3)">${m.roles.join(', ')||'—'}</td><td style="font-size:.78rem;color:var(--text3)">${m.joinedAt?new Date(m.joinedAt).toLocaleDateString():''}</td><td>${m.bot?'<span class="badge b-bot">BOT</span>':'👤'}</td></tr>`).join('')}</tbody></table>`;
+  wrap.innerHTML = `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Member</th><th>Roles</th><th>Joined</th><th>Type</th></tr></thead><tbody>${data.map(m=>`<tr><td><div style="display:flex;align-items:center;gap:9px"><img src="${m.avatar}" style="width:28px;height:28px;border-radius:50%"><span style="color:var(--text)">${m.username}</span></div></td><td style="font-size:.78rem;color:var(--text3)">${m.roles.join(', ')||'—'}</td><td style="font-size:.78rem;color:var(--text3)">${m.joinedAt?new Date(m.joinedAt).toLocaleDateString():''}</td><td>${m.bot?'<span class="badge b-bot">BOT</span>':'👤'}</td></tr>`).join('')}</tbody></table>`;
 }
 
 // ── Live ping update ───────────────────────────────────────────
@@ -689,6 +795,75 @@ async function updatePing() {
 }
 updatePing();
 setInterval(updatePing, 15000);
+
+// ── Mobile sidebar toggle ─────────────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  const hamburger = document.getElementById('hamburger');
+  sidebar.classList.toggle('open');
+  overlay.classList.toggle('show');
+  hamburger.classList.toggle('open');
+  document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('show');
+  document.getElementById('hamburger').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+// Close sidebar on nav item click on mobile
+document.querySelectorAll('.sb-item').forEach(item => {
+  const orig = item.onclick;
+  item.addEventListener('click', () => {
+    if (window.innerWidth <= 768) closeSidebar();
+    document.querySelectorAll('.mob-tab').forEach(t => t.classList.toggle('active', t.dataset.p === item.dataset.p));
+  });
+});
+
+// Mobile tab bar
+document.querySelectorAll('.mob-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const p = tab.dataset.p;
+    document.querySelectorAll('.sb-item').forEach(i => i.classList.toggle('active', i.dataset.p === p));
+    document.querySelectorAll('.panel').forEach(panel => panel.classList.remove('active'));
+    document.querySelectorAll('.mob-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const panel = document.getElementById('panel-' + p);
+    if (panel) panel.classList.add('active');
+    const loaders = { tournaments: loadTournaments, ticketlist: loadTickets, modlogs: loadModlogs, leaderboard: loadLeaderboard, members: loadMembers };
+    if (loaders[p]) loaders[p]();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// Swipe to open/close sidebar
+let _tx = 0;
+document.addEventListener('touchstart', e => { _tx = e.touches[0].clientX; }, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - _tx;
+  if (dx > 60 && _tx < 40) toggleSidebar();
+  if (dx < -60 && document.getElementById('sidebar').classList.contains('open')) closeSidebar();
+}, { passive: true });
+
+window.addEventListener('resize', () => { if (window.innerWidth > 768) closeSidebar(); });
 </script>
+
+<!-- Mobile bottom tab bar -->
+<nav class="mobile-tabs">
+  <div class="mobile-tabs-inner">
+    <div class="mob-tab active" data-p="overview"><span class="ti">📊</span>Overview</div>
+    <div class="mob-tab" data-p="welcome"><span class="ti">👋</span>Welcome</div>
+    <div class="mob-tab" data-p="automod"><span class="ti">🤖</span>AutoMod</div>
+    <div class="mob-tab" data-p="antiraid"><span class="ti">🚨</span>Anti-Raid</div>
+    <div class="mob-tab" data-p="antinuke"><span class="ti">💣</span>Anti-Nuke</div>
+    <div class="mob-tab" data-p="tickets"><span class="ti">🎫</span>Tickets</div>
+    <div class="mob-tab" data-p="leveling"><span class="ti">📈</span>Leveling</div>
+    <div class="mob-tab" data-p="modactions"><span class="ti">🛡️</span>Mod</div>
+    <div class="mob-tab" data-p="announce"><span class="ti">📢</span>Announce</div>
+    <div class="mob-tab" data-p="leaderboard"><span class="ti">🏅</span>Leaders</div>
+  </div>
+</nav>
 </body>
 </html>
