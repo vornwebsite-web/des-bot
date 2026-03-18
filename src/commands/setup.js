@@ -37,6 +37,8 @@ module.exports = {
       .addRoleOption(o => o.setName('role').setDescription('Role').setRequired(true))
       .addBooleanOption(o => o.setName('remove').setDescription('Remove from auto-assign')))
     .addSubcommand(s => s.setName('view').setDescription('View current config'))
+    .addSubcommand(s => s.setName('counting').setDescription('Start counting game')
+      .addChannelOption(o => o.setName('channel').setDescription('Counting channel').setRequired(true)))
     .addSubcommand(s => s.setName('reset').setDescription('Reset all settings')),
 
   async execute(interaction) {
@@ -144,6 +146,115 @@ module.exports = {
         await Guild.findOneAndUpdate({ guildId: interaction.guildId }, { $addToSet: { 'roles.autoRole': role.id } }, { upsert: true });
         await interaction.editReply({ embeds: [E.success('Autorole Added', `<@&${role.id}> will be auto-assigned to new members.`)] });
       }
+    }
+
+    else if (sub === 'counting') {
+      const channel = interaction.options.getChannel('channel');
+      
+      // Send start message
+      const startEmbed = E.make(0x2F3136)
+        .setTitle('🔢 Counting Game Started!')
+        .setDescription('Count numbers one by one. Next person must say the correct number or everyone loses!\n\n**Max Count: 1,000,000**')
+        .addFields(
+          { name: '📊 Current Count', value: '**0**', inline: true },
+          { name: '👥 Players', value: '0', inline: true },
+          { name: '🏆 Record', value: '0', inline: true }
+        )
+        .setColor('#2F3136')
+        .setFooter({ text: 'Start counting by replying with 1', iconURL: interaction.client.user.displayAvatarURL() })
+        .setTimestamp();
+      
+      const msg = await channel.send({ embeds: [startEmbed] });
+      
+      let count = 0;
+      let lastUser = null;
+      let players = new Set();
+      let record = 0;
+      const maxCount = 1000000;
+      const timeout = 60000; // 1 minute timeout
+      
+      const updateEmbed = () => {
+        return E.make(0x2F3136)
+          .setTitle('🔢 Counting Game')
+          .setDescription(`Next number: **${count + 1}**\n\nMax Count: 1,000,000`)
+          .addFields(
+            { name: '📊 Current', value: `**${count}**`, inline: true },
+            { name: '👥 Players', value: players.size.toString(), inline: true },
+            { name: '🏆 Record', value: record.toString(), inline: true }
+          )
+          .setColor(count > record ? '#00FF00' : '#2F3136');
+      };
+      
+      const collector = channel.createMessageCollector({ 
+        time: timeout,
+        filter: m => !m.author.bot 
+      });
+      
+      collector.on('collect', async (msg) => {
+        const num = parseInt(msg.content);
+        
+        if (isNaN(num)) return;
+        
+        // Wrong number - game over
+        if (num !== count + 1) {
+          if (count > record) record = count;
+          
+          const loseEmbed = E.make(0xFF0000)
+            .setTitle('💥 Game Over!')
+            .setDescription(`<@${msg.author.id}> said **${num}** but it should be **${count + 1}**`)
+            .addFields(
+              { name: '🏁 Final Count', value: count.toString(), inline: true },
+              { name: '👥 Total Players', value: players.size.toString(), inline: true },
+              { name: '🏆 Record', value: record.toString(), inline: true }
+            )
+            .setColor('#FF0000')
+            .setTimestamp();
+          
+          await msg.react('❌');
+          await channel.send({ embeds: [loseEmbed] });
+          collector.stop();
+          return;
+        }
+        
+        // Correct number
+        count = num;
+        lastUser = msg.author.id;
+        players.add(msg.author.id);
+        
+        await msg.react('✅');
+        
+        // Reached max count
+        if (count >= maxCount) {
+          const winEmbed = E.make(0x00FF00)
+            .setTitle('🎉 Maximum Count Reached!')
+            .setDescription(`The server reached the maximum count of **${maxCount}**!`)
+            .addFields(
+              { name: '👥 Total Players', value: players.size.toString(), inline: true },
+              { name: '🏆 Champion', value: `<@${lastUser}>`, inline: true }
+            )
+            .setColor('#00FF00')
+            .setTimestamp();
+          
+          await channel.send({ embeds: [winEmbed] });
+          collector.stop();
+          return;
+        }
+        
+        // Update main message every 10 counts
+        if (count % 10 === 0) {
+          await msg.channel.messages.fetch(msg.channelId === channel.id ? msg.id : undefined).catch(() => {}).then(() => {
+            if (count % 50 === 0) {
+              channel.send({ embeds: [updateEmbed()] }).then(m => setTimeout(() => m.delete().catch(() => {}), 5000));
+            }
+          });
+        }
+      });
+      
+      collector.on('end', () => {
+        if (count > record) record = count;
+      });
+      
+      await interaction.editReply({ embeds: [E.success('Counting Game', `Started in <#${channel.id}>. Use reactions for moderation!`)] });
     }
 
     else if (sub === 'view') {
