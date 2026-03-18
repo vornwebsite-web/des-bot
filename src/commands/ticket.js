@@ -325,6 +325,51 @@ module.exports = {
     }
   },
 
+  async handleButton(interaction, client) {
+    const [cmd, action, data] = interaction.customId.split(":");
+    if (cmd !== "ticket") return false;
+
+    try {
+      if (action === "claim") {
+        const ticketId = data;
+        const t = await Ticket.findOne({ ticketId, status: { $in: ["open", "claimed"] } });
+        if (!t) return interaction.followUp({ embeds: [E.error("Not found", "Ticket not found")], ephemeral: true });
+        
+        const cfg = await Guild.findOne({ guildId: interaction.guildId });
+        if (!(await isStaff(interaction.member, cfg))) return interaction.followUp({ embeds: [E.error("Staff only", "No perm")], ephemeral: true });
+        if (t.claimedBy) return interaction.followUp({ embeds: [E.warn("Claimed", "Already claimed")], ephemeral: true });
+        
+        t.claimedBy = interaction.user.id;
+        t.status = "claimed";
+        await t.save();
+        await interaction.followUp({ embeds: [E.ticket("Claimed", "<@" + interaction.user.id + "> claimed this ticket")], ephemeral: true });
+        return true;
+      }
+      
+      else if (action === "close") {
+        const ticketId = data;
+        const t = await Ticket.findOne({ ticketId, status: { $in: ["open", "claimed"] } });
+        if (!t) return interaction.followUp({ embeds: [E.error("Not found", "Ticket not found")], ephemeral: true });
+        
+        const cfg = await Guild.findOne({ guildId: interaction.guildId });
+        if (t.userId !== interaction.user.id && !(await isStaff(interaction.member, cfg))) return interaction.followUp({ embeds: [E.error("No perm", "Can't close")], ephemeral: true });
+        
+        t.status = "closed";
+        t.closedAt = new Date();
+        t.closedBy = interaction.user.id;
+        await t.save();
+        await interaction.followUp({ embeds: [E.ticket("Closing", "Ticket will be deleted in 5s")], ephemeral: true });
+        setTimeout(() => interaction.channel.delete().catch(() => {}), 5000);
+        return true;
+      }
+    } catch (error) {
+      console.error("Button error:", error);
+      await interaction.followUp({ embeds: [E.error("Error", error.message)], ephemeral: true }).catch(() => {});
+    }
+
+    return false;
+  },
+
   async handleSelectMenu(interaction, client) {
     const [cmd, action, data] = interaction.customId.split(":");
     if (cmd !== "ticket" || action !== "select") return false;
