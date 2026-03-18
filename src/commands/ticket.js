@@ -265,15 +265,28 @@ module.exports = {
 
     try {
       if (action === "create") {
-        await interaction.showModal(
-          new ModalBuilder()
-            .setCustomId("ticket:modal:create")
-            .setTitle("Create Ticket")
-            .addComponents(
-              new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("subject").setLabel("Subject").setStyle(TextInputStyle.Short).setMaxLength(100).setRequired(true)),
-              new ActionRowBuilder().addComponents(new TextInputBuilder().setCustomId("type").setLabel("Type").setStyle(TextInputStyle.Short).setMaxLength(20).setRequired(true))
-            )
-        );
+        // Can't showModal after deferUpdate - create ticket directly instead
+        const subject = "General Support";
+        const type = "general";
+        const cfg = await Guild.findOne({ guildId: interaction.guildId });
+        if (!cfg?.tickets?.enabled) return await interaction.followUp({ embeds: [E.error("Not setup", "Run setup first")], ephemeral: true });
+
+        const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ["open", "claimed"] } });
+        if (existing.length >= (cfg.tickets.maxOpen || 1)) return await interaction.followUp({ embeds: [E.warn("Limit", "Too many open")], ephemeral: true });
+
+        const roles = cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : [];
+        cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
+        await cfg.save();
+
+        const id = "ticket-" + String(cfg.tickets.counter).padStart(4, "0");
+        const ch = await interaction.guild.channels.create({ name: id, type: ChannelType.GuildText, parent: cfg.tickets.categoryId || null, permissionOverwrites: buildPerms(interaction.guild, interaction.user.id, roles), topic: subject });
+        await Ticket.create({ ticketId: id, guildId: interaction.guildId, channelId: ch.id, userId: interaction.user.id, type, subject, status: "open" });
+
+        const emoji = { game: "🎮", tournament: "🏆", premium: "💎", bug: "🐛", general: "💬", report: "🚨" };
+        const embed = E.ticket((emoji[type] || "💬") + " " + subject, "Welcome <@" + interaction.user.id + ">!", [{ name: "ID", value: id, inline: true }, { name: "Type", value: type, inline: true }]);
+        const btns = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("ticket:claim:" + id).setLabel("Claim").setStyle(ButtonStyle.Primary), new ButtonBuilder().setCustomId("ticket:close:" + id).setLabel("Close").setStyle(ButtonStyle.Danger));
+        await ch.send({ content: ["<@" + interaction.user.id + ">", ...roles.map(r => "<@&" + r + ">")].join(" "), embeds: [embed], components: [btns] });
+        await interaction.followUp({ embeds: [E.success("Created", "<#" + ch.id + ">")], ephemeral: true });
         return true;
       }
 
