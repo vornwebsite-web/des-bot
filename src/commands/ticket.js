@@ -365,66 +365,69 @@ module.exports = {
     const [cmd, action, data] = interaction.customId.split(":");
     if (cmd !== "ticket") return false;
 
-    // Handle panel button - show subject modal
-    if (action === "create") {
-      await interaction.showModal(
-        new ModalBuilder()
-          .setCustomId("ticket:modal:create")
-          .setTitle("Create a Support Ticket")
-          .addComponents(
-            new ActionRowBuilder().addComponents(
-              new TextInputBuilder()
-                .setCustomId("subject")
-                .setLabel("What is your issue about?")
-                .setStyle(TextInputStyle.Short)
-                .setMaxLength(100)
-                .setRequired(true)
-            ),
-            new ActionRowBuilder().addComponents(
-              new TextInputBuilder()
-                .setCustomId("type")
-                .setLabel("Type (game/tournament/premium/bug/general/report)")
-                .setStyle(TextInputStyle.Short)
-                .setMaxLength(20)
-                .setRequired(true)
+    try {
+      // Handle panel button - show subject modal
+      if (action === "create") {
+        await interaction.showModal(
+          new ModalBuilder()
+            .setCustomId("ticket:modal:create")
+            .setTitle("Create a Support Ticket")
+            .addComponents(
+              new ActionRowBuilder().addComponents(
+                new TextInputBuilder()
+                  .setCustomId("subject")
+                  .setLabel("What is your issue about?")
+                  .setStyle(TextInputStyle.Short)
+                  .setMaxLength(100)
+                  .setRequired(true)
+              ),
+              new ActionRowBuilder().addComponents(
+                new TextInputBuilder()
+                  .setCustomId("type")
+                  .setLabel("Type (game/tournament/premium/bug/general/report)")
+                  .setStyle(TextInputStyle.Short)
+                  .setMaxLength(20)
+                  .setRequired(true)
+              )
             )
-          )
-      );
-      return true;
-    }
+        );
+        return true;
+      }
 
-    // Handle claim button
-    if (action === "claim") {
-      await interaction.deferReply();
-      const t = await Ticket.findOne({ ticketId: data, status: { $in: ["open", "claimed"] } });
-      if (!t) return interaction.editReply({ embeds: [E.error("Not a Ticket", "Ticket not found.")] });
-      const cfg = await Guild.findOne({ guildId: interaction.guildId });
-      if (!(await isStaff(interaction.member, cfg))) return interaction.editReply({ embeds: [E.error("Staff Only", "Only support staff can claim tickets.")] });
-      if (t.claimedBy) return interaction.editReply({ embeds: [E.warn("Already Claimed", "Claimed by <@" + t.claimedBy + ">.")] });
-      t.claimedBy = interaction.user.id;
-      t.status = "claimed";
-      await t.save();
-      await interaction.editReply({ embeds: [E.ticket("Ticket Claimed", "<@" + interaction.user.id + "> has claimed this ticket.")] });
-      return true;
-    }
+      // Handle claim button
+      if (action === "claim") {
+        const t = await Ticket.findOne({ ticketId: data, status: { $in: ["open", "claimed"] } });
+        if (!t) return await interaction.followUp({ embeds: [E.error("Not a Ticket", "Ticket not found.")], ephemeral: true });
+        const cfg = await Guild.findOne({ guildId: interaction.guildId });
+        if (!(await isStaff(interaction.member, cfg))) return await interaction.followUp({ embeds: [E.error("Staff Only", "Only support staff can claim tickets.")], ephemeral: true });
+        if (t.claimedBy) return await interaction.followUp({ embeds: [E.warn("Already Claimed", "Claimed by <@" + t.claimedBy + ">.")], ephemeral: true });
+        t.claimedBy = interaction.user.id;
+        t.status = "claimed";
+        await t.save();
+        await interaction.followUp({ embeds: [E.ticket("Ticket Claimed", "<@" + interaction.user.id + "> has claimed this ticket.")], ephemeral: true });
+        return true;
+      }
 
-    // Handle close button
-    if (action === "close") {
-      await interaction.deferReply();
-      const t = await Ticket.findOne({ ticketId: data, status: { $in: ["open", "claimed"] } });
-      if (!t) return interaction.editReply({ embeds: [E.error("Not a Ticket", "Ticket not found.")] });
-      const cfg = await Guild.findOne({ guildId: interaction.guildId });
-      const canClose = t.userId === interaction.user.id || await isStaff(interaction.member, cfg);
-      if (!canClose) return interaction.editReply({ embeds: [E.error("No Permission", "Only the ticket creator or support staff can close this.")] });
-      t.status = "closed";
-      t.closedAt = new Date();
-      t.closedBy = interaction.user.id;
-      await t.save();
-      await interaction.editReply({ embeds: [E.ticket("Closing Ticket", "Deleting in 5 seconds.")] });
-      setTimeout(async () => {
-        try { await interaction.channel.delete("Closed by " + interaction.user.tag); } catch (e) {}
-      }, 5000);
-      return true;
+      // Handle close button
+      if (action === "close") {
+        const t = await Ticket.findOne({ ticketId: data, status: { $in: ["open", "claimed"] } });
+        if (!t) return await interaction.followUp({ embeds: [E.error("Not a Ticket", "Ticket not found.")], ephemeral: true });
+        const cfg = await Guild.findOne({ guildId: interaction.guildId });
+        const canClose = t.userId === interaction.user.id || await isStaff(interaction.member, cfg);
+        if (!canClose) return await interaction.followUp({ embeds: [E.error("No Permission", "Only the ticket creator or support staff can close this.")], ephemeral: true });
+        t.status = "closed";
+        t.closedAt = new Date();
+        t.closedBy = interaction.user.id;
+        await t.save();
+        await interaction.followUp({ embeds: [E.ticket("Closing Ticket", "Deleting in 5 seconds.")], ephemeral: true });
+        setTimeout(async () => {
+          try { await interaction.channel.delete("Closed by " + interaction.user.tag); } catch (e) {}
+        }, 5000);
+        return true;
+      }
+    } catch (error) {
+      console.error("Button handler error:", error);
+      await interaction.followUp({ embeds: [E.error("Error", error.message)], ephemeral: true }).catch(() => {});
     }
 
     return false;
