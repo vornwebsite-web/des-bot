@@ -6,10 +6,10 @@
 const {
 SlashCommandBuilder, PermissionFlagsBits, ChannelType,
 ButtonBuilder, ButtonStyle, ActionRowBuilder, AttachmentBuilder,
-} = require(‘discord.js’);
-const E = require(’../utils/embeds’);
-const { requirePerm } = require(’../utils/helpers’);
-const { Ticket, Guild } = require(’../models/index’);
+} = require('discord.js');
+const E = require('../utils/embeds');
+const { requirePerm } = require('../utils/helpers');
+const { Ticket, Guild } = require('../models/index');
 
 // ── Helper: build permission overwrites for a new ticket channel ─
 function buildPerms(guild, userId, supportRoles) {
@@ -39,9 +39,8 @@ return roles.some(r => member.roles.cache.has(r));
 
 module.exports = {
 data: new SlashCommandBuilder()
-.setName(‘ticket’).setDescription(‘🎫 Ticket support system’)
+.setName('ticket').setDescription('🎫 Ticket support system')
 
-```
 .addSubcommand(s => s
   .setName('setup')
   .setDescription('Configure the ticket system')
