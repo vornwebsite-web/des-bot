@@ -5,88 +5,58 @@ const { User } = require('../models/index');
 module.exports = {
   name: 'interactionCreate',
   async execute(interaction, client) {
-
-    // ── Button interactions ───────────────────────────────────────
+    // ── Button interactions ───────────────────────────────────
     if (interaction.isButton()) {
       try {
-        const id = interaction.customId;
+        // DEFER IMMEDIATELY - before any other code
+        await interaction.deferUpdate().catch(() => {});
 
-        if (id === 'ticket_open_general' || id.startsWith('ticket_open_')) {
-          if (!interaction.deferred && !interaction.replied) {
-            await interaction.deferReply({ ephemeral: true }).catch(() => {});
-          }
-          await handleTicketOpen(interaction, client);
-          return;
-        }
-
-        if (id.startsWith('t_claim_')) {
-          if (!interaction.deferred && !interaction.replied) {
-            await interaction.deferReply({ ephemeral: false }).catch(() => {});
-          }
-          await handleTicketClaim(interaction, client, id.replace('t_claim_', ''));
-          return;
-        }
-
-        if (id.startsWith('t_close_')) {
-          if (!interaction.deferred && !interaction.replied) {
-            await interaction.deferReply({ ephemeral: false }).catch(() => {});
-          }
-          await handleTicketClose(interaction, client, id.replace('t_close_', ''));
-          return;
-        }
-
-        if (id.startsWith('t_join_')) {
-          if (!interaction.deferred && !interaction.replied) {
-            await interaction.deferReply({ ephemeral: true }).catch(() => {});
-          }
-          await handleTournamentJoin(interaction, client, id.replace('t_join_', ''));
-          return;
-        }
-
-        if (id.startsWith('t_info_')) {
-          if (!interaction.deferred && !interaction.replied) {
-            await interaction.deferReply({ ephemeral: true }).catch(() => {});
-          }
-          await handleTournamentInfo(interaction, client, id.replace('t_info_', ''));
-          return;
-        }
-
-        const commandName = id.split(':')[0];
+        const customId = interaction.customId;
+        const parts = customId.split(':');
+        const commandName = parts[0];
+        
         const command = client.commands.get(commandName);
+        
         if (command?.handleButton) {
-          if (!interaction.deferred && !interaction.replied) {
-            await interaction.deferUpdate().catch(() => {});
+          try {
+            const result = await command.handleButton(interaction, client);
+            if (result) {
+              logger.info(`[BUTTON] ${interaction.user.tag} clicked ${customId}`);
+            }
+          } catch (error) {
+            logger.error(`[BUTTON] Handler error: ${error.message}`);
           }
-          await command.handleButton(interaction, client);
-          return;
+        } else {
+          logger.warn(`[BUTTON] No handler for: ${commandName}`);
         }
-
-        logger.warn(`[BUTTON] No handler for: ${id}`);
-
       } catch (error) {
         logger.error(`[BUTTON] Error: ${error.message}`);
-        try {
-          const msg = { embeds: [E.error('Error', 'Failed to process this button.')], ephemeral: true };
-          if (interaction.deferred || interaction.replied) {
-            await interaction.followUp(msg).catch(() => {});
-          } else {
-            await interaction.reply(msg).catch(() => {});
-          }
-        } catch {}
       }
       return;
     }
 
-    // ── Select menu interactions ──────────────────────────────────
+    // ── Select menu interactions ──────────────────────────────
     if (interaction.isAnySelectMenu()) {
       try {
-        if (!interaction.deferred && !interaction.replied) {
-          await interaction.deferUpdate().catch(() => {});
-        }
-        const commandName = interaction.customId.split(':')[0];
+        await interaction.deferUpdate().catch(() => {});
+
+        const customId = interaction.customId;
+        const parts = customId.split(':');
+        const commandName = parts[0];
+        
         const command = client.commands.get(commandName);
+        
         if (command?.handleSelectMenu) {
-          await command.handleSelectMenu(interaction, client);
+          try {
+            const result = await command.handleSelectMenu(interaction, client);
+            if (result) {
+              logger.info(`[SELECT] ${interaction.user.tag} selected in ${customId}`);
+            }
+          } catch (error) {
+            logger.error(`[SELECT] Handler error: ${error.message}`);
+          }
+        } else {
+          logger.warn(`[SELECT] No handler for: ${commandName}`);
         }
       } catch (error) {
         logger.error(`[SELECT] Error: ${error.message}`);
@@ -94,13 +64,26 @@ module.exports = {
       return;
     }
 
-    // ── Modal submissions ─────────────────────────────────────────
+    // ── Modal submissions ─────────────────────────────────────
     if (interaction.isModalSubmit()) {
       try {
-        const commandName = interaction.customId.split(':')[0];
+        const customId = interaction.customId;
+        const parts = customId.split(':');
+        const commandName = parts[0];
+        
         const command = client.commands.get(commandName);
+        
         if (command?.handleModal) {
-          await command.handleModal(interaction, client);
+          try {
+            const result = await command.handleModal(interaction, client);
+            if (result) {
+              logger.info(`[MODAL] ${interaction.user.tag} submitted ${customId}`);
+            }
+          } catch (error) {
+            logger.error(`[MODAL] Handler error: ${error.message}`);
+          }
+        } else {
+          logger.warn(`[MODAL] No handler for: ${commandName}`);
         }
       } catch (error) {
         logger.error(`[MODAL] Error: ${error.message}`);
@@ -108,83 +91,54 @@ module.exports = {
       return;
     }
 
-    // ── Slash commands ────────────────────────────────────────────
+    // ── Chat input commands ───────────────────────────────────
     if (!interaction.isChatInputCommand()) return;
 
+    // Maintenance mode
     if (global.maintenanceMode) {
       const owners = (process.env.OWNER_IDS || '').split(',').map(s => s.trim());
       if (!owners.includes(interaction.user.id)) {
-        return interaction.reply({
-          embeds: [E.warn('🔧 Maintenance Mode', `DeS Bot™ is under maintenance.`)],
-          ephemeral: true,
-        });
+        return interaction.reply({ embeds: [E.warn('🔧 Maintenance Mode', `DeS Bot™ is currently under maintenance.\n**Reason:** ${global.maintenanceReason || 'Scheduled maintenance'}\n\nPlease check back soon!`)], ephemeral: true });
       }
     }
 
+    // Blacklist check
     try {
       const u = await User.findOne({ userId: interaction.user.id });
       if (u?.blacklisted) {
-        return interaction.reply({
-          embeds: [E.error('Blacklisted', `You are blacklisted.`)],
-          ephemeral: true,
-        });
+        return interaction.reply({ embeds: [E.error('Blacklisted', `You are blacklisted from DeS Bot™.\n**Reason:** ${u.blacklistReason || 'No reason'}\n\nContact support to appeal.`)], ephemeral: true });
       }
     } catch (e) {
-      logger.error(`Blacklist error: ${e.message}`);
+      logger.error(`Blacklist check error: ${e.message}`);
     }
 
     const command = client.commands.get(interaction.commandName);
-    if (!command) return;
+    if (!command) {
+      logger.warn(`Command not found: ${interaction.commandName}`);
+      return;
+    }
 
     try {
       await command.execute(interaction, client);
-      await User.findOneAndUpdate(
-        { userId: interaction.user.id },
-        { $inc: { xp: 5 } },
-        { upsert: true }
-      );
+      
+      // XP for command usage
+      try {
+        await User.findOneAndUpdate({ userId: interaction.user.id }, { $inc: { xp: 5 } }, { upsert: true });
+      } catch {}
+      
+      logger.info(`[CMD] ${interaction.user.tag} used /${interaction.commandName} in ${interaction.guild?.name || 'DM'}`);
     } catch (error) {
-      logger.error(`Command error: ${error.message}`);
+      logger.error(`Command error [/${interaction.commandName}]: ${error.message}`);
+      const errEmbed = E.error('Something Went Wrong', `An unexpected error occurred.\n\`\`\`${error.message.slice(0, 200)}\`\`\``);
+      try {
+        if (interaction.deferred || interaction.replied) {
+          await interaction.editReply({ embeds: [errEmbed] }).catch(() => {});
+        } else {
+          await interaction.reply({ embeds: [errEmbed], ephemeral: true }).catch(() => {});
+        }
+      } catch (e) {
+        logger.error(`Failed to send error message: ${e.message}`);
+      }
     }
   }
 };
-
-// ── HANDLERS ─────────────────────────────────────────────────
-
-async function handleTicketOpen(interaction, client) {
-  const { Guild, Ticket } = require('../models/index');
-  const { ChannelType, PermissionFlagsBits } = require('discord.js');
-
-  const cfg = await Guild.findOne({ guildId: interaction.guildId });
-  if (!cfg?.tickets?.enabled) {
-    return interaction.editReply({ embeds: [E.error('Not Configured', 'Ticket system not set up.')] });
-  }
-
-  cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
-  await cfg.save();
-
-  const ticketId = `ticket-${String(cfg.tickets.counter).padStart(4, '0')}`;
-
-  const ch = await interaction.guild.channels.create({
-    name: ticketId,
-    type: ChannelType.GuildText,
-  });
-
-  await Ticket.create({
-    ticketId,
-    guildId: interaction.guildId,
-    channelId: ch.id,
-    userId: interaction.user.id,
-    type: 'general',
-    status: 'open',
-  });
-
-  await interaction.editReply({
-    embeds: [E.success('Ticket Created', `<#${ch.id}>`)]
-  });
-}
-
-async function handleTicketClaim() {}
-async function handleTicketClose() {}
-async function handleTournamentJoin() {}
-async function handleTournamentInfo() {}
