@@ -1,7 +1,7 @@
 const {
   SlashCommandBuilder, PermissionFlagsBits, ChannelType,
   ButtonBuilder, ButtonStyle, ActionRowBuilder, AttachmentBuilder,
-  ModalBuilder, TextInputBuilder, TextInputStyle,
+  StringSelectMenuBuilder, StringSelectMenuOptionBuilder,
 } = require("discord.js");
 const E = require("../utils/embeds");
 const { requirePerm } = require("../utils/helpers");
@@ -28,6 +28,16 @@ async function isStaff(member, cfg) {
   return roles.some(r => member.roles.cache.has(r));
 }
 
+const TICKET_TYPES = [
+  { name: "Game Support", value: "game", emoji: "🎮" },
+  { name: "Tournament", value: "tournament", emoji: "🏆" },
+  { name: "Premium", value: "premium", emoji: "💎" },
+  { name: "Bug Report", value: "bug", emoji: "🐛" },
+  { name: "General", value: "general", emoji: "💬" },
+  { name: "Report User", value: "report", emoji: "🚨" },
+  { name: "Matcherino", value: "matcherino", emoji: "🎲" },
+];
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("ticket")
@@ -42,6 +52,20 @@ module.exports = {
       .addChannelOption(o => o.setName("cat").setDescription("Category"))
       .addIntegerOption(o => o.setName("max").setDescription("Max open").setMinValue(1).setMaxValue(5))
     )
+    .addSubcommand(s => s.setName("type-roles").setDescription("Set roles per type")
+      .addStringOption(o => o.setName("type").setDescription("Type").setRequired(true).addChoices(
+        { name: "Game Support", value: "game" },
+        { name: "Tournament", value: "tournament" },
+        { name: "Premium", value: "premium" },
+        { name: "Bug Report", value: "bug" },
+        { name: "General", value: "general" },
+        { name: "Report User", value: "report" },
+        { name: "Matcherino", value: "matcherino" }
+      ))
+      .addRoleOption(o => o.setName("role1").setDescription("Support role").setRequired(true))
+      .addRoleOption(o => o.setName("role2").setDescription("Support role 2"))
+      .addRoleOption(o => o.setName("role3").setDescription("Support role 3"))
+    )
     .addSubcommand(s => s.setName("addrole").setDescription("Add role")
       .addRoleOption(o => o.setName("role").setDescription("Role").setRequired(true))
     )
@@ -51,14 +75,14 @@ module.exports = {
     .addSubcommand(s => s.setName("roles").setDescription("View roles"))
     .addSubcommand(s => s.setName("panel").setDescription("Post panel"))
     .addSubcommand(s => s.setName("create").setDescription("Create")
-      .addStringOption(o => o.setName("subject").setDescription("Subject").setRequired(true))
-      .addStringOption(o => o.setName("type").setDescription("Type").addChoices(
+      .addStringOption(o => o.setName("type").setDescription("Type").setRequired(true).addChoices(
         { name: "Game", value: "game" },
         { name: "Tournament", value: "tournament" },
         { name: "Premium", value: "premium" },
         { name: "Bug", value: "bug" },
         { name: "General", value: "general" },
-        { name: "Report", value: "report" }
+        { name: "Report", value: "report" },
+        { name: "Matcherino", value: "matcherino" }
       ))
     )
     .addSubcommand(s => s.setName("close").setDescription("Close"))
@@ -87,10 +111,10 @@ module.exports = {
 
   async execute(interaction, client) {
     const sub = interaction.options.getSubcommand();
+    await interaction.deferReply({ ephemeral: sub !== "panel" });
 
     if (sub === "setup") {
       if (!(await requirePerm(interaction, PermissionFlagsBits.ManageGuild))) return;
-      await interaction.deferReply({ flags: 64 });
       const roles = [1, 2, 3, 4, 5].map(n => interaction.options.getRole("role" + n)?.id).filter(Boolean);
       const unique = [...new Set(roles)];
       const logCh = interaction.options.getChannel("logs");
@@ -101,9 +125,24 @@ module.exports = {
       await interaction.editReply({ embeds: [E.success("Setup", "", [{ name: "Roles", value: roleList, inline: false }, { name: "Log", value: logCh ? "<#" + logCh.id + ">" : "None", inline: true }, { name: "Max", value: String(max), inline: true }])] });
     }
 
+    else if (sub === "type-roles") {
+      if (!(await requirePerm(interaction, PermissionFlagsBits.ManageGuild))) return;
+      const type = interaction.options.getString("type");
+      const roles = [1, 2, 3].map(n => interaction.options.getRole("role" + n)?.id).filter(Boolean);
+      const unique = [...new Set(roles)];
+      
+      await Guild.findOneAndUpdate(
+        { guildId: interaction.guildId },
+        { $set: { ["tickets.typeRoles." + type]: unique } },
+        { upsert: true }
+      );
+      
+      const roleList = unique.map(r => "<@&" + r + ">").join("\n") || "None";
+      await interaction.editReply({ embeds: [E.success("Type Roles Updated", `Type: **${type}**\n\n${roleList}`)] });
+    }
+
     else if (sub === "addrole") {
       if (!(await requirePerm(interaction, PermissionFlagsBits.ManageGuild))) return;
-      await interaction.deferReply({ flags: 64 });
       const role = interaction.options.getRole("role");
       const cfg = await Guild.findOne({ guildId: interaction.guildId });
       const current = (cfg?.tickets?.supportRoles?.length ? cfg.tickets.supportRoles : cfg?.tickets?.supportRole ? [cfg.tickets.supportRole] : []);
@@ -116,7 +155,6 @@ module.exports = {
 
     else if (sub === "removerole") {
       if (!(await requirePerm(interaction, PermissionFlagsBits.ManageGuild))) return;
-      await interaction.deferReply({ flags: 64 });
       const role = interaction.options.getRole("role");
       const cfg = await Guild.findOne({ guildId: interaction.guildId });
       const current = cfg?.tickets?.supportRoles || [];
@@ -127,7 +165,6 @@ module.exports = {
     }
 
     else if (sub === "roles") {
-      await interaction.deferReply({ flags: 64 });
       const cfg = await Guild.findOne({ guildId: interaction.guildId });
       const roles = cfg?.tickets?.supportRoles?.length ? cfg.tickets.supportRoles : cfg?.tickets?.supportRole ? [cfg.tickets.supportRole] : [];
       if (!roles.length) return interaction.editReply({ embeds: [E.info("No roles", "Run setup")] });
@@ -137,50 +174,61 @@ module.exports = {
 
     else if (sub === "panel") {
       if (!(await requirePerm(interaction, PermissionFlagsBits.ManageGuild))) return;
-      await interaction.deferReply({ flags: 64 });
+      await interaction.deferReply({ ephemeral: true });
       
       const embed = E.make(0x2F3136)
         .setTitle("🎫 Support Ticket System")
-        .setDescription("Need help? Click the button below to open a support ticket!\n\nOur support team will respond as soon as possible.")
+        .setDescription("Select a ticket type to open a support ticket!\n\nOur support team will respond as soon as possible.")
         .addFields(
-          { name: "📋 Ticket Types", value: "🎮 Game Support\n🏆 Tournament\n💎 Premium\n🐛 Bug Report\n💬 General\n🚨 Report User", inline: false },
-          { name: "⚡ Quick Tips", value: "• Describe your issue clearly\n• One ticket at a time\n• Be patient for response\n• Use ticket commands for more options", inline: false }
+          { name: "📋 Ticket Types", value: "🎮 Game Support\n🏆 Tournament\n💎 Premium\n🐛 Bug Report\n💬 General\n🚨 Report User\n🎲 Matcherino", inline: false },
+          { name: "⚡ Quick Tips", value: "• Describe your issue clearly\n• One ticket at a time\n• Be patient for response", inline: false }
         )
         .setColor("#2F3136")
         .setThumbnail(interaction.guild.iconURL({ dynamic: true, size: 256 }))
         .setFooter({ text: "DeS Bot™ • Support System", iconURL: interaction.client.user.displayAvatarURL() })
         .setTimestamp();
       
-      const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder()
-          .setCustomId("ticket:create:panel")
-          .setLabel("Open Support Ticket")
-          .setStyle(ButtonStyle.Primary)
-          .setEmoji("🎫")
-      );
+      const select = new StringSelectMenuBuilder()
+        .setCustomId("ticket:select:type")
+        .setPlaceholder("Select ticket type...")
+        .addOptions(
+          TICKET_TYPES.map(t => new StringSelectMenuOptionBuilder()
+            .setLabel(t.name)
+            .setValue(t.value)
+            .setEmoji(t.emoji)
+            .setDescription("Open a " + t.name.toLowerCase() + " ticket")
+          )
+        );
+      
+      const row = new ActionRowBuilder().addComponents(select);
       
       await interaction.channel.send({ embeds: [embed], components: [row] });
-      await interaction.editReply({ embeds: [E.success("✅ Panel Posted", "Ticket support panel has been posted to this channel")] });
+      await interaction.editReply({ embeds: [E.success("✅ Panel Posted", "Ticket support panel has been posted")] });
     }
 
     else if (sub === "create") {
       await interaction.deferReply({ flags: 64 });
-      const subject = interaction.options.getString("subject");
-      const type = interaction.options.getString("type") || "general";
+      const type = interaction.options.getString("type");
       const cfg = await Guild.findOne({ guildId: interaction.guildId });
       if (!cfg?.tickets?.enabled) return interaction.editReply({ embeds: [E.error("Not setup", "Run setup first")] });
+
       const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ["open", "claimed"] } });
       if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.editReply({ embeds: [E.warn("Limit", "Too many open")] });
-      const roles = cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : [];
+
+      // Get type-specific roles or fall back to default
+      const typeRoles = cfg.tickets.typeRoles?.[type] || cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : [];
+      
       cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
       await cfg.save();
+
       const id = "ticket-" + String(cfg.tickets.counter).padStart(4, "0");
-      const ch = await interaction.guild.channels.create({ name: id, type: ChannelType.GuildText, parent: cfg.tickets.categoryId || null, permissionOverwrites: buildPerms(interaction.guild, interaction.user.id, roles), topic: subject });
-      await Ticket.create({ ticketId: id, guildId: interaction.guildId, channelId: ch.id, userId: interaction.user.id, type, subject, status: "open" });
-      const emoji = { game: "🎮", tournament: "🏆", premium: "💎", bug: "🐛", general: "💬", report: "🚨" };
-      const embed = E.ticket((emoji[type] || "💬") + " " + subject, "Welcome <@" + interaction.user.id + ">!", [{ name: "ID", value: id, inline: true }, { name: "Type", value: type, inline: true }]);
+      const typeInfo = TICKET_TYPES.find(t => t.value === type) || TICKET_TYPES[4];
+      const ch = await interaction.guild.channels.create({ name: id, type: ChannelType.GuildText, parent: cfg.tickets.categoryId || null, permissionOverwrites: buildPerms(interaction.guild, interaction.user.id, typeRoles), topic: typeInfo.name });
+      await Ticket.create({ ticketId: id, guildId: interaction.guildId, channelId: ch.id, userId: interaction.user.id, type, subject: typeInfo.name, status: "open" });
+
+      const embed = E.ticket(typeInfo.emoji + " " + typeInfo.name, "Welcome <@" + interaction.user.id + ">!", [{ name: "ID", value: id, inline: true }, { name: "Type", value: type, inline: true }]);
       const btns = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("ticket:claim:" + id).setLabel("Claim").setStyle(ButtonStyle.Primary), new ButtonBuilder().setCustomId("ticket:close:" + id).setLabel("Close").setStyle(ButtonStyle.Danger));
-      await ch.send({ content: ["<@" + interaction.user.id + ">", ...roles.map(r => "<@&" + r + ">")].join(" "), embeds: [embed], components: [btns] });
+      await ch.send({ content: ["<@" + interaction.user.id + ">", ...typeRoles.map(r => "<@&" + r + ">")].join(" "), embeds: [embed], components: [btns] });
       await interaction.editReply({ embeds: [E.success("Created", "<#" + ch.id + ">")] });
     }
 
@@ -278,101 +326,37 @@ module.exports = {
     }
   },
 
-  async handleButton(interaction, client) {
+  async handleSelectMenu(interaction, client) {
     const [cmd, action, data] = interaction.customId.split(":");
-    if (cmd !== "ticket") return false;
+    if (cmd !== "ticket" || action !== "select") return false;
 
     try {
-      if (action === "create") {
-        // Can't showModal after deferUpdate - create ticket directly instead
-        const subject = "General Support";
-        const type = "general";
-        const cfg = await Guild.findOne({ guildId: interaction.guildId });
-        if (!cfg?.tickets?.enabled) return await interaction.followUp({ embeds: [E.error("Not setup", "Run setup first")], ephemeral: true });
-
-        const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ["open", "claimed"] } });
-        if (existing.length >= (cfg.tickets.maxOpen || 1)) return await interaction.followUp({ embeds: [E.warn("Limit", "Too many open")], ephemeral: true });
-
-        const roles = cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : [];
-        cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
-        await cfg.save();
-
-        const id = "ticket-" + String(cfg.tickets.counter).padStart(4, "0");
-        const ch = await interaction.guild.channels.create({ name: id, type: ChannelType.GuildText, parent: cfg.tickets.categoryId || null, permissionOverwrites: buildPerms(interaction.guild, interaction.user.id, roles), topic: subject });
-        await Ticket.create({ ticketId: id, guildId: interaction.guildId, channelId: ch.id, userId: interaction.user.id, type, subject, status: "open" });
-
-        const emoji = { game: "🎮", tournament: "🏆", premium: "💎", bug: "🐛", general: "💬", report: "🚨" };
-        const embed = E.ticket((emoji[type] || "💬") + " " + subject, "Welcome <@" + interaction.user.id + ">!", [{ name: "ID", value: id, inline: true }, { name: "Type", value: type, inline: true }]);
-        const btns = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("ticket:claim:" + id).setLabel("Claim").setStyle(ButtonStyle.Primary), new ButtonBuilder().setCustomId("ticket:close:" + id).setLabel("Close").setStyle(ButtonStyle.Danger));
-        await ch.send({ content: ["<@" + interaction.user.id + ">", ...roles.map(r => "<@&" + r + ">")].join(" "), embeds: [embed], components: [btns] });
-        await interaction.followUp({ embeds: [E.success("Created", "<#" + ch.id + ">")], ephemeral: true });
-        return true;
-      }
-
-      if (action === "claim") {
-        const t = await Ticket.findOne({ ticketId: data });
-        if (!t) return await interaction.followUp({ embeds: [E.error("Not found", "Ticket not found")], ephemeral: true });
-        const cfg = await Guild.findOne({ guildId: interaction.guildId });
-        if (!(await isStaff(interaction.member, cfg))) return await interaction.followUp({ embeds: [E.error("Staff only", "No perm")], ephemeral: true });
-        if (t.claimedBy) return await interaction.followUp({ embeds: [E.warn("Claimed", "Already claimed")], ephemeral: true });
-        t.claimedBy = interaction.user.id;
-        t.status = "claimed";
-        await t.save();
-        await interaction.followUp({ embeds: [E.ticket("Claimed", "<@" + interaction.user.id + "> claimed")], ephemeral: true });
-        return true;
-      }
-
-      if (action === "close") {
-        const t = await Ticket.findOne({ ticketId: data });
-        if (!t) return await interaction.followUp({ embeds: [E.error("Not found", "Ticket not found")], ephemeral: true });
-        const cfg = await Guild.findOne({ guildId: interaction.guildId });
-        if (t.userId !== interaction.user.id && !(await isStaff(interaction.member, cfg))) return await interaction.followUp({ embeds: [E.error("No perm", "Can't close")], ephemeral: true });
-        t.status = "closed";
-        t.closedAt = new Date();
-        t.closedBy = interaction.user.id;
-        await t.save();
-        await interaction.followUp({ embeds: [E.ticket("Closing", "Deleting in 5s")], ephemeral: true });
-        setTimeout(() => interaction.channel.delete().catch(() => {}), 5000);
-        return true;
-      }
-    } catch (error) {
-      console.error("Button error:", error);
-      await interaction.followUp({ embeds: [E.error("Error", error.message)], ephemeral: true }).catch(() => {});
-    }
-
-    return false;
-  },
-
-  async handleModal(interaction, client) {
-    const [cmd, action, data] = interaction.customId.split(":");
-    if (cmd !== "ticket" || action !== "modal") return false;
-
-    if (data === "create") {
+      const type = interaction.values[0];
       await interaction.deferReply({ flags: 64 });
-      const subject = interaction.fields.getTextInputValue("subject");
-      const typeInput = interaction.fields.getTextInputValue("type").toLowerCase();
-      const type = ["game", "tournament", "premium", "bug", "general", "report"].includes(typeInput) ? typeInput : "general";
 
       const cfg = await Guild.findOne({ guildId: interaction.guildId });
-      if (!cfg?.tickets?.enabled) return interaction.editReply({ embeds: [E.error("Not setup", "Run setup first")] });
+      if (!cfg?.tickets?.enabled) return interaction.followUp({ embeds: [E.error("Not setup", "Run setup first")], ephemeral: true });
 
       const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ["open", "claimed"] } });
-      if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.editReply({ embeds: [E.warn("Limit", "Too many open")] });
+      if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.followUp({ embeds: [E.warn("Limit", "Too many open")], ephemeral: true });
 
-      const roles = cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : [];
+      const typeRoles = cfg.tickets.typeRoles?.[type] || cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : [];
       cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
       await cfg.save();
 
       const id = "ticket-" + String(cfg.tickets.counter).padStart(4, "0");
-      const ch = await interaction.guild.channels.create({ name: id, type: ChannelType.GuildText, parent: cfg.tickets.categoryId || null, permissionOverwrites: buildPerms(interaction.guild, interaction.user.id, roles), topic: subject });
-      await Ticket.create({ ticketId: id, guildId: interaction.guildId, channelId: ch.id, userId: interaction.user.id, type, subject, status: "open" });
+      const typeInfo = TICKET_TYPES.find(t => t.value === type) || TICKET_TYPES[4];
+      const ch = await interaction.guild.channels.create({ name: id, type: ChannelType.GuildText, parent: cfg.tickets.categoryId || null, permissionOverwrites: buildPerms(interaction.guild, interaction.user.id, typeRoles), topic: typeInfo.name });
+      await Ticket.create({ ticketId: id, guildId: interaction.guildId, channelId: ch.id, userId: interaction.user.id, type, subject: typeInfo.name, status: "open" });
 
-      const emoji = { game: "🎮", tournament: "🏆", premium: "💎", bug: "🐛", general: "💬", report: "🚨" };
-      const embed = E.ticket((emoji[type] || "💬") + " " + subject, "Welcome <@" + interaction.user.id + ">!", [{ name: "ID", value: id, inline: true }, { name: "Type", value: type, inline: true }]);
+      const embed = E.ticket(typeInfo.emoji + " " + typeInfo.name, "Welcome <@" + interaction.user.id + ">!", [{ name: "ID", value: id, inline: true }, { name: "Type", value: type, inline: true }]);
       const btns = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("ticket:claim:" + id).setLabel("Claim").setStyle(ButtonStyle.Primary), new ButtonBuilder().setCustomId("ticket:close:" + id).setLabel("Close").setStyle(ButtonStyle.Danger));
-      await ch.send({ content: ["<@" + interaction.user.id + ">", ...roles.map(r => "<@&" + r + ">")].join(" "), embeds: [embed], components: [btns] });
-      await interaction.editReply({ embeds: [E.success("Created", "<#" + ch.id + ">")] });
+      await ch.send({ content: ["<@" + interaction.user.id + ">", ...typeRoles.map(r => "<@&" + r + ">")].join(" "), embeds: [embed], components: [btns] });
+      await interaction.followUp({ embeds: [E.success("Created", "<#" + ch.id + ">")], ephemeral: true });
       return true;
+    } catch (error) {
+      console.error("Select menu error:", error);
+      await interaction.followUp({ embeds: [E.error("Error", error.message)], ephemeral: true }).catch(() => {});
     }
 
     return false;
