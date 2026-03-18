@@ -197,6 +197,27 @@ module.exports = {
           
           if (isNaN(num)) return;
           
+          // Cannot count twice in a row
+          if (msgCollect.author.id === lastUser) {
+            const loseEmbed = E.make(0xFF0000)
+              .setTitle('💥 Game Over!')
+              .setDescription(`<@${msgCollect.author.id}> cannot count twice in a row!`)
+              .addFields(
+                { name: '🏁 Final Count', value: count.toString(), inline: true },
+                { name: '👥 Total Players', value: players.size.toString(), inline: true },
+                { name: '🏆 Record', value: record.toString(), inline: true }
+              )
+              .setColor('#FF0000')
+              .setTimestamp();
+            
+            await msgCollect.react('❌');
+            await channel.send({ embeds: [loseEmbed] });
+            collector.stop();
+            
+            setTimeout(startGame, 5000);
+            return;
+          }
+          
           if (num !== count + 1) {
             if (count > record) record = count;
             
