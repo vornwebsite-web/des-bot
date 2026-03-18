@@ -27,7 +27,7 @@ return perms;
 
 // ── Helper: ping string for all support roles ────────────────────
 function pingRoles(supportRoles) {
-return supportRoles.filter(Boolean).map(r => `<@&${r}>`).join(’ ’);
+return supportRoles.filter(Boolean).map(r => '<@&${r}>').join(' ');
 }
 
 // ── Helper: check if user is support staff ───────────────────────
