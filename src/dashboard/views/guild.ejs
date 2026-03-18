@@ -150,8 +150,8 @@ textarea.fi{resize:vertical;min-height:72px}
 .hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
 
 /* ── Sidebar overlay (mobile) ── */
-.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:150;backdrop-filter:blur(2px)}
-.sidebar-overlay.show{display:block}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:155;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);pointer-events:none}
+.sidebar-overlay.show{display:block;pointer-events:all}
 
 /* ── Mobile bottom tab bar ── */
 .mobile-tabs{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(13,13,20,.96);border-top:1px solid var(--border);backdrop-filter:blur(20px);z-index:180;padding:0 4px env(safe-area-inset-bottom,0)}
@@ -178,17 +178,21 @@ textarea.fi{resize:vertical;min-height:72px}
   aside{
     position:fixed;
     top:58px;
-    left:-100%;
+    left:-300px;
     width:280px;
     height:calc(100vh - 58px);
     z-index:160;
     transition:left .28s cubic-bezier(.4,0,.2,1);
-    box-shadow:4px 0 40px rgba(0,0,0,.5);
+    box-shadow:8px 0 60px rgba(0,0,0,.8);
+    background:#0D0D14 !important;
+    overflow-y:auto;
+    will-change:left;
   }
-  aside.open{left:0}
+  aside.open{left:0 !important}
 
   /* Layout stack */
   .layout{flex-direction:column;overflow:visible}
+  body.sidebar-open .content{filter:none}
   .content{padding:20px 16px 100px;overflow:visible}
 
   /* Stats row — 2 columns on mobile */
@@ -226,8 +230,10 @@ textarea.fi{resize:vertical;min-height:72px}
   /* Show mobile tab bar */
   .mobile-tabs{display:block}
 
-  /* Hide desktop sidebar labels on small screens inside drawer */
-  .sb-lbl{font-size:.65rem}
+  /* Larger tap targets in sidebar on mobile */
+  .sb-lbl{font-size:.65rem;padding:10px 18px 4px}
+  .sb-item{padding:14px 20px;font-size:.92rem;border-bottom:1px solid rgba(212,175,55,.04)}
+  .sb-item .ic{font-size:1.1rem}
 }
 
 @media(max-width:480px){
@@ -801,19 +807,23 @@ setInterval(updatePing, 15000);
 function toggleSidebar(e) {
   if (e) { e.preventDefault(); e.stopPropagation(); }
   const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebar-overlay');
-  const hamburger = document.getElementById('hamburger');
-  const isOpen = sidebar.classList.contains('open');
-  sidebar.classList.toggle('open', !isOpen);
-  overlay.classList.toggle('show', !isOpen);
-  hamburger.classList.toggle('open', !isOpen);
-  document.body.style.overflow = !isOpen ? 'hidden' : '';
+  if (sidebar.classList.contains('open')) { closeSidebar(); } else { openSidebar(); }
+}
+function openSidebar() {
+  document.getElementById('sidebar').classList.add('open');
+  document.getElementById('sidebar-overlay').classList.add('show');
+  document.getElementById('hamburger').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.width = '100%';
 }
 function closeSidebar() {
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('sidebar-overlay').classList.remove('show');
   document.getElementById('hamburger').classList.remove('open');
   document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.width = '';
 }
 
 // Attach both click and touchend to hamburger for max compatibility
@@ -832,9 +842,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Close sidebar on nav item click on mobile
 document.querySelectorAll('.sb-item').forEach(item => {
-  const orig = item.onclick;
   item.addEventListener('click', () => {
-    if (window.innerWidth <= 768) closeSidebar();
+    if (window.innerWidth <= 768) {
+      setTimeout(closeSidebar, 100); // slight delay so panel switches first
+    }
     document.querySelectorAll('.mob-tab').forEach(t => t.classList.toggle('active', t.dataset.p === item.dataset.p));
   });
 });
