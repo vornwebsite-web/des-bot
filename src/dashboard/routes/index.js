@@ -1,3 +1,4 @@
+// DeS Bot™ Dashboard Routes — v2.1
 const express = require(‘express’);
 const { ChannelType, PermissionFlagsBits } = require(‘discord.js’);
 const { Guild, User, Tournament, Ticket, Modlog, Giveaway } = require(’../../models/index’);
