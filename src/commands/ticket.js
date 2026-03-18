@@ -215,7 +215,10 @@ module.exports = {
       if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.editReply({ embeds: [E.warn("Limit", "Too many open")] });
 
       // Get type-specific roles or fall back to default
-      const typeRoles = cfg.tickets.typeRoles?.[type] || cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : [];
+      let typeRoles = cfg.tickets.typeRoles?.[type];
+      if (!typeRoles || typeRoles.length === 0) {
+        typeRoles = cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : [];
+      }
       
       cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
       await cfg.save();
@@ -383,7 +386,10 @@ module.exports = {
       const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ["open", "claimed"] } });
       if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.followUp({ embeds: [E.warn("Limit", "Too many open")], ephemeral: true });
 
-      const typeRoles = cfg.tickets.typeRoles?.[type] || cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : [];
+      let typeRoles = cfg.tickets.typeRoles?.[type];
+      if (!typeRoles || typeRoles.length === 0) {
+        typeRoles = cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : [];
+      }
       cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
       await cfg.save();
 
