@@ -31,27 +31,27 @@ async function isStaff(member, cfg) {
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("ticket").setDescription("Ticket support system")
-    .addSubcommand(s => s.setName("setup").setDescription("Configure the ticket system")
-      .addRoleOption(o => o.setName("support-role-1").setDescription("Support staff role 1").setRequired(true))
-      .addRoleOption(o => o.setName("support-role-2").setDescription("Support staff role 2"))
-      .addRoleOption(o => o.setName("support-role-3").setDescription("Support staff role 3"))
-      .addRoleOption(o => o.setName("support-role-4").setDescription("Support staff role 4"))
-      .addRoleOption(o => o.setName("support-role-5").setDescription("Support staff role 5"))
-      .addChannelOption(o => o.setName("log-channel").setDescription("Channel for ticket logs"))
-      .addChannelOption(o => o.setName("category").setDescription("Category for ticket channels"))
-      .addIntegerOption(o => o.setName("max-open").setDescription("Max open tickets per user").setMinValue(1).setMaxValue(5))
+    .addSubcommand(s => s.setName("setup").setDescription("Configure ticket system")
+      .addRoleOption(o => o.setName("support-role-1").setDescription("Support role 1").setRequired(true))
+      .addRoleOption(o => o.setName("support-role-2").setDescription("Support role 2"))
+      .addRoleOption(o => o.setName("support-role-3").setDescription("Support role 3"))
+      .addRoleOption(o => o.setName("support-role-4").setDescription("Support role 4"))
+      .addRoleOption(o => o.setName("support-role-5").setDescription("Support role 5"))
+      .addChannelOption(o => o.setName("log-channel").setDescription("Ticket log channel"))
+      .addChannelOption(o => o.setName("category").setDescription("Ticket category"))
+      .addIntegerOption(o => o.setName("max-open").setDescription("Max open per user").setMinValue(1).setMaxValue(5))
     )
-    .addSubcommand(s => s.setName("addrole").setDescription("Add a support role")
+    .addSubcommand(s => s.setName("addrole").setDescription("Add support role")
       .addRoleOption(o => o.setName("role").setDescription("Role to add").setRequired(true))
     )
-    .addSubcommand(s => s.setName("removerole").setDescription("Remove a support role")
+    .addSubcommand(s => s.setName("removerole").setDescription("Remove support role")
       .addRoleOption(o => o.setName("role").setDescription("Role to remove").setRequired(true))
     )
     .addSubcommand(s => s.setName("roles").setDescription("View all support roles"))
     .addSubcommand(s => s.setName("panel").setDescription("Post the ticket panel in this channel"))
-    .addSubcommand(s => s.setName("create").setDescription("Open a support ticket")
+    .addSubcommand(s => s.setName("create").setDescription("Open a ticket")
       .addStringOption(o => o.setName("subject").setDescription("Ticket subject").setRequired(true))
-      .addStringOption(o => o.setName("type").setDescription("Ticket type").addChoices(
+      .addStringOption(o => o.setName("type").setDescription("Type: game/tournament/premium/bug/general/report").addChoices(
         { name: "Game Support", value: "game" },
         { name: "Tournament", value: "tournament" },
         { name: "Premium", value: "premium" },
@@ -60,21 +60,21 @@ module.exports = {
         { name: "Report User", value: "report" }
       ))
     )
-    .addSubcommand(s => s.setName("close").setDescription("Close this ticket")
-      .addStringOption(o => o.setName("reason").setDescription("Reason for closing"))
+    .addSubcommand(s => s.setName("close").setDescription("Close ticket")
+      .addStringOption(o => o.setName("reason").setDescription("Close reason"))
     )
-    .addSubcommand(s => s.setName("claim").setDescription("Claim this ticket"))
-    .addSubcommand(s => s.setName("unclaim").setDescription("Unclaim this ticket"))
-    .addSubcommand(s => s.setName("add").setDescription("Add a user to this ticket")
+    .addSubcommand(s => s.setName("claim").setDescription("Claim ticket"))
+    .addSubcommand(s => s.setName("unclaim").setDescription("Unclaim ticket"))
+    .addSubcommand(s => s.setName("add").setDescription("Add user to ticket")
       .addUserOption(o => o.setName("user").setDescription("User to add").setRequired(true))
     )
-    .addSubcommand(s => s.setName("remove").setDescription("Remove a user from this ticket")
+    .addSubcommand(s => s.setName("remove").setDescription("Remove user from ticket")
       .addUserOption(o => o.setName("user").setDescription("User to remove").setRequired(true))
     )
-    .addSubcommand(s => s.setName("rename").setDescription("Rename this ticket channel")
-      .addStringOption(o => o.setName("name").setDescription("New channel name").setRequired(true))
+    .addSubcommand(s => s.setName("rename").setDescription("Rename ticket")
+      .addStringOption(o => o.setName("name").setDescription("New name").setRequired(true))
     )
-    .addSubcommand(s => s.setName("priority").setDescription("Set ticket priority")
+    .addSubcommand(s => s.setName("priority").setDescription("Set priority")
       .addStringOption(o => o.setName("level").setDescription("Priority level").setRequired(true).addChoices(
         { name: "Low", value: "low" },
         { name: "Normal", value: "normal" },
@@ -82,9 +82,9 @@ module.exports = {
         { name: "Critical", value: "critical" }
       ))
     )
-    .addSubcommand(s => s.setName("transcript").setDescription("Save a transcript of this ticket"))
-    .addSubcommand(s => s.setName("list").setDescription("List all open tickets"))
-    .addSubcommand(s => s.setName("info").setDescription("View info about this ticket")),
+    .addSubcommand(s => s.setName("transcript").setDescription("Save transcript"))
+    .addSubcommand(s => s.setName("list").setDescription("List open tickets"))
+    .addSubcommand(s => s.setName("info").setDescription("Ticket info")),
 
   async execute(interaction, client) {
     const sub = interaction.options.getSubcommand();
