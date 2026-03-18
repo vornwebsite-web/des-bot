@@ -138,10 +138,29 @@ module.exports = {
     else if (sub === "panel") {
       if (!(await requirePerm(interaction, PermissionFlagsBits.ManageGuild))) return;
       await interaction.deferReply({ flags: 64 });
-      const embed = E.ticket("Support Tickets", "Click to open", [{ name: "Rules", value: "Be respectful\nOne at a time", inline: false }]);
-      const row = new ActionRowBuilder().addComponents(new ButtonBuilder().setCustomId("ticket:create:panel").setLabel("Open").setStyle(ButtonStyle.Primary).setEmoji("🎫"));
+      
+      const embed = E.make(0x2F3136)
+        .setTitle("🎫 Support Ticket System")
+        .setDescription("Need help? Click the button below to open a support ticket!\n\nOur support team will respond as soon as possible.")
+        .addFields(
+          { name: "📋 Ticket Types", value: "🎮 Game Support\n🏆 Tournament\n💎 Premium\n🐛 Bug Report\n💬 General\n🚨 Report User", inline: false },
+          { name: "⚡ Quick Tips", value: "• Describe your issue clearly\n• One ticket at a time\n• Be patient for response\n• Use ticket commands for more options", inline: false }
+        )
+        .setColor("#2F3136")
+        .setThumbnail(interaction.guild.iconURL({ dynamic: true, size: 256 }))
+        .setFooter({ text: "DeS Bot™ • Support System", iconURL: interaction.client.user.displayAvatarURL() })
+        .setTimestamp();
+      
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder()
+          .setCustomId("ticket:create:panel")
+          .setLabel("Open Support Ticket")
+          .setStyle(ButtonStyle.Primary)
+          .setEmoji("🎫")
+      );
+      
       await interaction.channel.send({ embeds: [embed], components: [row] });
-      await interaction.editReply({ embeds: [E.success("Posted", "Panel sent")] });
+      await interaction.editReply({ embeds: [E.success("✅ Panel Posted", "Ticket support panel has been posted to this channel")] });
     }
 
     else if (sub === "create") {
