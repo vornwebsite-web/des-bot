@@ -1,6 +1,7 @@
 const {
   SlashCommandBuilder, PermissionFlagsBits, ChannelType,
   ButtonBuilder, ButtonStyle, ActionRowBuilder, AttachmentBuilder,
+  ModalBuilder, TextInputBuilder, TextInputStyle,
 } = require("discord.js");
 const E = require("../utils/embeds");
 const { requirePerm } = require("../utils/helpers");
@@ -169,7 +170,7 @@ module.exports = {
         [{ name: "Rules", value: "Be respectful to staff\nOne ticket at a time\nDescribe your issue clearly", inline: false }]
       );
       const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId("ticket_open_general").setLabel("Open a Ticket").setStyle(ButtonStyle.Primary).setEmoji("🎫")
+        new ButtonBuilder().setCustomId("ticket:create:panel").setLabel("Open a Ticket").setStyle(ButtonStyle.Primary).setEmoji("🎫")
       );
       await interaction.channel.send({ embeds: [panelEmbed], components: [row] });
       await interaction.editReply({ embeds: [E.success("Panel Posted", "Ticket panel sent to <#" + interaction.channelId + ">.")] });
@@ -214,8 +215,8 @@ module.exports = {
         ]
       );
       const row = new ActionRowBuilder().addComponents(
-        new ButtonBuilder().setCustomId("t_claim_" + ticketId).setLabel("Claim").setStyle(ButtonStyle.Primary).setEmoji("🎫"),
-        new ButtonBuilder().setCustomId("t_close_" + ticketId).setLabel("Close").setStyle(ButtonStyle.Danger).setEmoji("🔒")
+        new ButtonBuilder().setCustomId("ticket:claim:" + ticketId).setLabel("Claim").setStyle(ButtonStyle.Primary).setEmoji("🎫"),
+        new ButtonBuilder().setCustomId("ticket:close:" + ticketId).setLabel("Close").setStyle(ButtonStyle.Danger).setEmoji("🔒")
       );
       const pingParts = ["<@" + interaction.user.id + ">"].concat(supportRoles.map(r => "<@&" + r + ">"));
       await ch.send({ content: pingParts.join(" "), embeds: [openEmbed], components: [row] });
@@ -358,5 +359,140 @@ module.exports = {
         { name: "Opened", value: "<t:" + Math.floor(new Date(t.createdAt).getTime() / 1000) + ":F>", inline: false },
       ])] });
     }
+  },
+
+  async handleButton(interaction, client) {
+    const [cmd, action, data] = interaction.customId.split(":");
+    if (cmd !== "ticket") return false;
+
+    // Handle panel button - show subject modal
+    if (action === "create") {
+      await interaction.showModal(
+        new ModalBuilder()
+          .setCustomId("ticket:modal:create")
+          .setTitle("Create a Support Ticket")
+          .addComponents(
+            new ActionRowBuilder().addComponents(
+              new TextInputBuilder()
+                .setCustomId("subject")
+                .setLabel("What is your issue about?")
+                .setStyle(TextInputStyle.Short)
+                .setMaxLength(100)
+                .setRequired(true)
+            ),
+            new ActionRowBuilder().addComponents(
+              new TextInputBuilder()
+                .setCustomId("type")
+                .setLabel("Type (game/tournament/premium/bug/general/report)")
+                .setStyle(TextInputStyle.Short)
+                .setMaxLength(20)
+                .setRequired(true)
+            )
+          )
+      );
+      return true;
+    }
+
+    // Handle claim button
+    if (action === "claim") {
+      await interaction.deferReply();
+      const t = await Ticket.findOne({ ticketId: data, status: { $in: ["open", "claimed"] } });
+      if (!t) return interaction.editReply({ embeds: [E.error("Not a Ticket", "Ticket not found.")] });
+      const cfg = await Guild.findOne({ guildId: interaction.guildId });
+      if (!(await isStaff(interaction.member, cfg))) return interaction.editReply({ embeds: [E.error("Staff Only", "Only support staff can claim tickets.")] });
+      if (t.claimedBy) return interaction.editReply({ embeds: [E.warn("Already Claimed", "Claimed by <@" + t.claimedBy + ">.")] });
+      t.claimedBy = interaction.user.id;
+      t.status = "claimed";
+      await t.save();
+      await interaction.editReply({ embeds: [E.ticket("Ticket Claimed", "<@" + interaction.user.id + "> has claimed this ticket.")] });
+      return true;
+    }
+
+    // Handle close button
+    if (action === "close") {
+      await interaction.deferReply();
+      const t = await Ticket.findOne({ ticketId: data, status: { $in: ["open", "claimed"] } });
+      if (!t) return interaction.editReply({ embeds: [E.error("Not a Ticket", "Ticket not found.")] });
+      const cfg = await Guild.findOne({ guildId: interaction.guildId });
+      const canClose = t.userId === interaction.user.id || await isStaff(interaction.member, cfg);
+      if (!canClose) return interaction.editReply({ embeds: [E.error("No Permission", "Only the ticket creator or support staff can close this.")] });
+      t.status = "closed";
+      t.closedAt = new Date();
+      t.closedBy = interaction.user.id;
+      await t.save();
+      await interaction.editReply({ embeds: [E.ticket("Closing Ticket", "Deleting in 5 seconds.")] });
+      setTimeout(async () => {
+        try { await interaction.channel.delete("Closed by " + interaction.user.tag); } catch (e) {}
+      }, 5000);
+      return true;
+    }
+
+    return false;
+  },
+
+  async handleModal(interaction, client) {
+    const [cmd, action, data] = interaction.customId.split(":");
+    if (cmd !== "ticket" || action !== "modal") return false;
+
+    if (data === "create") {
+      await interaction.deferReply({ flags: 64 });
+      const subject = interaction.fields.getTextInputValue("subject");
+      const typeInput = interaction.fields.getTextInputValue("type").toLowerCase();
+      const validTypes = ["game", "tournament", "premium", "bug", "general", "report"];
+      const type = validTypes.includes(typeInput) ? typeInput : "general";
+
+      const cfg = await Guild.findOne({ guildId: interaction.guildId });
+      if (!cfg || !cfg.tickets || !cfg.tickets.enabled) {
+        return interaction.editReply({ embeds: [E.error("Not Configured", "Ticket system is not set up. Ask an admin to run /ticket setup.")] });
+      }
+
+      const maxOpen = cfg.tickets.maxOpen || 1;
+      const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ["open", "claimed"] } });
+      if (existing.length >= maxOpen) {
+        const links = existing.map(t => "<#" + t.channelId + ">").join(", ");
+        return interaction.editReply({ embeds: [E.warn("Ticket Limit", "You already have " + existing.length + " open ticket(s): " + links + "\nMax: " + maxOpen)] });
+      }
+
+      const supportRoles = (cfg.tickets.supportRoles && cfg.tickets.supportRoles.length)
+        ? cfg.tickets.supportRoles
+        : (cfg.tickets.supportRole ? [cfg.tickets.supportRole] : []);
+
+      cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
+      await cfg.save();
+      const ticketId = "ticket-" + String(cfg.tickets.counter).padStart(4, "0");
+
+      const ch = await interaction.guild.channels.create({
+        name: ticketId,
+        type: ChannelType.GuildText,
+        parent: cfg.tickets.categoryId || null,
+        permissionOverwrites: buildPerms(interaction.guild, interaction.user.id, supportRoles),
+        topic: "Ticket: " + subject + " | " + type + " | " + interaction.user.tag,
+      });
+
+      await Ticket.create({ ticketId: ticketId, guildId: interaction.guildId, channelId: ch.id, userId: interaction.user.id, type: type, subject: subject, status: "open" });
+
+      const typeEmoji = { game: "🎮", tournament: "🏆", premium: "💎", bug: "🐛", general: "💬", report: "🚨" };
+      const openEmbed = E.ticket(
+        (typeEmoji[type] || "💬") + " " + subject,
+        "Welcome <@" + interaction.user.id + ">!\nSupport will be with you shortly.\n\nPlease describe your issue in detail.",
+        [
+          { name: "Ticket ID", value: ticketId, inline: true },
+          { name: "Type", value: type.charAt(0).toUpperCase() + type.slice(1), inline: true },
+          { name: "Priority", value: "Normal", inline: true },
+        ]
+      );
+
+      const row = new ActionRowBuilder().addComponents(
+        new ButtonBuilder().setCustomId("ticket:claim:" + ticketId).setLabel("Claim").setStyle(ButtonStyle.Primary).setEmoji("🎫"),
+        new ButtonBuilder().setCustomId("ticket:close:" + ticketId).setLabel("Close").setStyle(ButtonStyle.Danger).setEmoji("🔒")
+      );
+
+      const pingParts = ["<@" + interaction.user.id + ">"].concat(supportRoles.map(r => "<@&" + r + ">"));
+      await ch.send({ content: pingParts.join(" "), embeds: [openEmbed], components: [row] });
+      await interaction.editReply({ embeds: [E.success("Ticket Created!", "Your ticket is ready: <#" + ch.id + ">")] });
+      return true;
+    }
+
+    return false;
   }
 };
