@@ -479,23 +479,66 @@ textarea.fi{resize:vertical;min-height:72px}
 
 <!-- ── TICKETS ── -->
 <div class="panel" id="panel-tickets">
-  <div class="ph"><h2>Ticket System</h2><p>Configure support tickets. Post the panel to a channel to go live.</p></div>
+  <div class="ph"><h2>Ticket System</h2><p>Configure support tickets and manage staff roles.</p></div>
   <div class="cgrid">
+
+    <!-- Settings card -->
     <div class="cc">
       <div class="cc-title">🎫 Ticket Settings</div>
-      <div class="fg"><div class="tr"><div class="tl">Enable Ticket System</div><label class="tog"><input type="checkbox" id="ticketsEnabled" <%= (cfg.tickets && cfg.tickets.enabled) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
-      <div class="fg"><label class="fl">Support Staff Role</label><select class="fi" id="ticketSupportRole"><option value="">— Select Role —</option><% roles.forEach(r => { %><option value="<%= r.id %>" <%= (cfg.tickets && cfg.tickets.supportRole === r.id) ? 'selected' : '' %>>@<%= r.name %></option><% }) %></select></div>
-      <div class="fg"><label class="fl">Ticket Log Channel</label><select class="fi" id="ticketLogChannel"><option value="">— None —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.ticketLogs === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
+      <div class="fg"><div class="tr"><div class="tl">Enable Ticket System<small>Allow members to open tickets</small></div><label class="tog"><input type="checkbox" id="ticketsEnabled" <%= (cfg.tickets && cfg.tickets.enabled) ? 'checked' : '' %>><span class="ts"></span></label></div></div>
+      <div class="fg"><label class="fl">Ticket Log Channel <span>transcript saved here on close</span></label><select class="fi" id="ticketLogChannel"><option value="">— None —</option><% channels.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.channels && cfg.channels.ticketLogs === c.id) ? 'selected' : '' %>>#<%= c.name %></option><% }) %></select></div>
+      <div class="fg"><label class="fl">Ticket Category <span>where channels are created</span></label><select class="fi" id="ticketCategoryId"><option value="">— No Category —</option><% categories.forEach(c => { %><option value="<%= c.id %>" <%= (cfg.tickets && cfg.tickets.categoryId === c.id) ? 'selected' : '' %>><%= c.name %></option><% }) %></select></div>
       <div class="fg"><label class="fl">Max Open Tickets Per User</label><input type="number" class="fi" id="ticketMaxOpen" min="1" max="5" value="<%= (cfg.tickets && cfg.tickets.maxOpen) || 1 %>"></div>
-      <div class="sf"><button class="btn btn-gold" data-action="save" data-section="tickets">💾 Save Tickets</button><span class="sm" id="sm-tickets"></span></div>
+      <div class="sf"><button class="btn btn-gold" data-action="save" data-section="tickets">💾 Save Settings</button><span class="sm" id="sm-tickets"></span></div>
     </div>
+
+    <!-- Support roles card -->
+    <div class="cc">
+      <div class="cc-title">🛡️ Support Roles</div>
+      <p style="font-size:.82rem;color:var(--text3);margin-bottom:14px;line-height:1.6">These roles can see, claim, and manage all ticket channels. Add up to 10 roles.</p>
+
+      <!-- Current roles list -->
+      <div id="support-roles-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+        <%
+        const sRoles = (cfg.tickets && cfg.tickets.supportRoles && cfg.tickets.supportRoles.length)
+          ? cfg.tickets.supportRoles
+          : (cfg.tickets && cfg.tickets.supportRole ? [cfg.tickets.supportRole] : []);
+        if (sRoles.length === 0) { %>
+          <div style="font-size:.83rem;color:var(--text3);padding:10px;background:var(--bg3);border-radius:7px;border:1px dashed var(--border)">No support roles configured yet.</div>
+        <% } else { sRoles.forEach(rid => {
+          const roleObj = roles.find(r => r.id === rid);
+        %><div class="srole-row" data-id="<%= rid %>" style="display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px">
+            <span style="font-size:.88rem;color:var(--text);font-weight:500">@<%= roleObj ? roleObj.name : rid %></span>
+            <button style="background:rgba(255,43,78,.12);border:1px solid rgba(255,43,78,.25);color:var(--error);font-size:.75rem;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-weight:700" data-action="removeRole" data-rid="<%= rid %>">✕ Remove</button>
+          </div>
+        <% }) } %>
+      </div>
+
+      <!-- Add role dropdown -->
+      <div class="fg">
+        <label class="fl">Add Support Role</label>
+        <div style="display:flex;gap:8px">
+          <select class="fi" id="addSupportRole" style="flex:1">
+            <option value="">— Select Role —</option>
+            <% roles.forEach(r => { %>
+              <option value="<%= r.id %>"<%= sRoles.includes(r.id) ? ' disabled style="opacity:.4"' : '' %>>@<%= r.name %></option>
+            <% }) %>
+          </select>
+          <button class="btn btn-success btn-sm" data-action="addRole" style="flex-shrink:0">+ Add</button>
+        </div>
+      </div>
+      <div class="ac-result" id="roles-result"></div>
+    </div>
+
+    <!-- Post panel card -->
     <div class="cc">
       <div class="cc-title">📌 Post Ticket Panel</div>
-      <div class="ac-desc" style="margin-bottom:14px;color:var(--text2);font-size:.85rem">Select a channel and click the button to post the ticket opening panel. Members click it to create a ticket.</div>
+      <p style="font-size:.83rem;color:var(--text2);margin-bottom:14px;line-height:1.6">Post the ticket opening panel to a channel. Members tap the button to create a ticket.</p>
       <div class="fg"><label class="fl">Target Channel</label><select class="fi" id="panelChannel"><option value="">— Select Channel —</option><% channels.forEach(c => { %><option value="<%= c.id %>">#<%= c.name %></option><% }) %></select></div>
       <button class="btn btn-success" data-action="postPanel">📌 Post Ticket Panel</button>
       <div class="ac-result" id="panel-result"></div>
     </div>
+
   </div>
 </div>
 
@@ -718,6 +761,12 @@ document.body.addEventListener('click', function(e) {
   else if (act === 'action') {
     action(btn.dataset.type);
   }
+  else if (act === 'addRole') {
+    addSupportRole();
+  }
+  else if (act === 'removeRole') {
+    removeSupportRole(btn.dataset.rid, btn);
+  }
   else if (act === 'postPanel') {
     postPanel();
   }
@@ -747,7 +796,7 @@ const sectionFields = {
   automod:     ['autoMod','antiSpam','antiLinks','antiInvites','antiCaps','badWords'],
   antiraid:    ['antiRaidEnabled','antiRaidThreshold','antiRaidWindow','antiRaidAction'],
   antinuke:    ['antiNukeEnabled','antiNukeThreshold','antiNukeAction'],
-  tickets:     ['ticketsEnabled','ticketSupportRole','ticketLogChannel','ticketMaxOpen'],
+  tickets:     ['ticketsEnabled','ticketLogChannel','ticketCategoryId','ticketMaxOpen'],
   leveling:    ['levelingEnabled','xpPerMsg','levelCooldown','levelUpChannel','levelAnnounce'],
   roles:       ['mutedRole','autoRole'],
   suggestions: ['suggestChannel'],
@@ -834,6 +883,68 @@ async function sendAnnounce() {
     const d = await r.json();
     showResult('ann-result', d.success, d.success ? d.message : '❌ ' + (d.error || 'Failed'));
   } catch(e) { showResult('ann-result', false, '❌ Network error'); }
+}
+
+// ── Ticket support role management ────────────────────────────
+async function addSupportRole() {
+  const roleId = val('addSupportRole');
+  if (!roleId) return showResult('roles-result', false, '❌ Select a role first.');
+  try {
+    const r = await fetch('/dashboard/' + GUILD + '/action/ticket-addrole', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roleId: roleId })
+    });
+    const d = await r.json();
+    if (d.success) {
+      // Add row to UI
+      const list = document.getElementById('support-roles-list');
+      const placeholder = list.querySelector('div[style*="dashed"]');
+      if (placeholder) placeholder.remove();
+      const row = document.createElement('div');
+      row.className = 'srole-row';
+      row.dataset.id = roleId;
+      row.style.cssText = 'display:flex;align-items:center;justify-content:space-between;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:9px 12px';
+      row.innerHTML = '<span style="font-size:.88rem;color:var(--text);font-weight:500">@' + d.roleName + '</span>' +
+        '<button style="background:rgba(255,43,78,.12);border:1px solid rgba(255,43,78,.25);color:var(--error);font-size:.75rem;padding:4px 10px;border-radius:5px;cursor:pointer;font-family:Rajdhani,sans-serif;font-weight:700" data-action="removeRole" data-rid="' + roleId + '">✕ Remove</button>';
+      list.appendChild(row);
+      // Disable option in select
+      const opt = document.querySelector('#addSupportRole option[value="' + roleId + '"]');
+      if (opt) { opt.disabled = true; opt.style.opacity = '.4'; }
+      document.getElementById('addSupportRole').value = '';
+      showResult('roles-result', true, '✅ ' + d.message);
+    } else {
+      showResult('roles-result', false, '❌ ' + (d.error || 'Failed'));
+    }
+  } catch(e) { showResult('roles-result', false, '❌ Network error'); }
+}
+
+async function removeSupportRole(roleId, btn) {
+  if (!roleId) return;
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const r = await fetch('/dashboard/' + GUILD + '/action/ticket-removerole', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roleId: roleId })
+    });
+    const d = await r.json();
+    if (d.success) {
+      const row = document.querySelector('.srole-row[data-id="' + roleId + '"]');
+      if (row) row.remove();
+      // Re-enable in select
+      const opt = document.querySelector('#addSupportRole option[value="' + roleId + '"]');
+      if (opt) { opt.disabled = false; opt.style.opacity = '1'; }
+      const list = document.getElementById('support-roles-list');
+      if (!list.querySelector('.srole-row')) {
+        list.innerHTML = '<div style="font-size:.83rem;color:var(--text3);padding:10px;background:var(--bg3);border-radius:7px;border:1px dashed var(--border)">No support roles configured yet.</div>';
+      }
+      showResult('roles-result', true, '✅ ' + d.message);
+    } else {
+      btn.disabled = false; btn.textContent = '✕ Remove';
+      showResult('roles-result', false, '❌ ' + (d.error || 'Failed'));
+    }
+  } catch(e) { btn.disabled = false; btn.textContent = '✕ Remove'; showResult('roles-result', false, '❌ Network error'); }
 }
 
 // ── Data loaders ───────────────────────────────────────────────
