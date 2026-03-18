@@ -120,7 +120,7 @@ module.exports = {
       const logCh = interaction.options.getChannel("logs");
       const cat = interaction.options.getChannel("cat");
       const max = interaction.options.getInteger("max") || 1;
-      await Guild.findOneAndUpdate({ guildId: interaction.guildId }, { $set: { "tickets.enabled": true, "tickets.supportRoles": unique, "tickets.supportRole": unique[0], "tickets.maxOpen": max, "tickets.categoryId": cat?.id, "tickets.logChannel": logCh?.id, "channels.ticketLogs": logCh?.id } }, { upsert: true });
+      await Guild.findOneAndUpdate({ guildId: interaction.guildId }, { $set: { "tickets.enabled": true, "tickets.supportRoles": unique, "tickets.supportRole": unique[0], "tickets.maxOpen": max, "tickets.categoryId": cat?.id, "tickets.logChannel": logCh?.id, "tickets.typeRoles": {}, "channels.ticketLogs": logCh?.id } }, { upsert: true });
       const roleList = unique.map(r => "<@&" + r + ">").join("\n") || "None";
       await interaction.editReply({ embeds: [E.success("Setup", "", [{ name: "Roles", value: roleList, inline: false }, { name: "Log", value: logCh ? "<#" + logCh.id + ">" : "None", inline: true }, { name: "Max", value: String(max), inline: true }])] });
     }
@@ -214,8 +214,8 @@ module.exports = {
       const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ["open", "claimed"] } });
       if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.editReply({ embeds: [E.warn("Limit", "Too many open")] });
 
-      // Use type-specific roles if they exist, otherwise use default support roles
-      let typeRoles = cfg.tickets.typeRoles?.[type]?.length > 0 
+      // Use type-specific roles if they exist for this type, otherwise use default support roles
+      let typeRoles = (cfg.tickets.typeRoles && cfg.tickets.typeRoles[type] && cfg.tickets.typeRoles[type].length > 0)
         ? cfg.tickets.typeRoles[type]
         : (cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : []);
       
@@ -385,8 +385,8 @@ module.exports = {
       const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ["open", "claimed"] } });
       if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.followUp({ embeds: [E.warn("Limit", "Too many open")], ephemeral: true });
 
-      // Use type-specific roles if they exist, otherwise use default support roles
-      let typeRoles = cfg.tickets.typeRoles?.[type]?.length > 0 
+      // Use type-specific roles if they exist for this type, otherwise use default support roles
+      let typeRoles = (cfg.tickets.typeRoles && cfg.tickets.typeRoles[type] && cfg.tickets.typeRoles[type].length > 0)
         ? cfg.tickets.typeRoles[type]
         : (cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : []);
       cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
