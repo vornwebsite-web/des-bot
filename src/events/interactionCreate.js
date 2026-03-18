@@ -44,11 +44,17 @@ module.exports = {
         const parts = customId.split(':');
         const commandName = parts[0];
         
+        console.log(`[DEBUG SELECT] customId: ${customId}, commandName: ${commandName}`);
+        
         const command = client.commands.get(commandName);
+        
+        console.log(`[DEBUG SELECT] Command found:`, !!command, `handleSelectMenu exists:`, !!command?.handleSelectMenu);
         
         if (command?.handleSelectMenu) {
           try {
+            console.log(`[DEBUG SELECT] Calling handleSelectMenu for ${commandName}`);
             const result = await command.handleSelectMenu(interaction, client);
+            console.log(`[DEBUG SELECT] Result:`, result);
             if (result) {
               logger.info(`[SELECT] ${interaction.user.tag} selected in ${customId}`);
             }
