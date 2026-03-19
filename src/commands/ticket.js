@@ -97,7 +97,8 @@ module.exports = {
     )
     .addSubcommand(s => s.setName('transcript').setDescription('Transcript'))
     .addSubcommand(s => s.setName('list').setDescription('List'))
-    .addSubcommand(s => s.setName('info').setDescription('Info')),
+    .addSubcommand(s => s.setName('info').setDescription('Info'))
+    .addSubcommand(s => s.setName('reset').setDescription('Reset all ticket data (admin only)')),
 
   async execute(interaction, client) {
     const sub = interaction.options.getSubcommand();
@@ -297,6 +298,28 @@ module.exports = {
       const t = await Ticket.findOne({ channelId: interaction.channelId });
       if (!t) return interaction.editReply({ embeds: [E.error('Not ticket', 'Wrong channel')] });
       await interaction.editReply({ embeds: [E.ticket('Info: ' + t.ticketId, t.subject, [{ name: 'Status', value: t.status, inline: true }, { name: 'Type', value: t.type, inline: true }, { name: 'Priority', value: t.priority || 'normal', inline: true }])] });
+    }
+
+    else if (sub === 'reset') {
+      if (!(await requirePerm(interaction, PermissionFlagsBits.ManageGuild))) return;
+      await interaction.deferReply({ ephemeral: true });
+      
+      try {
+        // Delete all tickets for this guild
+        const deletedTickets = await Ticket.deleteMany({ guildId: interaction.guildId });
+        
+        // Delete guild ticket config
+        await Guild.findOneAndUpdate(
+          { guildId: interaction.guildId },
+          { $unset: { tickets: 1 } }
+        );
+        
+        console.log(`[TICKET RESET] Deleted ${deletedTickets.deletedCount} tickets for guild ${interaction.guildId}`);
+        await interaction.editReply({ embeds: [E.success('Reset Complete', `Deleted ${deletedTickets.deletedCount} tickets\nCleared all ticket configuration\n\nYou can now set up tickets again with /ticket addrole`)] });
+      } catch (error) {
+        console.error('Reset error:', error);
+        await interaction.editReply({ embeds: [E.error('Reset Failed', error.message)] });
+      }
     }
   },
 
