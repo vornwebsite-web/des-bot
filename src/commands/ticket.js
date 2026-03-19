@@ -111,33 +111,26 @@ module.exports = {
       const unique = [...new Set(roles)];
       console.log('[TICKET TYPE-ROLES] Setting ' + type + ' to roles:', unique);
       
-      // Get current config
-      let cfg = await Guild.findOne({ guildId: interaction.guildId });
-      if (!cfg) {
-        cfg = new Guild({ guildId: interaction.guildId });
-      }
+      // Use updateOne with $set to force the field
+      await Guild.updateOne(
+        { guildId: interaction.guildId },
+        { 
+          $set: { 
+            'tickets.enabled': true
+          }
+        },
+        { upsert: true }
+      );
       
-      // Initialize tickets if not exists
-      if (!cfg.tickets) {
-        cfg.tickets = {};
-      }
-      
-      // Initialize typeRoles if not exists
-      if (!cfg.tickets.typeRoles) {
-        cfg.tickets.typeRoles = {};
-      }
-      
-      // Enable tickets and set type roles
-      cfg.tickets.enabled = true;
-      cfg.tickets.typeRoles[type] = unique;
-      
-      console.log('[TICKET TYPE-ROLES] Before save, cfg.tickets:', cfg.tickets);
-      console.log('[TICKET TYPE-ROLES] typeRoles object:', cfg.tickets.typeRoles);
-      
-      await cfg.save();
-      
-      console.log('[TICKET TYPE-ROLES] After save, cfg.tickets:', cfg.tickets);
-      console.log('[TICKET TYPE-ROLES] Saved config:', cfg.tickets);
+      // Now update with the typeRoles using raw update
+      await Guild.collection.updateOne(
+        { guildId: interaction.guildId },
+        { 
+          $set: { 
+            [`tickets.typeRoles.${type}`]: unique
+          }
+        }
+      );
       
       const roleList = unique.map(r => '<@&' + r + '>').join('\n') || 'None';
       await interaction.editReply({ embeds: [E.success('Type Roles Updated', 'Type: **' + type + '**\n\n' + roleList)] });
@@ -207,7 +200,7 @@ module.exports = {
       await interaction.deferReply({ flags: 64 });
       const type = interaction.options.getString('type');
       const cfg = await Guild.findOne({ guildId: interaction.guildId });
-      if (!cfg?.tickets?.enabled) return interaction.editReply({ embeds: [E.error('Not setup', 'Run /ticket addrole first')] });
+      if (!cfg?.tickets?.enabled) return interaction.editReply({ embeds: [E.error('Not setup', 'Run /ticket type-roles first')] });
       const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ['open', 'claimed'] } });
       if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.editReply({ embeds: [E.warn('Limit', 'Too many open')] });
       
@@ -328,17 +321,14 @@ module.exports = {
       if (!(await requirePerm(interaction, PermissionFlagsBits.ManageGuild))) return;
       
       try {
-        // Delete all tickets for this guild
         const deletedTickets = await Ticket.deleteMany({ guildId: interaction.guildId });
-        
-        // Delete guild ticket config
         await Guild.findOneAndUpdate(
           { guildId: interaction.guildId },
           { $unset: { tickets: 1 } }
         );
         
         console.log(`[TICKET RESET] Deleted ${deletedTickets.deletedCount} tickets for guild ${interaction.guildId}`);
-        await interaction.editReply({ embeds: [E.success('Reset Complete', `Deleted ${deletedTickets.deletedCount} tickets\nCleared all ticket configuration\n\nYou can now set up tickets again with /ticket addrole`)] });
+        await interaction.editReply({ embeds: [E.success('Reset Complete', `Deleted ${deletedTickets.deletedCount} tickets\nCleared all ticket configuration\n\nYou can now set up tickets again with /ticket type-roles`)] });
       } catch (error) {
         console.error('Reset error:', error);
         await interaction.editReply({ embeds: [E.error('Reset Failed', error.message)] });
@@ -389,10 +379,7 @@ module.exports = {
     if (cmd !== 'ticket' || action !== 'select') return false;
     try {
       const type = interaction.values[0];
-      // Fetch fresh config from database
       const cfg = await Guild.findOne({ guildId: interaction.guildId });
-      console.log('[TICKET SELECT] Full cfg from DB:', cfg);
-      console.log('[TICKET SELECT] cfg.tickets:', cfg?.tickets);
       if (!cfg?.tickets?.enabled) return interaction.followUp({ embeds: [E.error('Not setup', 'Run /ticket type-roles first')], ephemeral: true });
       const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ['open', 'claimed'] } });
       if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.followUp({ embeds: [E.warn('Limit', 'Too many open')], ephemeral: true });
