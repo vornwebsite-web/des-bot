@@ -131,7 +131,12 @@ module.exports = {
       cfg.tickets.enabled = true;
       cfg.tickets.typeRoles[type] = unique;
       
+      console.log('[TICKET TYPE-ROLES] Before save, cfg.tickets:', cfg.tickets);
+      console.log('[TICKET TYPE-ROLES] typeRoles object:', cfg.tickets.typeRoles);
+      
       await cfg.save();
+      
+      console.log('[TICKET TYPE-ROLES] After save, cfg.tickets:', cfg.tickets);
       console.log('[TICKET TYPE-ROLES] Saved config:', cfg.tickets);
       
       const roleList = unique.map(r => '<@&' + r + '>').join('\n') || 'None';
@@ -386,6 +391,8 @@ module.exports = {
       const type = interaction.values[0];
       // Fetch fresh config from database
       const cfg = await Guild.findOne({ guildId: interaction.guildId });
+      console.log('[TICKET SELECT] Full cfg from DB:', cfg);
+      console.log('[TICKET SELECT] cfg.tickets:', cfg?.tickets);
       if (!cfg?.tickets?.enabled) return interaction.followUp({ embeds: [E.error('Not setup', 'Run /ticket type-roles first')], ephemeral: true });
       const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ['open', 'claimed'] } });
       if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.followUp({ embeds: [E.warn('Limit', 'Too many open')], ephemeral: true });
