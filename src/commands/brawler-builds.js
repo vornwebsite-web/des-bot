@@ -2,21 +2,21 @@ const { SlashCommandBuilder } = require(‘discord.js’);
 const E = require(’../utils/embeds’);
 
 // ============================================================
-// ALL 101 BRAWLERS – March 2026
+// ALL 101 BRAWLERS - March 2026
 // Gadget & Star Power = best competitive pick per noff.gg data
 // Rarities verified against Brawlify (March 2026)
 // ============================================================
 
 const BRAWLERS = {
 
-// ─── STARTING BRAWLER (1) ───────────────────────────────
+// — STARTING BRAWLER (1) —
 ‘shelly’: {
 name: ‘Shelly’, rarity: ‘Starting Brawler’,
 gadget: ‘Clay Pigeons’, star: ‘Band-Aid’,
 gears: ‘Damage, Shield’, build: ‘Tank Support’
 },
 
-// ─── RARE (8) ────────────────────────────────────────────
+// — RARE (8) —
 ‘nita’: {
 name: ‘Nita’, rarity: ‘Rare’,
 gadget: ‘Bear Paws’, star: ‘Hyper Bear’,
@@ -58,7 +58,7 @@ gadget: ‘Unfriendly Bushes’, star: ‘Plant Life’,
 gears: ‘Damage, Speed’, build: ‘Super Tank’
 },
 
-// ─── SUPER RARE (10) ─────────────────────────────────────
+// — SUPER RARE (10) —
 ‘jessie’: {
 name: ‘Jessie’, rarity: ‘Super Rare’,
 gadget: ‘Spark Plug’, star: ‘Shocky’,
@@ -110,7 +110,7 @@ gadget: ‘Kooky Popper’, star: ‘Spirit Animal’,
 gears: ‘Damage, Shield’, build: ‘Ghost Support’
 },
 
-// ─── EPIC (29) ───────────────────────────────────────────
+// — EPIC (29) —
 ‘bo’: {
 name: ‘Bo’, rarity: ‘Epic’,
 gadget: ‘Tripwire’, star: ‘Snare a Bear’,
@@ -257,7 +257,7 @@ gadget: ‘Mansions of Meeple’, star: ‘Do Not Pass Go’,
 gears: ‘Shield, Damage’, build: ‘Zone Barrier’
 },
 
-// ─── MYTHIC (38) ─────────────────────────────────────────
+// — MYTHIC (38) —
 ‘mortis’: {
 name: ‘Mortis’, rarity: ‘Mythic’,
 gadget: ‘Combo Spinner’, star: ‘Creepy Harvest’,
@@ -449,7 +449,7 @@ gadget: ‘Najia Jar’, star: ‘Venomous’,
 gears: ‘Damage, Shield’, build: ‘Poison Assassin’
 },
 
-// ─── LEGENDARY (13) ──────────────────────────────────────
+// — LEGENDARY (13) —
 ‘spike’: {
 name: ‘Spike’, rarity: ‘Legendary’,
 gadget: ‘Popping Pincushion’, star: ‘Fertilize’,
@@ -516,7 +516,7 @@ gadget: ‘You Only Brawl Twice’, star: ‘Mission: Swimpossible’,
 gears: ‘Damage, Shield’, build: ‘Pierce Burst’
 },
 
-// ─── ULTRA LEGENDARY (2) ─────────────────────────────────
+// — ULTRA LEGENDARY (2) —
 ‘kaze’: {
 name: ‘Kaze’, rarity: ‘Ultra Legendary’,
 gadget: ‘Gracious Host’, star: ‘Advanced Techniques’,
@@ -557,10 +557,10 @@ if (!brawler) {
 
 await interaction.editReply({
   embeds: [E.gold(`${brawler.name} -- META BUILD`, brawler.rarity, [
-    { name: '🎯 Build Type',  value: brawler.build,   inline: false },
-    { name: '⚙️ Gadget',      value: brawler.gadget,  inline: true  },
-    { name: '⭐ Star Power',  value: brawler.star,    inline: true  },
-    { name: '🔧 Gears',       value: brawler.gears,   inline: false }
+    { name: 'Build Type',  value: brawler.build,   inline: false },
+    { name: 'Gadget',      value: brawler.gadget,  inline: true  },
+    { name: 'Star Power',  value: brawler.star,    inline: true  },
+    { name: 'Gears',       value: brawler.gears,   inline: false }
   ])]
 });
 ```
