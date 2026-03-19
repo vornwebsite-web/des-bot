@@ -36,6 +36,12 @@ module.exports = {
       .addIntegerOption(o => o.setName('xp').setDescription('XP per message').setMinValue(1).setMaxValue(100))
       .addIntegerOption(o => o.setName('cooldown').setDescription('Cooldown seconds').setMinValue(5).setMaxValue(300))
       .addChannelOption(o => o.setName('announce').setDescription('Level-up announcement channel')))
+    .addSubcommand(s => s.setName('role-reward').setDescription('Setup level role reward')
+      .addIntegerOption(o => o.setName('level').setDescription('Level to get role').setRequired(true).setMinValue(1).setMaxValue(100))
+      .addRoleOption(o => o.setName('role').setDescription('Role to give').setRequired(true)))
+    .addSubcommand(s => s.setName('role-rewards-list').setDescription('View all level role rewards'))
+    .addSubcommand(s => s.setName('role-reward-remove').setDescription('Remove level role reward')
+      .addIntegerOption(o => o.setName('level').setDescription('Level to remove').setRequired(true).setMinValue(1).setMaxValue(100)))
     .addSubcommand(s => s.setName('autorole').setDescription('Auto-assign role on join')
       .addRoleOption(o => o.setName('role').setDescription('Role').setRequired(true))
       .addBooleanOption(o => o.setName('remove').setDescription('Remove from auto-assign')))
@@ -59,7 +65,7 @@ module.exports = {
           { name: '🛡️ AutoMod', value: '`/setup automod`', inline: false },
           { name: '🚨 Anti-Raid', value: '`/setup antiraid`', inline: false },
           { name: '💣 Anti-Nuke', value: '`/setup antinuke`', inline: false },
-          { name: '📈 Leveling', value: '`/setup leveling`', inline: false },
+          { name: '📈 Leveling', value: '`/setup leveling` + `/setup role-reward`', inline: false },
           { name: '🌐 Dashboard', value: '[dotsbot.site/dashboard](http://www.dotsbot.site/dashboard)', inline: false },
         ])] });
     }
@@ -137,6 +143,73 @@ module.exports = {
         { name: '⏱️ Cooldown', value: `${interaction.options.getInteger('cooldown') || 60}s`, inline: true },
         ...(ch ? [{ name: '📢 Announce', value: `<#${ch.id}>`, inline: true }] : []),
       ])] });
+    }
+
+    else if (sub === 'role-reward') {
+      const level = interaction.options.getInteger('level');
+      const role = interaction.options.getRole('role');
+      const cfg = await Guild.findOne({ guildId: interaction.guildId });
+      
+      if (!cfg) {
+        return interaction.editReply({ embeds: [E.error('Not Setup', 'Please setup leveling first with `/setup leveling`')] });
+      }
+
+      if (!cfg.leveling) cfg.leveling = {};
+      if (!cfg.leveling.roleRewards) cfg.leveling.roleRewards = [];
+
+      // Check if max 10 rewards reached
+      if (cfg.leveling.roleRewards.length >= 10 && !cfg.leveling.roleRewards.find(r => r.level === level)) {
+        return interaction.editReply({ embeds: [E.error('Max Rewards', 'You can only setup 10 level role rewards max')] });
+      }
+
+      // Remove existing reward for this level if it exists
+      cfg.leveling.roleRewards = cfg.leveling.roleRewards.filter(r => r.level !== level);
+
+      // Add new reward
+      cfg.leveling.roleRewards.push({ level, roleId: role.id });
+
+      // Sort by level
+      cfg.leveling.roleRewards.sort((a, b) => a.level - b.level);
+
+      await cfg.save();
+
+      await interaction.editReply({ embeds: [E.success('Role Reward Added', `Level **${level}** → <@&${role.id}>`)] });
+    }
+
+    else if (sub === 'role-rewards-list') {
+      const cfg = await Guild.findOne({ guildId: interaction.guildId });
+      const rewards = cfg?.leveling?.roleRewards || [];
+
+      if (!rewards.length) {
+        return interaction.editReply({ embeds: [E.info('No Rewards', 'No level role rewards setup yet.\nUse `/setup role-reward` to add one!')] });
+      }
+
+      const fields = rewards.map(r => ({
+        name: `📊 Level ${r.level}`,
+        value: `<@&${r.roleId}>`,
+        inline: true
+      }));
+
+      await interaction.editReply({ embeds: [E.ticket(`Level Role Rewards (${rewards.length}/10)`, '', fields)] });
+    }
+
+    else if (sub === 'role-reward-remove') {
+      const level = interaction.options.getInteger('level');
+      const cfg = await Guild.findOne({ guildId: interaction.guildId });
+
+      if (!cfg?.leveling?.roleRewards?.length) {
+        return interaction.editReply({ embeds: [E.error('Not Found', 'No level role rewards found')] });
+      }
+
+      const reward = cfg.leveling.roleRewards.find(r => r.level === level);
+      if (!reward) {
+        return interaction.editReply({ embeds: [E.error('Not Found', `No reward setup for level ${level}`)] });
+      }
+
+      cfg.leveling.roleRewards = cfg.leveling.roleRewards.filter(r => r.level !== level);
+      await cfg.save();
+
+      await interaction.editReply({ embeds: [E.success('Removed', `Role reward for level ${level} removed`)] });
     }
 
     else if (sub === 'autorole') {
@@ -288,6 +361,7 @@ module.exports = {
 
     else if (sub === 'view') {
       const cfg = await Guild.findOne({ guildId: interaction.guildId });
+      const rewards = cfg?.leveling?.roleRewards?.length || 0;
       await interaction.editReply({ embeds: [E.gold(`⚙️ Config — ${interaction.guild.name}`, '', [
         { name: '🛡️ AutoMod', value: cfg?.moderation?.autoMod ? '✅' : '❌', inline: true },
         { name: '🚨 Anti-Raid', value: cfg?.antiRaid?.enabled ? '✅' : '❌', inline: true },
@@ -295,6 +369,7 @@ module.exports = {
         { name: '👋 Welcome', value: cfg?.welcome?.enabled ? '✅' : '❌', inline: true },
         { name: '👋 Farewell', value: cfg?.farewell?.enabled ? '✅' : '❌', inline: true },
         { name: '📈 Leveling', value: cfg?.leveling?.enabled ? '✅' : '❌', inline: true },
+        { name: '📊 Level Rewards', value: `${rewards}/10`, inline: true },
         { name: '🎫 Tickets', value: cfg?.tickets?.enabled ? '✅' : '❌', inline: true },
         { name: '📝 Logging', value: cfg?.logging?.enabled ? '✅' : '❌', inline: true },
       ])] });
