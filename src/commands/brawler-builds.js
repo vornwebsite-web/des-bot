@@ -4,7 +4,7 @@ const E = require('../utils/embeds');
 const BRAWLERS = {
   'sirius': { name: 'Sirius', rarity: 'Ultra Legendary', gadget: 'A Starr Is Born', star: 'The Darkest Star', gears: 'Shield, Damage', build: 'Shadow Control' },
   'najia': { name: 'Najia', rarity: 'Mythic', gadget: 'Snake Delivery', star: 'Venom Strike', gears: 'Damage, Speed', build: 'Poison Damage' },
-  'mortis': { name: 'Mortis', rarity: 'Epic', gadget: 'Coiled Snake', star: 'Combo Chain', gears: 'Damage, Speed', build: 'Aggressive Dash' },
+  'mortis': { name: 'Mortis', rarity: 'Mythic', gadget: 'Coiled Snake', star: 'Combo Chain', gears: 'Damage, Speed', build: 'Aggressive Dash' },
   'emz': { name: 'Emz', rarity: 'Super Rare', gadget: 'Hype', star: 'Extra Thick Fog', gears: 'Health, Control', build: 'Area Control' },
   'spike': { name: 'Spike', rarity: 'Legendary', gadget: 'Life Plant', star: 'Curveball', gears: 'Control, Healing', build: 'Cactus Control' },
   'colt': { name: 'Colt', rarity: 'Rare', gadget: 'Speedloader', star: 'Slick Boots', gears: 'Damage, Speed', build: 'Rapid Fire' },
@@ -14,7 +14,7 @@ const BRAWLERS = {
   'tara': { name: 'Tara', rarity: 'Mythic', gadget: 'Black Portal', star: 'Healing Shade', gears: 'Control, Speed', build: 'Shadow Control' },
   'bibi': { name: 'Bibi', rarity: 'Super Rare', gadget: 'Home Run', star: 'Batting Stance', gears: 'Health, Damage', build: 'Aggressive Tank' },
   'bull': { name: 'Bull', rarity: 'Rare', gadget: 'Tough Guy', star: 'Stomper', gears: 'Health, Damage', build: 'Close Range Tank' },
-  'fang': { name: 'Fang', rarity: 'Epic', gadget: 'Slingshot', star: 'Cougar Crush', gears: 'Damage, Speed', build: 'Pack Burst' },
+  'fang': { name: 'Fang', rarity: 'Mythic', gadget: 'Slingshot', star: 'Cougar Crush', gears: 'Damage, Speed', build: 'Pack Burst' },
   'mandy': { name: 'Mandy', rarity: 'Rare', gadget: 'Fast Bullet', star: 'Sweet Revenge', gears: 'Damage, Speed', build: 'Recoil Damage' },
   'shelly': { name: 'Shelly', rarity: 'Starter', gadget: 'Shelter', star: 'Shellmet', gears: 'Health, Damage', build: 'Tank Support' },
   'nita': { name: 'Nita', rarity: 'Rare', gadget: 'Hyper Bear', star: 'Bear With Me', gears: 'Health, Speed', build: 'Bear Control' },
@@ -82,7 +82,7 @@ const BRAWLERS = {
   'barri': { name: 'Barri', rarity: 'Super Rare', gadget: 'Snowball', star: 'Blizzard', gears: 'Control, Health', build: 'Frost Control' },
   'alli': { name: 'Alli', rarity: 'Epic', gadget: 'Snowstorm', star: 'Ice Storm', gears: 'Control, Damage', build: 'Ice Control' },
   'glowbert': { name: 'Glowbert', rarity: 'Mythic', gadget: 'Glow Shield', star: 'Light Burst', gears: 'Health, Damage', build: 'Light Tank' },
-  'clancy': { name: 'Clancy', rarity: 'Rare', gadget: 'Clone', star: 'Double Damage', gears: 'Damage, Speed', build: 'Clone Damage' },
+  'clancy': { name: 'Clancy', rarity: 'Mythic', gadget: 'Clone', star: 'Double Damage', gears: 'Damage, Speed', build: 'Clone Damage' },
   'pierce': { name: 'Pierce', rarity: 'Mythic', gadget: 'Piercing Shots', star: 'Armor Piercing', gears: 'Damage, Speed', build: 'Pierce Damage' }
 };
 
@@ -91,7 +91,7 @@ const BRAWLER_LIST = Object.keys(BRAWLERS);
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('brawler-builds')
-    .setDescription('Get BEST build for Brawl Stars brawler (March 2026)')
+    .setDescription('Get BEST build for Brawl Stars brawler (March 2026 - Correct Rarities)')
     .addStringOption(o => o.setName('brawler').setDescription('Brawler name').setRequired(true).setAutocomplete(true)),
 
   async execute(interaction) {
