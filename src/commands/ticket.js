@@ -197,7 +197,7 @@ module.exports = {
       
       const typeRoles = (cfg.tickets.typeRoles && cfg.tickets.typeRoles[type] && cfg.tickets.typeRoles[type].length > 0)
         ? cfg.tickets.typeRoles[type]
-        : (cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : []);
+        : [];
       console.log('[TICKET CREATE] Type:', type, 'Roles:', typeRoles);
       
       cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
@@ -380,7 +380,7 @@ module.exports = {
       
       const typeRoles = (cfg.tickets.typeRoles && cfg.tickets.typeRoles[type] && cfg.tickets.typeRoles[type].length > 0)
         ? cfg.tickets.typeRoles[type]
-        : (cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : []);
+        : [];
       console.log('[TICKET SELECT] Type:', type, 'Roles:', typeRoles);
       
       cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
