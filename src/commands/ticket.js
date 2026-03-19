@@ -302,7 +302,6 @@ module.exports = {
 
     else if (sub === 'reset') {
       if (!(await requirePerm(interaction, PermissionFlagsBits.ManageGuild))) return;
-      await interaction.deferReply({ ephemeral: true });
       
       try {
         // Delete all tickets for this guild
