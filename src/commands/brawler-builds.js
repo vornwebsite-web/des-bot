@@ -1,5 +1,5 @@
-const { SlashCommandBuilder } = require(‘discord.js’);
-const E = require(’../utils/embeds’);
+const { SlashCommandBuilder } = require('discord.js');
+const E = require('../utils/embeds');
 
 // ============================================================
 // ALL 101 BRAWLERS - March 2026
@@ -10,522 +10,522 @@ const E = require(’../utils/embeds’);
 const BRAWLERS = {
 
 // — STARTING BRAWLER (1) —
-‘shelly’: {
-name: ‘Shelly’, rarity: ‘Starting Brawler’,
-gadget: ‘Clay Pigeons’, star: ‘Band-Aid’,
-gears: ‘Damage, Shield’, build: ‘Tank Support’
+'shelly': {
+name: 'Shelly', rarity: 'Starting Brawler',
+gadget: 'Clay Pigeons', star: 'Band-Aid',
+gears: 'Damage, Shield', build: 'Tank Support'
 },
 
 // — RARE (8) —
-‘nita’: {
-name: ‘Nita’, rarity: ‘Rare’,
-gadget: ‘Bear Paws’, star: ‘Hyper Bear’,
-gears: ‘Damage, Shield’, build: ‘Bear Carry’
+'nita': {
+name: 'Nita', rarity: 'Rare',
+gadget: 'Bear Paws', star: 'Hyper Bear',
+gears: 'Damage, Shield', build: 'Bear Carry'
 },
-‘colt’: {
-name: ‘Colt’, rarity: ‘Rare’,
-gadget: ‘Speedloader’, star: ‘Magnum Special’,
-gears: ‘Damage, Shield’, build: ‘Rapid Fire’
+'colt': {
+name: 'Colt', rarity: 'Rare',
+gadget: 'Speedloader', star: 'Magnum Special',
+gears: 'Damage, Shield', build: 'Rapid Fire'
 },
-‘bull’: {
-name: ‘Bull’, rarity: ‘Rare’,
-gadget: ‘Stomper’, star: ‘Tough Guy’,
-gears: ‘Damage, Health’, build: ‘Close Tank’
+'bull': {
+name: 'Bull', rarity: 'Rare',
+gadget: 'Stomper', star: 'Tough Guy',
+gears: 'Damage, Health', build: 'Close Tank'
 },
-‘brock’: {
-name: ‘Brock’, rarity: ‘Rare’,
-gadget: ‘Rocket Laces’, star: ‘Rocket No. 4’,
-gears: ‘Reload Speed, Shield’, build: ‘Explosive Artillery’
+'brock': {
+name: 'Brock', rarity: 'Rare',
+gadget: 'Rocket Laces', star: 'Rocket No. 4',
+gears: 'Reload Speed, Shield', build: 'Explosive Artillery'
 },
-‘el-primo’: {
-name: ‘El Primo’, rarity: ‘Rare’,
-gadget: ‘Meteor Rush’, star: ‘El Fuego’,
-gears: ‘Health, Damage’, build: ‘Heavyweight Tank’
+'el-primo': {
+name: 'El Primo', rarity: 'Rare',
+gadget: 'Meteor Rush', star: 'El Fuego',
+gears: 'Health, Damage', build: 'Heavyweight Tank'
 },
-‘barley’: {
-name: ‘Barley’, rarity: ‘Rare’,
-gadget: ‘Sticky Syrup Mixer’, star: ‘Extra Noxious’,
-gears: ‘Damage, Shield’, build: ‘Poison Control’
+'barley': {
+name: 'Barley', rarity: 'Rare',
+gadget: 'Sticky Syrup Mixer', star: 'Extra Noxious',
+gears: 'Damage, Shield', build: 'Poison Control'
 },
-‘poco’: {
-name: ‘Poco’, rarity: ‘Rare’,
-gadget: ‘Tuning Fork’, star: ‘Screeching Solo’,
-gears: ‘Healing, Speed’, build: ‘Support Healer’
+'poco': {
+name: 'Poco', rarity: 'Rare',
+gadget: 'Tuning Fork', star: 'Screeching Solo',
+gears: 'Healing, Speed', build: 'Support Healer'
 },
-‘rosa’: {
-name: ‘Rosa’, rarity: ‘Rare’,
-gadget: ‘Unfriendly Bushes’, star: ‘Plant Life’,
-gears: ‘Damage, Speed’, build: ‘Super Tank’
+'rosa': {
+name: 'Rosa', rarity: 'Rare',
+gadget: 'Unfriendly Bushes', star: 'Plant Life',
+gears: 'Damage, Speed', build: 'Super Tank'
 },
 
 // — SUPER RARE (10) —
-‘jessie’: {
-name: ‘Jessie’, rarity: ‘Super Rare’,
-gadget: ‘Spark Plug’, star: ‘Shocky’,
-gears: ‘Damage, Reload’, build: ‘Turret Damage’
+'jessie': {
+name: 'Jessie', rarity: 'Super Rare',
+gadget: 'Spark Plug', star: 'Shocky',
+gears: 'Damage, Reload', build: 'Turret Damage'
 },
-‘dynamike’: {
-name: ‘Dynamike’, rarity: ‘Super Rare’,
-gadget: ‘Satchel Charge’, star: ‘Dyna-Jump’,
-gears: ‘Shield, Gadget Cooldown’, build: ‘Explosive Pressure’
+'dynamike': {
+name: 'Dynamike', rarity: 'Super Rare',
+gadget: 'Satchel Charge', star: 'Dyna-Jump',
+gears: 'Shield, Gadget Cooldown', build: 'Explosive Pressure'
 },
-‘tick’: {
-name: ‘Tick’, rarity: ‘Super Rare’,
-gadget: ‘Last Hurrah’, star: ‘Well Oiled’,
-gears: ‘Thicc Head, Shield’, build: ‘Mine Control’
+'tick': {
+name: 'Tick', rarity: 'Super Rare',
+gadget: 'Last Hurrah', star: 'Well Oiled',
+gears: 'Thicc Head, Shield', build: 'Mine Control'
 },
-‘8-bit’: {
-name: ‘8-Bit’, rarity: ‘Super Rare’,
-gadget: ‘Cheat Cartridge’, star: ‘Boosted Booster’,
-gears: ‘Damage, Health’, build: ‘Turret Support’
+'8-bit': {
+name: '8-Bit', rarity: 'Super Rare',
+gadget: 'Cheat Cartridge', star: 'Boosted Booster',
+gears: 'Damage, Health', build: 'Turret Support'
 },
-‘rico’: {
-name: ‘Rico’, rarity: ‘Super Rare’,
-gadget: ‘Multiball Launcher’, star: ‘Super Bouncy’,
-gears: ‘Reload Speed, Damage’, build: ‘Ricochet Master’
+'rico': {
+name: 'Rico', rarity: 'Super Rare',
+gadget: 'Multiball Launcher', star: 'Super Bouncy',
+gears: 'Reload Speed, Damage', build: 'Ricochet Master'
 },
-‘darryl’: {
-name: ‘Darryl’, rarity: ‘Super Rare’,
-gadget: ‘Recoiling Rotator’, star: ‘Steel Hoops’,
-gears: ‘Damage, Shield’, build: ‘Rolling Tank’
+'darryl': {
+name: 'Darryl', rarity: 'Super Rare',
+gadget: 'Recoiling Rotator', star: 'Steel Hoops',
+gears: 'Damage, Shield', build: 'Rolling Tank'
 },
-‘penny’: {
-name: ‘Penny’, rarity: ‘Super Rare’,
-gadget: ‘Salty Barrel’, star: ‘Heavy Coffers’,
-gears: ‘Pet Power, Shield’, build: ‘Cannon Coverage’
+'penny': {
+name: 'Penny', rarity: 'Super Rare',
+gadget: 'Salty Barrel', star: 'Heavy Coffers',
+gears: 'Pet Power, Shield', build: 'Cannon Coverage'
 },
-‘carl’: {
-name: ‘Carl’, rarity: ‘Super Rare’,
-gadget: ‘Flying Hook’, star: ‘Protective Pirouette’,
-gears: ‘Damage, Shield’, build: ‘Pickaxe Zone’
+'carl': {
+name: 'Carl', rarity: 'Super Rare',
+gadget: 'Flying Hook', star: 'Protective Pirouette',
+gears: 'Damage, Shield', build: 'Pickaxe Zone'
 },
-‘jacky’: {
-name: ‘Jacky’, rarity: ‘Super Rare’,
-gadget: ‘Pneumatic Booster’, star: ‘Counter Crush’,
-gears: ‘Damage, Super Charge’, build: ‘Counter Tank’
+'jacky': {
+name: 'Jacky', rarity: 'Super Rare',
+gadget: 'Pneumatic Booster', star: 'Counter Crush',
+gears: 'Damage, Super Charge', build: 'Counter Tank'
 },
-‘gus’: {
-name: ‘Gus’, rarity: ‘Super Rare’,
-gadget: ‘Kooky Popper’, star: ‘Spirit Animal’,
-gears: ‘Damage, Shield’, build: ‘Ghost Support’
+'gus': {
+name: 'Gus', rarity: 'Super Rare',
+gadget: 'Kooky Popper', star: 'Spirit Animal',
+gears: 'Damage, Shield', build: 'Ghost Support'
 },
 
 // — EPIC (29) —
-‘bo’: {
-name: ‘Bo’, rarity: ‘Epic’,
-gadget: ‘Tripwire’, star: ‘Snare a Bear’,
-gears: ‘Damage, Shield’, build: ‘Trap Control’
+'bo': {
+name: 'Bo', rarity: 'Epic',
+gadget: 'Tripwire', star: 'Snare a Bear',
+gears: 'Damage, Shield', build: 'Trap Control'
 },
-‘emz’: {
-name: ‘Emz’, rarity: ‘Epic’,
-gadget: ‘Friendzoner’, star: ‘Bad Karma’,
-gears: ‘Damage, Shield’, build: ‘Area Pressure’
+'emz': {
+name: 'Emz', rarity: 'Epic',
+gadget: 'Friendzoner', star: 'Bad Karma',
+gears: 'Damage, Shield', build: 'Area Pressure'
 },
-‘stu’: {
-name: ‘Stu’, rarity: ‘Epic’,
-gadget: ‘Breakthrough’, star: ‘Gaso-Heal’,
-gears: ‘Shield, Damage’, build: ‘Knockback Burst’
+'stu': {
+name: 'Stu', rarity: 'Epic',
+gadget: 'Breakthrough', star: 'Gaso-Heal',
+gears: 'Shield, Damage', build: 'Knockback Burst'
 },
-‘piper’: {
-name: ‘Piper’, rarity: ‘Epic’,
-gadget: ‘Auto Aimer’, star: ‘Snappy Sniping’,
-gears: ‘Shield, Damage’, build: ‘Long Range Sniper’
+'piper': {
+name: 'Piper', rarity: 'Epic',
+gadget: 'Auto Aimer', star: 'Snappy Sniping',
+gears: 'Shield, Damage', build: 'Long Range Sniper'
 },
-‘pam’: {
-name: ‘Pam’, rarity: ‘Epic’,
-gadget: ‘Scrapsucker’, star: “Mama’s Hug”,
-gears: ‘Healing, Health’, build: ‘Team Healer’
+'pam': {
+name: 'Pam', rarity: 'Epic',
+gadget: 'Scrapsucker', star: "Mama's Hug",
+gears: 'Healing, Health', build: 'Team Healer'
 },
-‘frank’: {
-name: ‘Frank’, rarity: ‘Epic’,
-gadget: ‘Irresistible Attraction’, star: ‘Power Grab’,
-gears: ‘Damage, Shield’, build: ‘Stun Tank’
+'frank': {
+name: 'Frank', rarity: 'Epic',
+gadget: 'Irresistible Attraction', star: 'Power Grab',
+gears: 'Damage, Shield', build: 'Stun Tank'
 },
-‘bibi’: {
-name: ‘Bibi’, rarity: ‘Epic’,
-gadget: ‘Vitamin Booster’, star: ‘Home Run’,
-gears: ‘Damage, Shield’, build: ‘Bat Aggressor’
+'bibi': {
+name: 'Bibi', rarity: 'Epic',
+gadget: 'Vitamin Booster', star: 'Home Run',
+gears: 'Damage, Shield', build: 'Bat Aggressor'
 },
-‘bea’: {
-name: ‘Bea’, rarity: ‘Epic’,
-gadget: ‘Honey Molasses’, star: ‘Insta Beaload’,
-gears: ‘Shield, Damage’, build: ‘Charge Damage’
+'bea': {
+name: 'Bea', rarity: 'Epic',
+gadget: 'Honey Molasses', star: 'Insta Beaload',
+gears: 'Shield, Damage', build: 'Charge Damage'
 },
-‘nani’: {
-name: ‘Nani’, rarity: ‘Epic’,
-gadget: ‘Warp Blast’, star: ‘Tempered Steel’,
-gears: ‘Damage, Speed’, build: ‘Drone Control’
+'nani': {
+name: 'Nani', rarity: 'Epic',
+gadget: 'Warp Blast', star: 'Tempered Steel',
+gears: 'Damage, Speed', build: 'Drone Control'
 },
-‘edgar’: {
-name: ‘Edgar’, rarity: ‘Epic’,
-gadget: ‘Fisticuffs’, star: “Let’s Go!”,
-gears: ‘Damage, Health’, build: ‘Close Combat Burst’
+'edgar': {
+name: 'Edgar', rarity: 'Epic',
+gadget: 'Fisticuffs', star: "Let's Go!",
+gears: 'Damage, Health', build: 'Close Combat Burst'
 },
-‘griff’: {
-name: ‘Griff’, rarity: ‘Epic’,
-gadget: ‘Piggy Bank’, star: ‘Business Resilience’,
-gears: ‘Reload Speed, Damage’, build: ‘Greedy Damage’
+'griff': {
+name: 'Griff', rarity: 'Epic',
+gadget: 'Piggy Bank', star: 'Business Resilience',
+gears: 'Reload Speed, Damage', build: 'Greedy Damage'
 },
-‘gale’: {
-name: ‘Gale’, rarity: ‘Epic’,
-gadget: ‘Twister’, star: ‘Blustery Blow’,
-gears: ‘Control, Speed’, build: ‘Pushback Control’
+'gale': {
+name: 'Gale', rarity: 'Epic',
+gadget: 'Twister', star: 'Blustery Blow',
+gears: 'Control, Speed', build: 'Pushback Control'
 },
-‘colette’: {
-name: ‘Colette’, rarity: ‘Epic’,
-gadget: ‘Gotcha!’, star: ‘Push It’,
-gears: ‘Damage, Control’, build: ‘HP Scaling’
+'colette': {
+name: 'Colette', rarity: 'Epic',
+gadget: 'Gotcha!', star: 'Push It',
+gears: 'Damage, Control', build: 'HP Scaling'
 },
-‘belle’: {
-name: ‘Belle’, rarity: ‘Epic’,
-gadget: ‘Nest Egg’, star: ‘Positive Feedback’,
-gears: ‘Damage, Speed’, build: ‘Bounty Burst’
+'belle': {
+name: 'Belle', rarity: 'Epic',
+gadget: 'Nest Egg', star: 'Positive Feedback',
+gears: 'Damage, Speed', build: 'Bounty Burst'
 },
-‘lola’: {
-name: ‘Lola’, rarity: ‘Epic’,
-gadget: ‘Psychic Headband’, star: ‘Stage Fright’,
-gears: ‘Damage, Control’, build: ‘Clone Control’
+'lola': {
+name: 'Lola', rarity: 'Epic',
+gadget: 'Psychic Headband', star: 'Stage Fright',
+gears: 'Damage, Control', build: 'Clone Control'
 },
-‘mandy’: {
-name: ‘Mandy’, rarity: ‘Epic’,
-gadget: ‘Cookie Crumbs’, star: ‘In My Sights’,
-gears: ‘Shield, Damage’, build: ‘Sniper Damage’
+'mandy': {
+name: 'Mandy', rarity: 'Epic',
+gadget: 'Cookie Crumbs', star: 'In My Sights',
+gears: 'Shield, Damage', build: 'Sniper Damage'
 },
-‘maisie’: {
-name: ‘Maisie’, rarity: ‘Epic’,
-gadget: ‘Disengage!’, star: ‘Tremors’,
-gears: ‘Damage, Shield’, build: ‘Artillery Burst’
+'maisie': {
+name: 'Maisie', rarity: 'Epic',
+gadget: 'Disengage!', star: 'Tremors',
+gears: 'Damage, Shield', build: 'Artillery Burst'
 },
-‘hank’: {
-name: ‘Hank’, rarity: ‘Epic’,
-gadget: “It’s Game Time!”, star: ‘My Happy Place’,
-gears: ‘Health, Damage’, build: ‘Anchor Tank’
+'hank': {
+name: 'Hank', rarity: 'Epic',
+gadget: "It's Game Time!", star: 'My Happy Place',
+gears: 'Health, Damage', build: 'Anchor Tank'
 },
-‘pearl’: {
-name: ‘Pearl’, rarity: ‘Epic’,
-gadget: ‘Overcooked’, star: ‘Heat Shield’,
-gears: ‘Damage, Shield’, build: ‘Heat Burst’
+'pearl': {
+name: 'Pearl', rarity: 'Epic',
+gadget: 'Overcooked', star: 'Heat Shield',
+gears: 'Damage, Shield', build: 'Heat Burst'
 },
-‘larry-and-lawrie’: {
-name: ‘Larry & Lawrie’, rarity: ‘Epic’,
-gadget: ‘Lawrie Lives!’, star: ‘On Call’,
-gears: ‘Damage, Speed’, build: ‘Duo Assault’
+'larry-and-lawrie': {
+name: 'Larry & Lawrie', rarity: 'Epic',
+gadget: 'Lawrie Lives!', star: 'On Call',
+gears: 'Damage, Speed', build: 'Duo Assault'
 },
-‘angelo’: {
-name: ‘Angelo’, rarity: ‘Epic’,
-gadget: ‘Master Fletcher’, star: ‘Vantage Point’,
-gears: ‘Damage, Speed’, build: ‘Aerial Sniper’
+'angelo': {
+name: 'Angelo', rarity: 'Epic',
+gadget: 'Master Fletcher', star: 'Vantage Point',
+gears: 'Damage, Speed', build: 'Aerial Sniper'
 },
-‘berry’: {
-name: ‘Berry’, rarity: ‘Epic’,
-gadget: ‘Friendship is Great’, star: ‘Sugar Rush’,
-gears: ‘Healing, Damage’, build: ‘Support Healer’
+'berry': {
+name: 'Berry', rarity: 'Epic',
+gadget: 'Friendship is Great', star: 'Sugar Rush',
+gears: 'Healing, Damage', build: 'Support Healer'
 },
-‘shade’: {
-name: ‘Shade’, rarity: ‘Epic’,
-gadget: ‘Longarms’, star: ‘Hardened Hoodie’,
-gears: ‘Damage, Shield’, build: ‘Shadow Assassin’
+'shade': {
+name: 'Shade', rarity: 'Epic',
+gadget: 'Longarms', star: 'Hardened Hoodie',
+gears: 'Damage, Shield', build: 'Shadow Assassin'
 },
-‘sam’: {
-name: ‘Sam’, rarity: ‘Epic’,
-gadget: ‘Magnetic Catch’, star: ‘Wild Glove’,
-gears: ‘Damage, Speed’, build: ‘Knuckle Aggressor’
+'sam': {
+name: 'Sam', rarity: 'Epic',
+gadget: 'Magnetic Catch', star: 'Wild Glove',
+gears: 'Damage, Speed', build: 'Knuckle Aggressor'
 },
-‘grom’: {
-name: ‘Grom’, rarity: ‘Epic’,
-gadget: ‘Radio Check’, star: ‘X-Factor’,
-gears: ‘Damage, Shield’, build: ‘Splash Artillery’
+'grom': {
+name: 'Grom', rarity: 'Epic',
+gadget: 'Radio Check', star: 'X-Factor',
+gears: 'Damage, Shield', build: 'Splash Artillery'
 },
-‘bonnie’: {
-name: ‘Bonnie’, rarity: ‘Epic’,
-gadget: ‘Sugar Rush’, star: ‘Hop Skip Jump’,
-gears: ‘Damage, Speed’, build: ‘Dual Aggression’
+'bonnie': {
+name: 'Bonnie', rarity: 'Epic',
+gadget: 'Sugar Rush', star: 'Hop Skip Jump',
+gears: 'Damage, Speed', build: 'Dual Aggression'
 },
-‘ash’: {
-name: ‘Ash’, rarity: ‘Epic’,
-gadget: ‘Chill Pill’, star: ‘First Bash’,
-gears: ‘Health, Damage’, build: ‘Rage Tank’
+'ash': {
+name: 'Ash', rarity: 'Epic',
+gadget: 'Chill Pill', star: 'First Bash',
+gears: 'Health, Damage', build: 'Rage Tank'
 },
-‘trunk’: {
-name: ‘Trunk’, rarity: ‘Epic’,
-gadget: ‘For the Queen’, star: ‘New Insect Overlords’,
-gears: ‘Damage, Health’, build: ‘Artillery Control’
+'trunk': {
+name: 'Trunk', rarity: 'Epic',
+gadget: 'For the Queen', star: 'New Insect Overlords',
+gears: 'Damage, Health', build: 'Artillery Control'
 },
-‘meeple’: {
-name: ‘Meeple’, rarity: ‘Epic’,
-gadget: ‘Mansions of Meeple’, star: ‘Do Not Pass Go’,
-gears: ‘Shield, Damage’, build: ‘Zone Barrier’
+'meeple': {
+name: 'Meeple', rarity: 'Epic',
+gadget: 'Mansions of Meeple', star: 'Do Not Pass Go',
+gears: 'Shield, Damage', build: 'Zone Barrier'
 },
 
 // — MYTHIC (38) —
-‘mortis’: {
-name: ‘Mortis’, rarity: ‘Mythic’,
-gadget: ‘Combo Spinner’, star: ‘Creepy Harvest’,
-gears: ‘Damage, Shield’, build: ‘Dash Aggressor’
+'mortis': {
+name: 'Mortis', rarity: 'Mythic',
+gadget: 'Combo Spinner', star: 'Creepy Harvest',
+gears: 'Damage, Shield', build: 'Dash Aggressor'
 },
-‘tara’: {
-name: ‘Tara’, rarity: ‘Mythic’,
-gadget: ‘Support From Beyond’, star: ‘Healing Shade’,
-gears: ‘Control, Reload’, build: ‘Shadow Control’
+'tara': {
+name: 'Tara', rarity: 'Mythic',
+gadget: 'Support From Beyond', star: 'Healing Shade',
+gears: 'Control, Reload', build: 'Shadow Control'
 },
-‘gene’: {
-name: ‘Gene’, rarity: ‘Mythic’,
-gadget: ‘Lamp Blowout’, star: ‘Magic Puffs’,
-gears: ‘Healing, Control’, build: ‘Pull Support’
+'gene': {
+name: 'Gene', rarity: 'Mythic',
+gadget: 'Lamp Blowout', star: 'Magic Puffs',
+gears: 'Healing, Control', build: 'Pull Support'
 },
-‘max’: {
-name: ‘Max’, rarity: ‘Mythic’,
-gadget: ‘Phase Shifter’, star: ‘Run N Gun’,
-gears: ‘Damage, Shield’, build: ‘Speed Support’
+'max': {
+name: 'Max', rarity: 'Mythic',
+gadget: 'Phase Shifter', star: 'Run N Gun',
+gears: 'Damage, Shield', build: 'Speed Support'
 },
-‘mr-p’: {
-name: ‘Mr. P’, rarity: ‘Mythic’,
-gadget: ‘Service Bell’, star: ‘Revolving Door’,
-gears: ‘Pet Power, Damage’, build: ‘Porter Zone’
+'mr-p': {
+name: 'Mr. P', rarity: 'Mythic',
+gadget: 'Service Bell', star: 'Revolving Door',
+gears: 'Pet Power, Damage', build: 'Porter Zone'
 },
-‘sprout’: {
-name: ‘Sprout’, rarity: ‘Mythic’,
-gadget: ‘Transplant’, star: ‘Overgrowth’,
-gears: ‘Control, Health’, build: ‘Wall Control’
+'sprout': {
+name: 'Sprout', rarity: 'Mythic',
+gadget: 'Transplant', star: 'Overgrowth',
+gears: 'Control, Health', build: 'Wall Control'
 },
-‘byron’: {
-name: ‘Byron’, rarity: ‘Mythic’,
-gadget: ‘Booster Shots’, star: ‘Injection’,
-gears: ‘Healing, Damage’, build: ‘Toxin Healer’
+'byron': {
+name: 'Byron', rarity: 'Mythic',
+gadget: 'Booster Shots', star: 'Injection',
+gears: 'Healing, Damage', build: 'Toxin Healer'
 },
-‘lou’: {
-name: ‘Lou’, rarity: ‘Mythic’,
-gadget: ‘Supercool’, star: ‘Hypothermia’,
-gears: ‘Control, Health’, build: ‘Freeze Control’
+'lou': {
+name: 'Lou', rarity: 'Mythic',
+gadget: 'Supercool', star: 'Hypothermia',
+gears: 'Control, Health', build: 'Freeze Control'
 },
-‘ruffs’: {
-name: ‘Ruffs’, rarity: ‘Mythic’,
-gadget: ‘Air Support’, star: ‘Field Promotion’,
-gears: ‘Damage, Reload’, build: ‘Buff Support’
+'ruffs': {
+name: 'Ruffs', rarity: 'Mythic',
+gadget: 'Air Support', star: 'Field Promotion',
+gears: 'Damage, Reload', build: 'Buff Support'
 },
-‘squeak’: {
-name: ‘Squeak’, rarity: ‘Mythic’,
-gadget: ‘Windup’, star: ‘Sticky Goo’,
-gears: ‘Damage, Control’, build: ‘Sticky Bounce’
+'squeak': {
+name: 'Squeak', rarity: 'Mythic',
+gadget: 'Windup', star: 'Sticky Goo',
+gears: 'Damage, Control', build: 'Sticky Bounce'
 },
-‘buzz’: {
-name: ‘Buzz’, rarity: ‘Mythic’,
-gadget: ‘Rip Cord’, star: ‘Eyes Sharp’,
-gears: ‘Health, Damage’, build: ‘Grab Tank’
+'buzz': {
+name: 'Buzz', rarity: 'Mythic',
+gadget: 'Rip Cord', star: 'Eyes Sharp',
+gears: 'Health, Damage', build: 'Grab Tank'
 },
-‘fang’: {
-name: ‘Fang’, rarity: ‘Mythic’,
-gadget: ‘Roundhouse Kick’, star: ‘Fresh Kicks’,
-gears: ‘Damage, Speed’, build: ‘Pack Burst’
+'fang': {
+name: 'Fang', rarity: 'Mythic',
+gadget: 'Roundhouse Kick', star: 'Fresh Kicks',
+gears: 'Damage, Speed', build: 'Pack Burst'
 },
-‘eve’: {
-name: ‘Eve’, rarity: ‘Mythic’,
-gadget: ‘Giga Egg’, star: ‘Unnatural Selections’,
-gears: ‘Control, Damage’, build: ‘Bot Control’
+'eve': {
+name: 'Eve', rarity: 'Mythic',
+gadget: 'Giga Egg', star: 'Unnatural Selections',
+gears: 'Control, Damage', build: 'Bot Control'
 },
-‘janet’: {
-name: ‘Janet’, rarity: ‘Mythic’,
-gadget: ‘Drop the Bass’, star: ‘Vocal Warm-up’,
-gears: ‘Damage, Speed’, build: ‘Flight Burst’
+'janet': {
+name: 'Janet', rarity: 'Mythic',
+gadget: 'Drop the Bass', star: 'Vocal Warm-up',
+gears: 'Damage, Speed', build: 'Flight Burst'
 },
-‘otis’: {
-name: ‘Otis’, rarity: ‘Mythic’,
-gadget: ‘Phat Splatter’, star: ‘Stencil Glue’,
-gears: ‘Control, Damage’, build: ‘Silence Control’
+'otis': {
+name: 'Otis', rarity: 'Mythic',
+gadget: 'Phat Splatter', star: 'Stencil Glue',
+gears: 'Control, Damage', build: 'Silence Control'
 },
-‘buster’: {
-name: ‘Buster’, rarity: ‘Mythic’,
-gadget: ‘Slo-Mo Replay’, star: ‘Blockbuster’,
-gears: ‘Health, Damage’, build: ‘Charge Tank’
+'buster': {
+name: 'Buster', rarity: 'Mythic',
+gadget: 'Slo-Mo Replay', star: 'Blockbuster',
+gears: 'Health, Damage', build: 'Charge Tank'
 },
-‘gray’: {
-name: ‘Gray’, rarity: ‘Mythic’,
-gadget: ‘Fake Injury’, star: ‘Lucky Bounces’,
-gears: ‘Damage, Speed’, build: ‘Portal Control’
+'gray': {
+name: 'Gray', rarity: 'Mythic',
+gadget: 'Fake Injury', star: 'Lucky Bounces',
+gears: 'Damage, Speed', build: 'Portal Control'
 },
-‘r-t’: {
-name: ‘R-T’, rarity: ‘Mythic’,
-gadget: ‘Out of Line’, star: ‘Recording’,
-gears: ‘Damage, Shield’, build: ‘Split Pressure’
+'r-t': {
+name: 'R-T', rarity: 'Mythic',
+gadget: 'Out of Line', star: 'Recording',
+gears: 'Damage, Shield', build: 'Split Pressure'
 },
-‘willow’: {
-name: ‘Willow’, rarity: ‘Mythic’,
-gadget: ‘Dive’, star: ‘Love Is Blind’,
-gears: ‘Shield, Damage’, build: ‘Mind Control’
+'willow': {
+name: 'Willow', rarity: 'Mythic',
+gadget: 'Dive', star: 'Love Is Blind',
+gears: 'Shield, Damage', build: 'Mind Control'
 },
-‘doug’: {
-name: ‘Doug’, rarity: ‘Mythic’,
-gadget: ‘Extra Mustard’, star: ‘No Preservatives’,
-gears: ‘Health, Damage’, build: ‘Heal Burst’
+'doug': {
+name: 'Doug', rarity: 'Mythic',
+gadget: 'Extra Mustard', star: 'No Preservatives',
+gears: 'Health, Damage', build: 'Heal Burst'
 },
-‘chuck’: {
-name: ‘Chuck’, rarity: ‘Mythic’,
-gadget: ‘Locomotive Launch’, star: ‘Off The Rails’,
-gears: ‘Speed, Damage’, build: ‘Rail Aggressor’
+'chuck': {
+name: 'Chuck', rarity: 'Mythic',
+gadget: 'Locomotive Launch', star: 'Off The Rails',
+gears: 'Speed, Damage', build: 'Rail Aggressor'
 },
-‘charlie’: {
-name: ‘Charlie’, rarity: ‘Mythic’,
-gadget: ‘Spiders’, star: ‘Digestive’,
-gears: ‘Damage, Shield’, build: ‘Cocoon Control’
+'charlie': {
+name: 'Charlie', rarity: 'Mythic',
+gadget: 'Spiders', star: 'Digestive',
+gears: 'Damage, Shield', build: 'Cocoon Control'
 },
-‘mico’: {
-name: ‘Mico’, rarity: ‘Mythic’,
-gadget: ‘Clipping Scream’, star: ‘Monkey Business’,
-gears: ‘Damage, Speed’, build: ‘Hop Assassin’
+'mico': {
+name: 'Mico', rarity: 'Mythic',
+gadget: 'Clipping Scream', star: 'Monkey Business',
+gears: 'Damage, Speed', build: 'Hop Assassin'
 },
-‘melodie’: {
-name: ‘Melodie’, rarity: ‘Mythic’,
-gadget: ‘Interlude’, star: ‘Fast Beats’,
-gears: ‘Damage, Shield’, build: ‘Note Aggressor’
+'melodie': {
+name: 'Melodie', rarity: 'Mythic',
+gadget: 'Interlude', star: 'Fast Beats',
+gears: 'Damage, Shield', build: 'Note Aggressor'
 },
-‘lily’: {
-name: ‘Lily’, rarity: ‘Mythic’,
-gadget: ‘Lurk’, star: ‘Petal Pirouette’,
-gears: ‘Damage, Speed’, build: ‘Stealth Assassin’
+'lily': {
+name: 'Lily', rarity: 'Mythic',
+gadget: 'Lurk', star: 'Petal Pirouette',
+gears: 'Damage, Speed', build: 'Stealth Assassin'
 },
-‘clancy’: {
-name: ‘Clancy’, rarity: ‘Mythic’,
-gadget: ‘Cover Fire’, star: ‘Ready to Riot’,
-gears: ‘Damage, Speed’, build: ‘Stage Burst’
+'clancy': {
+name: 'Clancy', rarity: 'Mythic',
+gadget: 'Cover Fire', star: 'Ready to Riot',
+gears: 'Damage, Speed', build: 'Stage Burst'
 },
-‘moe’: {
-name: ‘Moe’, rarity: ‘Mythic’,
-gadget: ‘Dodgy Digging’, star: ‘Skipping Stones’,
-gears: ‘Damage, Shield’, build: ‘Tunnel Burst’
+'moe': {
+name: 'Moe', rarity: 'Mythic',
+gadget: 'Dodgy Digging', star: 'Skipping Stones',
+gears: 'Damage, Shield', build: 'Tunnel Burst'
 },
-‘juju’: {
-name: ‘Juju’, rarity: ‘Mythic’,
-gadget: ‘Elementalist’, star: ‘Numbing Needles’,
-gears: ‘Shield, Damage’, build: ‘Element Control’
+'juju': {
+name: 'Juju', rarity: 'Mythic',
+gadget: 'Elementalist', star: 'Numbing Needles',
+gears: 'Shield, Damage', build: 'Element Control'
 },
-‘ollie’: {
-name: ‘Ollie’, rarity: ‘Mythic’,
-gadget: ‘Regulate’, star: ‘Renegade’,
-gears: ‘Damage, Shield’, build: ‘Hypnotize Tank’
+'ollie': {
+name: 'Ollie', rarity: 'Mythic',
+gadget: 'Regulate', star: 'Renegade',
+gears: 'Damage, Shield', build: 'Hypnotize Tank'
 },
-‘lumi’: {
-name: ‘Lumi’, rarity: ‘Mythic’,
-gadget: ‘Grim and Frostbitten’, star: ‘Half-Time’,
-gears: ‘Shield, Damage’, build: ‘Light Burst’
+'lumi': {
+name: 'Lumi', rarity: 'Mythic',
+gadget: 'Grim and Frostbitten', star: 'Half-Time',
+gears: 'Shield, Damage', build: 'Light Burst'
 },
-‘finx’: {
-name: ‘Finx’, rarity: ‘Mythic’,
-gadget: ‘Back to the Finxture’, star: ‘Hieroglyph Halt’,
-gears: ‘Shield, Damage’, build: ‘Time Rewind’
+'finx': {
+name: 'Finx', rarity: 'Mythic',
+gadget: 'Back to the Finxture', star: 'Hieroglyph Halt',
+gears: 'Shield, Damage', build: 'Time Rewind'
 },
-‘jae-yong’: {
-name: ‘Jae-Yong’, rarity: ‘Mythic’,
-gadget: ‘Weekend Warrior’, star: ‘Extra High Note’,
-gears: ‘Damage, Shield’, build: ‘K-Pop Burst’
+'jae-yong': {
+name: 'Jae-Yong', rarity: 'Mythic',
+gadget: 'Weekend Warrior', star: 'Extra High Note',
+gears: 'Damage, Shield', build: 'K-Pop Burst'
 },
-‘alli’: {
-name: ‘Alli’, rarity: ‘Mythic’,
-gadget: ‘Cold-Blooded’, star: ‘You Better Run, You Better Take Cover’,
-gears: ‘Shield, Damage’, build: ‘Enrage Assassin’
+'alli': {
+name: 'Alli', rarity: 'Mythic',
+gadget: 'Cold-Blooded', star: 'You Better Run, You Better Take Cover',
+gears: 'Shield, Damage', build: 'Enrage Assassin'
 },
-‘mina’: {
-name: ‘Mina’, rarity: ‘Mythic’,
-gadget: ‘Capo-What?’, star: ‘Zum Zum Zum’,
-gears: ‘Damage, Shield’, build: ‘Cyclone Zone’
+'mina': {
+name: 'Mina', rarity: 'Mythic',
+gadget: 'Capo-What?', star: 'Zum Zum Zum',
+gears: 'Damage, Shield', build: 'Cyclone Zone'
 },
-‘ziggy’: {
-name: ‘Ziggy’, rarity: ‘Mythic’,
-gadget: ‘Electric Shuffle’, star: ‘The Great Ziggini’,
-gears: ‘Shield, Damage’, build: ‘Lightning Control’
+'ziggy': {
+name: 'Ziggy', rarity: 'Mythic',
+gadget: 'Electric Shuffle', star: 'The Great Ziggini',
+gears: 'Shield, Damage', build: 'Lightning Control'
 },
-‘gigi’: {
-name: ‘Gigi’, rarity: ‘Mythic’,
-gadget: ‘Longer Strings’, star: ‘A Helping Hand’,
-gears: ‘Shield, Damage’, build: ‘Portal Damage’
+'gigi': {
+name: 'Gigi', rarity: 'Mythic',
+gadget: 'Longer Strings', star: 'A Helping Hand',
+gears: 'Shield, Damage', build: 'Portal Damage'
 },
-‘glowbert’: {
-name: ‘Glowbert’, rarity: ‘Mythic’,
-gadget: ‘Slippery Savior’, star: ‘Parasitism’,
-gears: ‘Damage, Shield’, build: ‘Tether Support’
+'glowbert': {
+name: 'Glowbert', rarity: 'Mythic',
+gadget: 'Slippery Savior', star: 'Parasitism',
+gears: 'Damage, Shield', build: 'Tether Support'
 },
-‘najia’: {
-name: ‘Najia’, rarity: ‘Mythic’,
-gadget: ‘Najia Jar’, star: ‘Venomous’,
-gears: ‘Damage, Shield’, build: ‘Poison Assassin’
+'najia': {
+name: 'Najia', rarity: 'Mythic',
+gadget: 'Najia Jar', star: 'Venomous',
+gears: 'Damage, Shield', build: 'Poison Assassin'
 },
 
 // — LEGENDARY (13) —
-‘spike’: {
-name: ‘Spike’, rarity: ‘Legendary’,
-gadget: ‘Popping Pincushion’, star: ‘Fertilize’,
-gears: ‘Damage, Control’, build: ‘Cactus Control’
+'spike': {
+name: 'Spike', rarity: 'Legendary',
+gadget: 'Popping Pincushion', star: 'Fertilize',
+gears: 'Damage, Control', build: 'Cactus Control'
 },
-‘crow’: {
-name: ‘Crow’, rarity: ‘Legendary’,
-gadget: ‘Instapoison’, star: ‘Extra Toxic’,
-gears: ‘Speed, Damage’, build: ‘Poison Assassin’
+'crow': {
+name: 'Crow', rarity: 'Legendary',
+gadget: 'Instapoison', star: 'Extra Toxic',
+gears: 'Speed, Damage', build: 'Poison Assassin'
 },
-‘leon’: {
-name: ‘Leon’, rarity: ‘Legendary’,
-gadget: ‘Lollipop Drop’, star: ‘Smoke Trails’,
-gears: ‘Damage, Speed’, build: ‘Burst Assassin’
+'leon': {
+name: 'Leon', rarity: 'Legendary',
+gadget: 'Lollipop Drop', star: 'Smoke Trails',
+gears: 'Damage, Speed', build: 'Burst Assassin'
 },
-‘sandy’: {
-name: ‘Sandy’, rarity: ‘Legendary’,
-gadget: ‘Sweet Dreams’, star: ‘Rude Sands’,
-gears: ‘Control, Healing’, build: ‘Sleep Control’
+'sandy': {
+name: 'Sandy', rarity: 'Legendary',
+gadget: 'Sweet Dreams', star: 'Rude Sands',
+gears: 'Control, Healing', build: 'Sleep Control'
 },
-‘amber’: {
-name: ‘Amber’, rarity: ‘Legendary’,
-gadget: ‘Dancing Flames’, star: “Scorchin’ Siphon”,
-gears: ‘Control, Damage’, build: ‘Fire Zone Control’
+'amber': {
+name: 'Amber', rarity: 'Legendary',
+gadget: 'Dancing Flames', star: "Scorchin' Siphon",
+gears: 'Control, Damage', build: 'Fire Zone Control'
 },
-‘meg’: {
-name: ‘Meg’, rarity: ‘Legendary’,
-gadget: ‘Jolting Volts’, star: ‘Force Field’,
-gears: ‘Damage, Speed’, build: ‘Mech Burst’
+'meg': {
+name: 'Meg', rarity: 'Legendary',
+gadget: 'Jolting Volts', star: 'Force Field',
+gears: 'Damage, Speed', build: 'Mech Burst'
 },
-‘surge’: {
-name: ‘Surge’, rarity: ‘Legendary’,
-gadget: ‘Power Surge’, star: ‘To the Max!’,
-gears: ‘Damage, Reload’, build: ‘Power Stacking’
+'surge': {
+name: 'Surge', rarity: 'Legendary',
+gadget: 'Power Surge', star: 'To the Max!',
+gears: 'Damage, Reload', build: 'Power Stacking'
 },
-‘chester’: {
-name: ‘Chester’, rarity: ‘Legendary’,
-gadget: ‘Spicy Dice’, star: “Single Bell’O’Mania”,
-gears: ‘Damage, Shield’, build: ‘Random Chaos’
+'chester': {
+name: 'Chester', rarity: 'Legendary',
+gadget: 'Spicy Dice', star: "Single Bell'O'Mania",
+gears: 'Damage, Shield', build: 'Random Chaos'
 },
-‘cordelius’: {
-name: ‘Cordelius’, rarity: ‘Legendary’,
-gadget: ‘Shroom Boom’, star: ‘Fungi Figurine’,
-gears: ‘Damage, Health’, build: ‘Mushroom Drain’
+'cordelius': {
+name: 'Cordelius', rarity: 'Legendary',
+gadget: 'Shroom Boom', star: 'Fungi Figurine',
+gears: 'Damage, Health', build: 'Mushroom Drain'
 },
-‘kit’: {
-name: ‘Kit’, rarity: ‘Legendary’,
-gadget: ‘Cardboard Box’, star: ‘Power Hungry’,
-gears: ‘Damage, Shield’, build: ‘Jump Assassin’
+'kit': {
+name: 'Kit', rarity: 'Legendary',
+gadget: 'Cardboard Box', star: 'Power Hungry',
+gears: 'Damage, Shield', build: 'Jump Assassin'
 },
-‘draco’: {
-name: ‘Draco’, rarity: ‘Legendary’,
-gadget: ‘Last Stand’, star: ‘Shredding’,
-gears: ‘Damage, Shield’, build: ‘Dragon Carry’
+'draco': {
+name: 'Draco', rarity: 'Legendary',
+gadget: 'Last Stand', star: 'Shredding',
+gears: 'Damage, Shield', build: 'Dragon Carry'
 },
-‘kenji’: {
-name: ‘Kenji’, rarity: ‘Legendary’,
-gadget: ‘Hosomaki Healing’, star: ‘Nigiri Nemesis’,
-gears: ‘Damage, Shield’, build: ‘Sushi Assassin’
+'kenji': {
+name: 'Kenji', rarity: 'Legendary',
+gadget: 'Hosomaki Healing', star: 'Nigiri Nemesis',
+gears: 'Damage, Shield', build: 'Sushi Assassin'
 },
-‘pierce’: {
-name: ‘Pierce’, rarity: ‘Legendary’,
-gadget: ‘You Only Brawl Twice’, star: ‘Mission: Swimpossible’,
-gears: ‘Damage, Shield’, build: ‘Pierce Burst’
+'pierce': {
+name: 'Pierce', rarity: 'Legendary',
+gadget: 'You Only Brawl Twice', star: 'Mission: Swimpossible',
+gears: 'Damage, Shield', build: 'Pierce Burst'
 },
 
 // — ULTRA LEGENDARY (2) —
-‘kaze’: {
-name: ‘Kaze’, rarity: ‘Ultra Legendary’,
-gadget: ‘Gracious Host’, star: ‘Advanced Techniques’,
-gears: ‘Damage, Shield’, build: ‘Dual-Form Assassin’
+'kaze': {
+name: 'Kaze', rarity: 'Ultra Legendary',
+gadget: 'Gracious Host', star: 'Advanced Techniques',
+gears: 'Damage, Shield', build: 'Dual-Form Assassin'
 },
-‘sirius’: {
-name: ‘Sirius’, rarity: ‘Ultra Legendary’,
-gadget: ‘A Starr Is Born’, star: ‘The Darkest Starr’,
-gears: ‘Shield, Damage’, build: ‘Shadow Army’
+'sirius': {
+name: 'Sirius', rarity: 'Ultra Legendary',
+gadget: 'A Starr Is Born', star: 'The Darkest Starr',
+gears: 'Shield, Damage', build: 'Shadow Army'
 }
 };
 
@@ -533,11 +533,11 @@ const BRAWLER_LIST = Object.keys(BRAWLERS);
 
 module.exports = {
 data: new SlashCommandBuilder()
-.setName(‘brawler-builds’)
-.setDescription(‘Get the best meta build for any Brawl Stars brawler (March 2026)’)
+.setName('brawler-builds')
+.setDescription('Get the best meta build for any Brawl Stars brawler (March 2026)')
 .addStringOption(o =>
-o.setName(‘brawler’)
-.setDescription(‘Brawler name’)
+o.setName('brawler')
+.setDescription('Brawler name')
 .setRequired(true)
 .setAutocomplete(true)
 ),
