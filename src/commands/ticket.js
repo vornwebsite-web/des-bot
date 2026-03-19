@@ -110,11 +110,19 @@ module.exports = {
       const roles = [1, 2, 3].map(n => interaction.options.getRole('role' + n)?.id).filter(Boolean);
       const unique = [...new Set(roles)];
       console.log('[TICKET TYPE-ROLES] Setting ' + type + ' to roles:', unique);
+      
+      // Enable tickets and set type roles
       await Guild.findOneAndUpdate(
         { guildId: interaction.guildId },
-        { $set: { ['tickets.typeRoles.' + type]: unique } },
+        { 
+          $set: { 
+            'tickets.enabled': true,
+            ['tickets.typeRoles.' + type]: unique 
+          } 
+        },
         { upsert: true }
       );
+      
       const roleList = unique.map(r => '<@&' + r + '>').join('\n') || 'None';
       await interaction.editReply({ embeds: [E.success('Type Roles Updated', 'Type: **' + type + '**\n\n' + roleList)] });
     }
