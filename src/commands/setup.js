@@ -3,6 +3,9 @@ const E = require('../utils/embeds');
 const { requirePerm } = require('../utils/helpers');
 const { Guild } = require('../models/index');
 
+// Track active counting games to prevent multiple games in same channel
+const activeCountingGames = new Set();
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('setup').setDescription('⚙️ Server configuration')
@@ -151,6 +154,14 @@ module.exports = {
     else if (sub === 'counting') {
       const channel = interaction.options.getChannel('channel');
       
+      // Check if a game is already running in this channel
+      if (activeCountingGames.has(channel.id)) {
+        return interaction.editReply({ embeds: [E.error('Game Already Running', `A counting game is already active in <#${channel.id}>!`)] });
+      }
+      
+      // Mark this channel as having an active game
+      activeCountingGames.add(channel.id);
+      
       const startGame = async () => {
         let count = 0;
         let lastUser = null;
@@ -158,6 +169,11 @@ module.exports = {
         let record = 0;
         const maxCount = 1000000;
         let gameActive = true;
+        
+        const endGame = () => {
+          gameActive = false;
+          activeCountingGames.delete(channel.id);
+        };
         
         const updateEmbed = () => {
           return E.make(0x2F3136)
@@ -188,7 +204,7 @@ module.exports = {
           
           // Cannot count twice in a row
           if (msgCollect.author.id === lastUser) {
-            gameActive = false;
+            endGame();
             const loseEmbed = E.make(0xFF0000)
               .setTitle('💥 Game Over!')
               .setDescription(`<@${msgCollect.author.id}> cannot count twice in a row!`)
@@ -209,7 +225,7 @@ module.exports = {
           }
           
           if (num !== count + 1) {
-            gameActive = false;
+            endGame();
             if (count > record) record = count;
             
             const loseEmbed = E.make(0xFF0000)
@@ -247,7 +263,7 @@ module.exports = {
           }
           
           if (count >= maxCount) {
-            gameActive = false;
+            endGame();
             const winEmbed = E.make(0x00FF00)
               .setTitle('🎉 Maximum Count Reached!')
               .setDescription(`The server reached the maximum count of **${maxCount}**!`)
