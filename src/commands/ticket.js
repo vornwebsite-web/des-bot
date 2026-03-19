@@ -111,17 +111,28 @@ module.exports = {
       const unique = [...new Set(roles)];
       console.log('[TICKET TYPE-ROLES] Setting ' + type + ' to roles:', unique);
       
+      // Get current config
+      let cfg = await Guild.findOne({ guildId: interaction.guildId });
+      if (!cfg) {
+        cfg = new Guild({ guildId: interaction.guildId });
+      }
+      
+      // Initialize tickets if not exists
+      if (!cfg.tickets) {
+        cfg.tickets = {};
+      }
+      
+      // Initialize typeRoles if not exists
+      if (!cfg.tickets.typeRoles) {
+        cfg.tickets.typeRoles = {};
+      }
+      
       // Enable tickets and set type roles
-      await Guild.findOneAndUpdate(
-        { guildId: interaction.guildId },
-        { 
-          $set: { 
-            'tickets.enabled': true,
-            ['tickets.typeRoles.' + type]: unique 
-          } 
-        },
-        { upsert: true }
-      );
+      cfg.tickets.enabled = true;
+      cfg.tickets.typeRoles[type] = unique;
+      
+      await cfg.save();
+      console.log('[TICKET TYPE-ROLES] Saved config:', cfg.tickets);
       
       const roleList = unique.map(r => '<@&' + r + '>').join('\n') || 'None';
       await interaction.editReply({ embeds: [E.success('Type Roles Updated', 'Type: **' + type + '**\n\n' + roleList)] });
