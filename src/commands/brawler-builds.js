@@ -127,23 +127,19 @@ module.exports = {
 
   async autocomplete(interaction) {
     const focused = interaction.options.getFocused().toLowerCase();
-    const uniqueNames = [];
+    const choices = [];
     const seen = new Set();
     
-    for (const brawler of Object.values(BRAWLERS)) {
-      if (!seen.has(brawler.name) && brawler.name.toLowerCase().includes(focused)) {
-        uniqueNames.push(brawler.name);
-        seen.add(brawler.name);
+    for (const [key, brawler] of Object.entries(BRAWLERS)) {
+      if (!seen.has(brawler.name)) {
+        if (brawler.name.toLowerCase().includes(focused)) {
+          choices.push({ name: brawler.name, value: key });
+          seen.add(brawler.name);
+          if (choices.length >= 25) break;
+        }
       }
     }
 
-    await interaction.respond(
-      uniqueNames
-        .slice(0, 25)
-        .map(name => ({ 
-          name, 
-          value: Object.entries(BRAWLERS).find(([_, b]) => b.name === name)?.[0] || name.toLowerCase() 
-        }))
-    );
+    await interaction.respond(choices);
   }
 };
