@@ -111,25 +111,16 @@ module.exports = {
       const unique = [...new Set(roles)];
       console.log('[TICKET TYPE-ROLES] Setting ' + type + ' to roles:', unique);
       
-      // Use updateOne with $set to force the field
+      // Store at root level, not inside tickets
       await Guild.updateOne(
         { guildId: interaction.guildId },
         { 
           $set: { 
-            'tickets.enabled': true
+            'tickets.enabled': true,
+            [`guildTicketTypeRoles.${type}`]: unique
           }
         },
         { upsert: true }
-      );
-      
-      // Now update with the typeRoles using raw update
-      await Guild.collection.updateOne(
-        { guildId: interaction.guildId },
-        { 
-          $set: { 
-            [`tickets.typeRoles.${type}`]: unique
-          }
-        }
       );
       
       const roleList = unique.map(r => '<@&' + r + '>').join('\n') || 'None';
@@ -204,8 +195,8 @@ module.exports = {
       const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ['open', 'claimed'] } });
       if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.editReply({ embeds: [E.warn('Limit', 'Too many open')] });
       
-      const typeRoles = (cfg.tickets.typeRoles && cfg.tickets.typeRoles[type] && cfg.tickets.typeRoles[type].length > 0)
-        ? cfg.tickets.typeRoles[type]
+      const typeRoles = (cfg.guildTicketTypeRoles && cfg.guildTicketTypeRoles[type] && cfg.guildTicketTypeRoles[type].length > 0)
+        ? cfg.guildTicketTypeRoles[type]
         : [];
       console.log('[TICKET CREATE] Type:', type, 'Roles:', typeRoles);
       
@@ -384,12 +375,8 @@ module.exports = {
       const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ['open', 'claimed'] } });
       if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.followUp({ embeds: [E.warn('Limit', 'Too many open')], ephemeral: true });
       
-      console.log('[TICKET SELECT] Config typeRoles:', cfg.tickets.typeRoles);
-      console.log('[TICKET SELECT] Looking for type:', type);
-      console.log('[TICKET SELECT] Type roles for this type:', cfg.tickets.typeRoles?.[type]);
-      
-      const typeRoles = (cfg.tickets.typeRoles && cfg.tickets.typeRoles[type] && cfg.tickets.typeRoles[type].length > 0)
-        ? cfg.tickets.typeRoles[type]
+      const typeRoles = (cfg.guildTicketTypeRoles && cfg.guildTicketTypeRoles[type] && cfg.guildTicketTypeRoles[type].length > 0)
+        ? cfg.guildTicketTypeRoles[type]
         : [];
       console.log('[TICKET SELECT] Type:', type, 'Roles:', typeRoles);
       
