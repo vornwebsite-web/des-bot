@@ -51,7 +51,7 @@ module.exports = {
         'Use these commands to fully configure your server:',
         [
           { name: '👋 Welcome/Farewell', value: '`/welcome setup` • `/welcome farewell`', inline: false },
-          { name: '🎫 Tickets', value: '`/ticket setup` then `/ticket panel`', inline: false },
+          { name: '🎫 Tickets', value: '`/ticket type-roles` then `/ticket panel`', inline: false },
           { name: '📝 Logging', value: '`/setup logs`', inline: false },
           { name: '🛡️ AutoMod', value: '`/setup automod`', inline: false },
           { name: '🚨 Anti-Raid', value: '`/setup antiraid`', inline: false },
@@ -157,21 +157,7 @@ module.exports = {
         let players = new Set();
         let record = 0;
         const maxCount = 1000000;
-        const timeout = 60000;
-        
-        const startEmbed = E.make(0x2F3136)
-          .setTitle('🔢 Counting Game Started!')
-          .setDescription('Count numbers one by one. Next person must say the correct number or everyone loses!\n\n**Max Count: 1,000,000**')
-          .addFields(
-            { name: '📊 Current Count', value: '**0**', inline: true },
-            { name: '👥 Players', value: '0', inline: true },
-            { name: '🏆 Record', value: '0', inline: true }
-          )
-          .setColor('#2F3136')
-          .setFooter({ text: 'Start counting by replying with 1', iconURL: interaction.client.user.displayAvatarURL() })
-          .setTimestamp();
-        
-        const msg = await channel.send({ embeds: [startEmbed] });
+        let gameActive = true;
         
         const updateEmbed = () => {
           return E.make(0x2F3136)
@@ -186,19 +172,23 @@ module.exports = {
             .setTimestamp();
         };
         
-        let lastUpdateTime = 0;
+        const msg = await channel.send({ embeds: [updateEmbed()] }).catch(() => null);
+        if (!msg) return;
+        
+        let lastUpdateTime = Date.now();
         const collector = channel.createMessageCollector({ 
-          time: timeout,
-          filter: m => !m.author.bot 
+          filter: m => !m.author.bot && gameActive
         });
         
         collector.on('collect', async (msgCollect) => {
-          const num = parseInt(msgCollect.content);
+          if (!gameActive) return;
           
+          const num = parseInt(msgCollect.content);
           if (isNaN(num)) return;
           
           // Cannot count twice in a row
           if (msgCollect.author.id === lastUser) {
+            gameActive = false;
             const loseEmbed = E.make(0xFF0000)
               .setTitle('💥 Game Over!')
               .setDescription(`<@${msgCollect.author.id}> cannot count twice in a row!`)
@@ -210,8 +200,8 @@ module.exports = {
               .setColor('#FF0000')
               .setTimestamp();
             
-            await msgCollect.react('❌');
-            await channel.send({ embeds: [loseEmbed] });
+            await msgCollect.react('❌').catch(err => console.error('Reaction error:', err));
+            await channel.send({ embeds: [loseEmbed] }).catch(() => {});
             collector.stop();
             
             setTimeout(startGame, 5000);
@@ -219,6 +209,7 @@ module.exports = {
           }
           
           if (num !== count + 1) {
+            gameActive = false;
             if (count > record) record = count;
             
             const loseEmbed = E.make(0xFF0000)
@@ -232,27 +223,31 @@ module.exports = {
               .setColor('#FF0000')
               .setTimestamp();
             
-            await msgCollect.react('❌');
-            await channel.send({ embeds: [loseEmbed] });
+            await msgCollect.react('❌').catch(err => console.error('Reaction error:', err));
+            await channel.send({ embeds: [loseEmbed] }).catch(() => {});
             collector.stop();
             
             setTimeout(startGame, 5000);
             return;
           }
           
+          // Correct number!
           count = num;
           lastUser = msgCollect.author.id;
           players.add(msgCollect.author.id);
           
-          await msgCollect.react('✅');
+          // Always add reaction with error handling
+          await msgCollect.react('✅').catch(err => console.error('Reaction error:', err));
           
+          // Update embed
           const now = Date.now();
-          if (now - lastUpdateTime > 1500) {
+          if (now - lastUpdateTime > 2000) {
             await msg.edit({ embeds: [updateEmbed()] }).catch(() => {});
             lastUpdateTime = now;
           }
           
           if (count >= maxCount) {
+            gameActive = false;
             const winEmbed = E.make(0x00FF00)
               .setTitle('🎉 Maximum Count Reached!')
               .setDescription(`The server reached the maximum count of **${maxCount}**!`)
@@ -263,21 +258,16 @@ module.exports = {
               .setColor('#00FF00')
               .setTimestamp();
             
-            await channel.send({ embeds: [winEmbed] });
+            await channel.send({ embeds: [winEmbed] }).catch(() => {});
             collector.stop();
             
             setTimeout(startGame, 5000);
-            return;
           }
-        });
-        
-        collector.on('end', () => {
-          if (count > record) record = count;
         });
       };
       
       startGame();
-      await interaction.editReply({ embeds: [E.success('Counting Game', `Started in <#${channel.id}>. Game will auto-restart!`)] });
+      await interaction.editReply({ embeds: [E.success('Counting Game Started', `Game running in <#${channel.id}>! Type numbers to play.`)] });
     }
 
     else if (sub === 'view') {
