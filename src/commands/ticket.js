@@ -373,10 +373,15 @@ module.exports = {
     if (cmd !== 'ticket' || action !== 'select') return false;
     try {
       const type = interaction.values[0];
+      // Fetch fresh config from database
       const cfg = await Guild.findOne({ guildId: interaction.guildId });
-      if (!cfg?.tickets?.enabled) return interaction.followUp({ embeds: [E.error('Not setup', 'Run /ticket addrole first')], ephemeral: true });
+      if (!cfg?.tickets?.enabled) return interaction.followUp({ embeds: [E.error('Not setup', 'Run /ticket type-roles first')], ephemeral: true });
       const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ['open', 'claimed'] } });
       if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.followUp({ embeds: [E.warn('Limit', 'Too many open')], ephemeral: true });
+      
+      console.log('[TICKET SELECT] Config typeRoles:', cfg.tickets.typeRoles);
+      console.log('[TICKET SELECT] Looking for type:', type);
+      console.log('[TICKET SELECT] Type roles for this type:', cfg.tickets.typeRoles?.[type]);
       
       const typeRoles = (cfg.tickets.typeRoles && cfg.tickets.typeRoles[type] && cfg.tickets.typeRoles[type].length > 0)
         ? cfg.tickets.typeRoles[type]
