@@ -198,11 +198,7 @@ module.exports = {
       const typeRoles = (cfg.tickets.typeRoles && cfg.tickets.typeRoles[type] && cfg.tickets.typeRoles[type].length > 0)
         ? cfg.tickets.typeRoles[type]
         : (cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : []);
-      console.log('[TICKET CREATE] Type: ' + type);
-      console.log('[TICKET CREATE] Type Roles for this type:', cfg.tickets.typeRoles?.[type]);
-      console.log('[TICKET CREATE] Support Roles (default):', cfg.tickets.supportRoles);
-      console.log('[TICKET CREATE] Final typeRoles being used:', typeRoles);
-      console.log('[TICKET CREATE] Building perms with roles:', typeRoles);
+      console.log('[TICKET CREATE] Type:', type, 'Roles:', typeRoles);
       
       cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
       await cfg.save();
@@ -385,11 +381,7 @@ module.exports = {
       const typeRoles = (cfg.tickets.typeRoles && cfg.tickets.typeRoles[type] && cfg.tickets.typeRoles[type].length > 0)
         ? cfg.tickets.typeRoles[type]
         : (cfg.tickets.supportRoles?.length ? cfg.tickets.supportRoles : cfg.tickets.supportRole ? [cfg.tickets.supportRole] : []);
-      console.log('[TICKET SELECT] Type: ' + type);
-      console.log('[TICKET SELECT] Type Roles for this type:', cfg.tickets.typeRoles?.[type]);
-      console.log('[TICKET SELECT] Support Roles (default):', cfg.tickets.supportRoles);
-      console.log('[TICKET SELECT] Final typeRoles being used:', typeRoles);
-      console.log('[TICKET SELECT] Building perms with roles:', typeRoles);
+      console.log('[TICKET SELECT] Type:', type, 'Roles:', typeRoles);
       
       cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
       await cfg.save();
