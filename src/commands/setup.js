@@ -3,7 +3,6 @@ const E = require('../utils/embeds');
 const { requirePerm } = require('../utils/helpers');
 const { Guild } = require('../models/index');
 
-// Track active counting games to prevent multiple games in same channel
 const activeCountingGames = new Set();
 
 module.exports = {
@@ -157,22 +156,15 @@ module.exports = {
       if (!cfg.leveling) cfg.leveling = {};
       if (!cfg.leveling.roleRewards) cfg.leveling.roleRewards = [];
 
-      // Check if max 10 rewards reached
       if (cfg.leveling.roleRewards.length >= 10 && !cfg.leveling.roleRewards.find(r => r.level === level)) {
         return interaction.editReply({ embeds: [E.error('Max Rewards', 'You can only setup 10 level role rewards max')] });
       }
 
-      // Remove existing reward for this level if it exists
       cfg.leveling.roleRewards = cfg.leveling.roleRewards.filter(r => r.level !== level);
-
-      // Add new reward
       cfg.leveling.roleRewards.push({ level, roleId: role.id });
-
-      // Sort by level
       cfg.leveling.roleRewards.sort((a, b) => a.level - b.level);
 
       await cfg.save();
-
       await interaction.editReply({ embeds: [E.success('Role Reward Added', `Level **${level}** → <@&${role.id}>`)] });
     }
 
@@ -227,12 +219,10 @@ module.exports = {
     else if (sub === 'counting') {
       const channel = interaction.options.getChannel('channel');
       
-      // Check if a game is already running in this channel
       if (activeCountingGames.has(channel.id)) {
         return interaction.editReply({ embeds: [E.error('Game Already Running', `A counting game is already active in <#${channel.id}>!`)] });
       }
       
-      // Mark this channel as having an active game
       activeCountingGames.add(channel.id);
       
       const startGame = async () => {
@@ -243,166 +233,167 @@ module.exports = {
         const maxCount = 1000000;
         let gameActive = true;
         let messageId = null;
+        let msg = null;
         
-        // Load previous game state from database
-        const cfg = await Guild.findOne({ guildId: interaction.guildId });
-        if (cfg?.counting && cfg.counting.channelId === channel.id && cfg.counting.active) {
-          count = cfg.counting.count || 0;
-          lastUser = cfg.counting.lastUser;
-          record = cfg.counting.record || 0;
-          players = new Set(cfg.counting.players || []);
-          messageId = cfg.counting.messageId;
-        }
-        
-        const endGame = async () => {
-          gameActive = false;
-          activeCountingGames.delete(channel.id);
-          // Save final state
+        try {
+          const cfg = await Guild.findOne({ guildId: interaction.guildId });
+          
+          if (cfg?.counting?.active && cfg.counting.channelId === channel.id) {
+            count = cfg.counting.count || 0;
+            lastUser = cfg.counting.lastUser || null;
+            record = cfg.counting.record || 0;
+            players = new Set(cfg.counting.players || []);
+            messageId = cfg.counting.messageId || null;
+            
+            if (messageId) {
+              try {
+                msg = await channel.messages.fetch(messageId);
+              } catch (e) {
+                msg = null;
+              }
+            }
+          }
+          
+          if (!msg) {
+            const updateEmbed = () => E.make(0x2F3136)
+              .setTitle('🔢 Counting Game')
+              .setDescription(`Next number: **${count + 1}**\n\nMax Count: 1,000,000`)
+              .addFields(
+                { name: '📊 Current', value: `**${count}**`, inline: true },
+                { name: '👥 Players', value: players.size.toString(), inline: true },
+                { name: '🏆 Record', value: record.toString(), inline: true }
+              )
+              .setColor(count > record ? '#00FF00' : '#2F3136')
+              .setTimestamp();
+            
+            msg = await channel.send({ embeds: [updateEmbed()] });
+            messageId = msg.id;
+          }
+          
           await Guild.findOneAndUpdate(
             { guildId: interaction.guildId },
-            { $set: { 'counting.active': false, 'counting.count': count, 'counting.record': record } },
+            { $set: { 'counting.active': true, 'counting.channelId': channel.id, 'counting.messageId': messageId, 'counting.count': count, 'counting.lastUser': lastUser, 'counting.players': Array.from(players), 'counting.record': record } },
             { upsert: true }
           );
-        };
-        
-        const updateEmbed = () => {
-          return E.make(0x2F3136)
-            .setTitle('🔢 Counting Game')
-            .setDescription(`Next number: **${count + 1}**\n\nMax Count: 1,000,000`)
-            .addFields(
-              { name: '📊 Current', value: `**${count}**`, inline: true },
-              { name: '👥 Players', value: players.size.toString(), inline: true },
-              { name: '🏆 Record', value: record.toString(), inline: true }
-            )
-            .setColor(count > record ? '#00FF00' : '#2F3136')
-            .setTimestamp();
-        };
-        
-        let msg = null;
-        if (messageId) {
-          try {
-            msg = await channel.messages.fetch(messageId);
-          } catch (e) {
-            msg = null;
-          }
-        }
-        
-        if (!msg) {
-          msg = await channel.send({ embeds: [updateEmbed()] }).catch(() => null);
-        }
-        
-        if (!msg) return;
-        messageId = msg.id;
-        
-        // Save initial state
-        await Guild.findOneAndUpdate(
-          { guildId: interaction.guildId },
-          { $set: { 'counting.active': true, 'counting.channelId': channel.id, 'counting.messageId': messageId, 'counting.count': count, 'counting.lastUser': lastUser, 'counting.players': Array.from(players), 'counting.record': record } },
-          { upsert: true }
-        );
-        
-        let lastUpdateTime = Date.now();
-        const collector = channel.createMessageCollector({ 
-          filter: m => !m.author.bot && gameActive
-        });
-        
-        collector.on('collect', async (msgCollect) => {
-          if (!gameActive) return;
           
-          const num = parseInt(msgCollect.content);
-          if (isNaN(num)) return;
+          let lastUpdateTime = Date.now();
+          const collector = channel.createMessageCollector({ filter: m => !m.author.bot && gameActive });
           
-          // Cannot count twice in a row
-          if (msgCollect.author.id === lastUser) {
-            await endGame();
-            const loseEmbed = E.make(0xFF0000)
-              .setTitle('💥 Game Over!')
-              .setDescription(`<@${msgCollect.author.id}> cannot count twice in a row!`)
-              .addFields(
-                { name: '🏁 Final Count', value: count.toString(), inline: true },
-                { name: '👥 Total Players', value: players.size.toString(), inline: true },
-                { name: '🏆 Record', value: record.toString(), inline: true }
-              )
-              .setColor('#FF0000')
-              .setTimestamp();
+          collector.on('collect', async (msgCollect) => {
+            if (!gameActive) return;
             
-            await msgCollect.react('❌').catch(err => console.error('Reaction error:', err));
-            await channel.send({ embeds: [loseEmbed] }).catch(() => {});
-            collector.stop();
+            const num = parseInt(msgCollect.content);
+            if (isNaN(num)) return;
             
-            setTimeout(startGame, 5000);
-            return;
-          }
-          
-          if (num !== count + 1) {
-            await endGame();
-            if (count > record) record = count;
+            if (msgCollect.author.id === lastUser) {
+              gameActive = false;
+              activeCountingGames.delete(channel.id);
+              await Guild.findOneAndUpdate({ guildId: interaction.guildId }, { $set: { 'counting.active': false } });
+              
+              const loseEmbed = E.make(0xFF0000)
+                .setTitle('💥 Game Over!')
+                .setDescription(`<@${msgCollect.author.id}> cannot count twice in a row!`)
+                .addFields(
+                  { name: '🏁 Final Count', value: count.toString(), inline: true },
+                  { name: '👥 Total Players', value: players.size.toString(), inline: true },
+                  { name: '🏆 Record', value: record.toString(), inline: true }
+                )
+                .setColor('#FF0000')
+                .setTimestamp();
+              
+              await msgCollect.react('❌').catch(() => {});
+              await channel.send({ embeds: [loseEmbed] }).catch(() => {});
+              collector.stop();
+              
+              setTimeout(startGame, 5000);
+              return;
+            }
             
-            const loseEmbed = E.make(0xFF0000)
-              .setTitle('💥 Game Over!')
-              .setDescription(`<@${msgCollect.author.id}> said **${num}** but it should be **${count + 1}**`)
-              .addFields(
-                { name: '🏁 Final Count', value: count.toString(), inline: true },
-                { name: '👥 Total Players', value: players.size.toString(), inline: true },
-                { name: '🏆 Record', value: record.toString(), inline: true }
-              )
-              .setColor('#FF0000')
-              .setTimestamp();
+            if (num !== count + 1) {
+              gameActive = false;
+              activeCountingGames.delete(channel.id);
+              if (count > record) record = count;
+              
+              await Guild.findOneAndUpdate({ guildId: interaction.guildId }, { $set: { 'counting.active': false, 'counting.record': record } });
+              
+              const loseEmbed = E.make(0xFF0000)
+                .setTitle('💥 Game Over!')
+                .setDescription(`<@${msgCollect.author.id}> said **${num}** but it should be **${count + 1}**`)
+                .addFields(
+                  { name: '🏁 Final Count', value: count.toString(), inline: true },
+                  { name: '👥 Total Players', value: players.size.toString(), inline: true },
+                  { name: '🏆 Record', value: record.toString(), inline: true }
+                )
+                .setColor('#FF0000')
+                .setTimestamp();
+              
+              await msgCollect.react('❌').catch(() => {});
+              await channel.send({ embeds: [loseEmbed] }).catch(() => {});
+              collector.stop();
+              
+              setTimeout(startGame, 5000);
+              return;
+            }
             
-            await msgCollect.react('❌').catch(err => console.error('Reaction error:', err));
-            await channel.send({ embeds: [loseEmbed] }).catch(() => {});
-            collector.stop();
+            count = num;
+            lastUser = msgCollect.author.id;
+            players.add(msgCollect.author.id);
             
-            setTimeout(startGame, 5000);
-            return;
-          }
-          
-          // Correct number!
-          count = num;
-          lastUser = msgCollect.author.id;
-          players.add(msgCollect.author.id);
-          
-          // Always add reaction with error handling
-          await msgCollect.react('✅').catch(err => console.error('Reaction error:', err));
-          
-          // Update embed
-          const now = Date.now();
-          if (now - lastUpdateTime > 2000) {
-            await msg.edit({ embeds: [updateEmbed()] }).catch(() => {});
-            lastUpdateTime = now;
+            await msgCollect.react('✅').catch(() => {});
             
-            // Save state to database every 5 numbers
-            if (count % 5 === 0) {
+            const now = Date.now();
+            if (now - lastUpdateTime > 2000) {
+              const updateEmbed = () => E.make(0x2F3136)
+                .setTitle('🔢 Counting Game')
+                .setDescription(`Next number: **${count + 1}**\n\nMax Count: 1,000,000`)
+                .addFields(
+                  { name: '📊 Current', value: `**${count}**`, inline: true },
+                  { name: '👥 Players', value: players.size.toString(), inline: true },
+                  { name: '🏆 Record', value: record.toString(), inline: true }
+                )
+                .setColor(count > record ? '#00FF00' : '#2F3136')
+                .setTimestamp();
+              
+              await msg.edit({ embeds: [updateEmbed()] }).catch(() => {});
+              lastUpdateTime = now;
+              
               await Guild.findOneAndUpdate(
                 { guildId: interaction.guildId },
                 { $set: { 'counting.count': count, 'counting.lastUser': lastUser, 'counting.players': Array.from(players) } },
                 { upsert: true }
               );
             }
-          }
-          
-          if (count >= maxCount) {
-            await endGame();
-            const winEmbed = E.make(0x00FF00)
-              .setTitle('🎉 Maximum Count Reached!')
-              .setDescription(`The server reached the maximum count of **${maxCount}**!`)
-              .addFields(
-                { name: '👥 Total Players', value: players.size.toString(), inline: true },
-                { name: '🏆 Champion', value: `<@${lastUser}>`, inline: true }
-              )
-              .setColor('#00FF00')
-              .setTimestamp();
             
-            await channel.send({ embeds: [winEmbed] }).catch(() => {});
-            collector.stop();
-            
-            setTimeout(startGame, 5000);
-          }
-        });
+            if (count >= maxCount) {
+              gameActive = false;
+              activeCountingGames.delete(channel.id);
+              await Guild.findOneAndUpdate({ guildId: interaction.guildId }, { $set: { 'counting.active': false, 'counting.record': record } });
+              
+              const winEmbed = E.make(0x00FF00)
+                .setTitle('🎉 Maximum Count Reached!')
+                .setDescription(`The server reached the maximum count of **${maxCount}**!`)
+                .addFields(
+                  { name: '👥 Total Players', value: players.size.toString(), inline: true },
+                  { name: '🏆 Champion', value: `<@${lastUser}>`, inline: true }
+                )
+                .setColor('#00FF00')
+                .setTimestamp();
+              
+              await channel.send({ embeds: [winEmbed] }).catch(() => {});
+              collector.stop();
+              
+              setTimeout(startGame, 5000);
+            }
+          });
+        } catch (error) {
+          console.error('Counting game error:', error);
+          gameActive = false;
+          activeCountingGames.delete(channel.id);
+        }
       };
       
       startGame();
-      await interaction.editReply({ embeds: [E.success('Counting Game Started', `Game running in <#${channel.id}>! Type numbers to play.`)] });
+      await interaction.editReply({ embeds: [E.success('Counting Game', `Game running in <#${channel.id}>! Type numbers to play.`)] });
     }
 
     else if (sub === 'view') {
