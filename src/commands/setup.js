@@ -242,10 +242,27 @@ module.exports = {
         let record = 0;
         const maxCount = 1000000;
         let gameActive = true;
+        let messageId = null;
         
-        const endGame = () => {
+        // Load previous game state from database
+        const cfg = await Guild.findOne({ guildId: interaction.guildId });
+        if (cfg?.counting && cfg.counting.channelId === channel.id && cfg.counting.active) {
+          count = cfg.counting.count || 0;
+          lastUser = cfg.counting.lastUser;
+          record = cfg.counting.record || 0;
+          players = new Set(cfg.counting.players || []);
+          messageId = cfg.counting.messageId;
+        }
+        
+        const endGame = async () => {
           gameActive = false;
           activeCountingGames.delete(channel.id);
+          // Save final state
+          await Guild.findOneAndUpdate(
+            { guildId: interaction.guildId },
+            { $set: { 'counting.active': false, 'counting.count': count, 'counting.record': record } },
+            { upsert: true }
+          );
         };
         
         const updateEmbed = () => {
@@ -261,8 +278,28 @@ module.exports = {
             .setTimestamp();
         };
         
-        const msg = await channel.send({ embeds: [updateEmbed()] }).catch(() => null);
+        let msg = null;
+        if (messageId) {
+          try {
+            msg = await channel.messages.fetch(messageId);
+          } catch (e) {
+            msg = null;
+          }
+        }
+        
+        if (!msg) {
+          msg = await channel.send({ embeds: [updateEmbed()] }).catch(() => null);
+        }
+        
         if (!msg) return;
+        messageId = msg.id;
+        
+        // Save initial state
+        await Guild.findOneAndUpdate(
+          { guildId: interaction.guildId },
+          { $set: { 'counting.active': true, 'counting.channelId': channel.id, 'counting.messageId': messageId, 'counting.count': count, 'counting.lastUser': lastUser, 'counting.players': Array.from(players), 'counting.record': record } },
+          { upsert: true }
+        );
         
         let lastUpdateTime = Date.now();
         const collector = channel.createMessageCollector({ 
@@ -277,7 +314,7 @@ module.exports = {
           
           // Cannot count twice in a row
           if (msgCollect.author.id === lastUser) {
-            endGame();
+            await endGame();
             const loseEmbed = E.make(0xFF0000)
               .setTitle('💥 Game Over!')
               .setDescription(`<@${msgCollect.author.id}> cannot count twice in a row!`)
@@ -298,7 +335,7 @@ module.exports = {
           }
           
           if (num !== count + 1) {
-            endGame();
+            await endGame();
             if (count > record) record = count;
             
             const loseEmbed = E.make(0xFF0000)
@@ -333,10 +370,19 @@ module.exports = {
           if (now - lastUpdateTime > 2000) {
             await msg.edit({ embeds: [updateEmbed()] }).catch(() => {});
             lastUpdateTime = now;
+            
+            // Save state to database every 5 numbers
+            if (count % 5 === 0) {
+              await Guild.findOneAndUpdate(
+                { guildId: interaction.guildId },
+                { $set: { 'counting.count': count, 'counting.lastUser': lastUser, 'counting.players': Array.from(players) } },
+                { upsert: true }
+              );
+            }
           }
           
           if (count >= maxCount) {
-            endGame();
+            await endGame();
             const winEmbed = E.make(0x00FF00)
               .setTitle('🎉 Maximum Count Reached!')
               .setDescription(`The server reached the maximum count of **${maxCount}**!`)
