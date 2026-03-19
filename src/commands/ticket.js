@@ -200,9 +200,12 @@ module.exports = {
       const typeRoles = cfg[`ticketRoles_${type}`] || [];
       console.log('[TICKET CREATE] Type:', type, 'Roles:', typeRoles);
       
-      cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
-      await cfg.save();
-      const id = 'ticket-' + String(cfg.tickets.counter).padStart(4, '0');
+      await Guild.updateOne(
+        { guildId: interaction.guildId },
+        { $inc: { 'tickets.counter': 1 } }
+      );
+      const newCounter = (cfg.tickets.counter || 0) + 1;
+      const id = 'ticket-' + String(newCounter).padStart(4, '0');
       const typeInfo = TICKET_TYPES.find(t => t.value === type) || TICKET_TYPES[4];
       const ch = await interaction.guild.channels.create({ name: id, type: ChannelType.GuildText, parent: cfg.tickets.categoryId || null, permissionOverwrites: buildPerms(interaction.guild, interaction.user.id, typeRoles), topic: typeInfo.name });
       await Ticket.create({ ticketId: id, guildId: interaction.guildId, channelId: ch.id, userId: interaction.user.id, type, subject: typeInfo.name, status: 'open' });
@@ -376,9 +379,12 @@ module.exports = {
       const existing = await Ticket.find({ userId: interaction.user.id, guildId: interaction.guildId, status: { $in: ['open', 'claimed'] } });
       if (existing.length >= (cfg.tickets.maxOpen || 1)) return interaction.followUp({ embeds: [E.warn('Limit', 'Too many open')], ephemeral: true });
       
-      cfg.tickets.counter = (cfg.tickets.counter || 0) + 1;
-      await cfg.save();
-      const id = 'ticket-' + String(cfg.tickets.counter).padStart(4, '0');
+      await Guild.updateOne(
+        { guildId: interaction.guildId },
+        { $inc: { 'tickets.counter': 1 } }
+      );
+      const newCounter = (cfg.tickets.counter || 0) + 1;
+      const id = 'ticket-' + String(newCounter).padStart(4, '0');
       const typeInfo = TICKET_TYPES.find(t => t.value === type) || TICKET_TYPES[4];
       const ch = await interaction.guild.channels.create({ name: id, type: ChannelType.GuildText, parent: cfg.tickets.categoryId || null, permissionOverwrites: buildPerms(interaction.guild, interaction.user.id, typeRoles), topic: typeInfo.name });
       await Ticket.create({ ticketId: id, guildId: interaction.guildId, channelId: ch.id, userId: interaction.user.id, type, subject: typeInfo.name, status: 'open' });
