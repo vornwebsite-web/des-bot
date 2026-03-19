@@ -59,12 +59,6 @@ module.exports = {
     )
     .addSubcommand(s => s.setName('flip').setDescription('Flip a coin'))
     .addSubcommand(s => s.setName('dice').setDescription('Roll a dice (1-6)'))
-    .addSubcommand(s => s.setName('slots').setDescription('Play slots')
-      .addIntegerOption(o => o.setName('bet').setDescription('Coins to bet').setRequired(true).setMinValue(1))
-    )
-    .addSubcommand(s => s.setName('blackjack').setDescription('Play blackjack')
-      .addIntegerOption(o => o.setName('bet').setDescription('Coins to bet').setRequired(true).setMinValue(1))
-    )
     .addSubcommand(s => s.setName('trivia').setDescription('Discord bot coding trivia')
       .addStringOption(o => o.setName('difficulty').setDescription('Difficulty level').setRequired(true).addChoices(
         { name: 'Easy', value: 'easy' },
@@ -72,13 +66,6 @@ module.exports = {
         { name: 'Hard', value: 'hard' }
       ))
     )
-    .addSubcommand(s => s.setName('higher-lower').setDescription('Higher or Lower game')
-      .addIntegerOption(o => o.setName('bet').setDescription('Coins to bet').setRequired(true).setMinValue(1))
-    )
-    .addSubcommand(s => s.setName('maze').setDescription('Solve a maze'))
-    .addSubcommand(s => s.setName('hangman').setDescription('Play hangman'))
-    .addSubcommand(s => s.setName('riddle').setDescription('Answer a riddle'))
-    .addSubcommand(s => s.setName('memory').setDescription('Memory game'))
     .addSubcommand(s => s.setName('stats').setDescription('Your game stats'))
     .addSubcommand(s => s.setName('leaderboard').setDescription('Top players'))
     .addSubcommand(s => s.setName('streak').setDescription('Your win streak'))
@@ -118,45 +105,19 @@ module.exports = {
       await interaction.editReply({ embeds: [E.gold('🎲 Dice Roll', 'You rolled: **' + roll + '**')] });
     }
 
-    else if (sub === 'slots') {
-      const bet = interaction.options.getInteger('bet');
-      let u = await User.findOne({ userId: interaction.user.id });
-      if (!u || (u.coins || 0) < bet) return interaction.editReply({ embeds: [E.error('Insufficient', 'Not enough coins')] });
-      
-      const symbols = ['🍎', '🍊', '🍋', '🎰', '💎'];
-      const result = [symbols[Math.floor(Math.random() * 5)], symbols[Math.floor(Math.random() * 5)], symbols[Math.floor(Math.random() * 5)]];
-      const win = result[0] === result[1] && result[1] === result[2];
-      const payout = win ? bet * 5 : 0;
-      u.coins = (u.coins || 0) - bet + payout;
-      await u.save();
-
-      await interaction.editReply({ embeds: [E[win ? 'success' : 'warn'](
-        win ? '🎉 JACKPOT!' : '❌ Lost',
-        result.join(' ') + '\n\n' + (win ? '+' : '-') + (win ? payout : bet) + ' coins',
-        [{ name: 'Balance', value: u.coins + ' coins', inline: true }]
-      )] });
-    }
-
     else if (sub === 'trivia') {
       const difficulty = interaction.options.getString('difficulty');
       const questions = TRIVIA_QUESTIONS[difficulty];
       const question = questions[Math.floor(Math.random() * questions.length)];
 
-      // Create numbered options
       const optionsText = question.opts.map((opt, i) => `**${i + 1}.** ${opt}`).join('\n');
-      
-      // Get reward based on difficulty
-      const rewards = { easy: 50, medium: 150, hard: 300 };
-      const reward = rewards[difficulty];
 
       const embed = E.gold('🧠 Discord Bot Trivia - ' + difficulty.toUpperCase(), optionsText, [
-        { name: 'Question', value: question.q, inline: false },
-        { name: 'Reward', value: reward + ' coins for correct answer', inline: false }
+        { name: 'Question', value: question.q, inline: false }
       ]);
 
       await interaction.editReply({ embeds: [embed], content: `**Reply with the number of your answer!** (1-${question.opts.length})` });
 
-      // Wait for answer
       const filter = m => m.author.id === interaction.user.id && /^[1-9]$/.test(m.content);
       const collector = interaction.channel.createMessageCollector({ filter, max: 1, time: 30000 });
 
@@ -168,12 +129,11 @@ module.exports = {
         if (!u) u = await User.create({ userId: interaction.user.id });
 
         if (isCorrect) {
-          u.coins = (u.coins || 0) + reward;
           u.gameWins = (u.gameWins || 0) + 1;
           u.winStreak = (u.winStreak || 0) + 1;
           await u.save();
 
-          await interaction.followUp({ embeds: [E.success('✅ Correct!', `You earned **${reward}** coins!\n\nCorrect answer: **${question.opts[question.ans]}**`)] });
+          await interaction.followUp({ embeds: [E.success('✅ Correct!', `Correct answer: **${question.opts[question.ans]}**`)] });
         } else {
           u.winStreak = 0;
           await u.save();
@@ -193,7 +153,6 @@ module.exports = {
       let u = await User.findOne({ userId: interaction.user.id });
       if (!u) u = { games: {} };
       await interaction.editReply({ embeds: [E.gold('Game Stats', '', [
-        { name: 'Games Played', value: (u.gamesPlayed || 0).toString(), inline: true },
         { name: 'Wins', value: (u.gameWins || 0).toString(), inline: true },
         { name: 'Streak', value: (u.winStreak || 0).toString(), inline: true }
       ]).setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))] });
@@ -214,10 +173,6 @@ module.exports = {
       let u = await User.findOne({ userId: interaction.user.id });
       const badges = (u?.badges || []).join(' ') || 'None yet';
       await interaction.editReply({ embeds: [E.gold('Badges', badges)] });
-    }
-
-    else {
-      await interaction.editReply({ embeds: [E.info('Game', 'Coming soon!')] });
     }
   }
 };
