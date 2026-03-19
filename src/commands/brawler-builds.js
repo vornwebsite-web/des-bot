@@ -126,20 +126,35 @@ module.exports = {
   },
 
   async autocomplete(interaction) {
-    const focused = interaction.options.getFocused().toLowerCase();
-    const choices = [];
-    const seen = new Set();
-    
-    for (const [key, brawler] of Object.entries(BRAWLERS)) {
-      if (!seen.has(brawler.name)) {
-        if (brawler.name.toLowerCase().includes(focused)) {
-          choices.push({ name: brawler.name, value: key });
-          seen.add(brawler.name);
-          if (choices.length >= 25) break;
+    try {
+      const focused = interaction.options.getFocused().toLowerCase();
+      const choices = [];
+      const seen = new Set();
+      
+      if (focused.length === 0) {
+        // If empty, show first 25
+        for (const [key, brawler] of Object.entries(BRAWLERS)) {
+          if (!seen.has(brawler.name)) {
+            choices.push({ name: brawler.name, value: key });
+            seen.add(brawler.name);
+            if (choices.length >= 25) break;
+          }
+        }
+      } else {
+        // If typing, filter
+        for (const [key, brawler] of Object.entries(BRAWLERS)) {
+          if (!seen.has(brawler.name) && brawler.name.toLowerCase().includes(focused)) {
+            choices.push({ name: brawler.name, value: key });
+            seen.add(brawler.name);
+            if (choices.length >= 25) break;
+          }
         }
       }
-    }
 
-    await interaction.respond(choices);
+      await interaction.respond(choices);
+    } catch (error) {
+      console.error('Autocomplete error:', error);
+      await interaction.respond([]);
+    }
   }
 };
