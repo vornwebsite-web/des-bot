@@ -529,7 +529,21 @@ gears: 'Shield, Damage', build: 'Shadow Army'
 }
 };
 
+// ============================================================
+// PERFORMANCE OPTIMIZATION
+// Pre-compute indices and caches for lightning-fast searches
+// ============================================================
+
 const BRAWLER_LIST = Object.keys(BRAWLERS);
+const BRAWLER_NAMES_LOWER = new Map();
+const BRAWLER_KEYS_LOWER = new Map();
+
+// Pre-build indices on startup
+for (const key of BRAWLER_LIST) {
+  const nameLower = BRAWLERS[key].name.toLowerCase();
+  BRAWLER_NAMES_LOWER.set(nameLower, key);
+  BRAWLER_KEYS_LOWER.set(key.toLowerCase(), key);
+}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -565,35 +579,53 @@ module.exports = {
   },
 
   async autocomplete(interaction) {
-    try {
-      const focused = interaction.options.getFocused().toLowerCase().trim();
+    const focused = interaction.options.getFocused().toLowerCase().trim();
 
+    try {
+      // If no input, return first 25 brawlers
       if (!focused) {
-        await interaction.respond(
+        return await interaction.respond(
           BRAWLER_LIST.slice(0, 25).map(key => ({
             name: BRAWLERS[key].name,
             value: key
           }))
         );
-        return;
       }
 
-      const filtered = BRAWLER_LIST
-        .filter(key =>
-          BRAWLERS[key].name.toLowerCase().includes(focused) ||
-          key.includes(focused)
-        )
-        .slice(0, 25);
-
-      await interaction.respond(
-        filtered.map(key => ({
+      // Fast exact match on key
+      if (BRAWLER_KEYS_LOWER.has(focused)) {
+        const key = BRAWLER_KEYS_LOWER.get(focused);
+        return await interaction.respond([{
           name: `${BRAWLERS[key].name} (${BRAWLERS[key].rarity})`,
           value: key
-        }))
-      );
+        }]);
+      }
+
+      // Fast exact match on name
+      if (BRAWLER_NAMES_LOWER.has(focused)) {
+        const key = BRAWLER_NAMES_LOWER.get(focused);
+        return await interaction.respond([{
+          name: `${BRAWLERS[key].name} (${BRAWLERS[key].rarity})`,
+          value: key
+        }]);
+      }
+
+      // Substring search (optimized)
+      const filtered = BRAWLER_LIST
+        .filter(key => {
+          const name = BRAWLERS[key].name.toLowerCase();
+          return name.includes(focused) || key.includes(focused);
+        })
+        .slice(0, 25)
+        .map(key => ({
+          name: `${BRAWLERS[key].name} (${BRAWLERS[key].rarity})`,
+          value: key
+        }));
+
+      await interaction.respond(filtered.length > 0 ? filtered : []);
     } catch (error) {
       console.error('Autocomplete error:', error);
-      // Respond with empty array if error occurs
+      // Respond with empty if error
       await interaction.respond([]).catch(() => {});
     }
   }
