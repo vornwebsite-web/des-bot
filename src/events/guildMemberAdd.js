@@ -1,5 +1,5 @@
 const E = require('../utils/embeds');
-const { Guild, User } = require('../models/index');
+const { Guild, Invites } = require('../models/index');
 const logger = require('../utils/logger');
 
 // Anti-raid tracking
@@ -50,7 +50,6 @@ module.exports = {
           const invites = await guild.invites.fetch().catch(() => null);
           const cachedInvites = inviteCache.get(guild.id) || {};
           let inviter = null;
-          let usedInvite = null;
 
           if (invites) {
             // Find which invite was used
@@ -59,7 +58,6 @@ module.exports = {
               const currentUses = invite.uses || 0;
 
               if (currentUses > prevUses) {
-                usedInvite = invite;
                 inviter = invite.inviter;
                 break;
               }
@@ -73,35 +71,27 @@ module.exports = {
             inviteCache.set(guild.id, newCache);
           }
 
-          // Create or update user document
-          let u = await User.findOne({ userId: member.id, guildId: guild.id });
-          if (!u) {
-            u = await User.create({
-              userId: member.id,
-              guildId: guild.id,
-              invites: 0,
-              invitedBy: inviter?.id || null
-            });
-          } else {
-            u.invitedBy = inviter?.id || null;
-            await u.save();
-          }
+          // Create or update invites document for the new member
+          await Invites.findOneAndUpdate(
+            { userId: member.id, guildId: guild.id },
+            { $set: { invitedBy: inviter?.id || null, updatedAt: new Date() } },
+            { upsert: true, new: true }
+          );
 
           // Update inviter's count
           if (inviter) {
-            await User.findOneAndUpdate(
+            const inviterDoc = await Invites.findOneAndUpdate(
               { userId: inviter.id, guildId: guild.id },
-              { $inc: { invites: 1 } },
-              { upsert: true }
+              { $inc: { invites: 1 }, $set: { updatedAt: new Date() } },
+              { upsert: true, new: true }
             );
 
             // Send announcement to configured channel
             if (cfg.invites.channel) {
               const announceCh = await client.channels.fetch(cfg.invites.channel).catch(() => null);
               if (announceCh) {
-                const inviterUser = await User.findOne({ userId: inviter.id, guildId: guild.id });
                 announceCh.send({
-                  embeds: [E.success('✅ New Member Invited', `<@${member.id}> was invited by <@${inviter.id}>\n\n${inviter.username} now has **${inviterUser?.invites || 1}** invites!`)]
+                  embeds: [E.success('✅ New Member Invited', `<@${member.id}> was invited by <@${inviter.id}>\n\n${inviter.username} now has **${inviterDoc?.invites || 1}** invites!`)]
                 }).catch(() => {});
               }
             }
