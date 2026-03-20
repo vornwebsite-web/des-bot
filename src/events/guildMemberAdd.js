@@ -1,9 +1,12 @@
 const E = require('../utils/embeds');
-const { Guild } = require('../models/index');
+const { Guild, User } = require('../models/index');
 const logger = require('../utils/logger');
 
 // Anti-raid tracking
 const joinTracker = new Map(); // guildId -> [{timestamp}]
+
+// Invite cache - stores invites before member joins
+const inviteCache = new Map(); // guildId -> { inviteCode -> uses }
 
 module.exports = {
   name: 'guildMemberAdd',
@@ -38,6 +41,73 @@ module.exports = {
             if (alertCh) alertCh.send({ embeds: [E.make(E.C.ERROR).setTitle('🚨  Anti-Raid Triggered').setDescription(`**${recent.length}** joins in **${cfg.antiRaid.window}s** in **${guild.name}**.\nAction: **${action.toUpperCase()}**`).setFooter({ text: 'DeS Bot™  ·  DOT Esport' }).setTimestamp()] });
           }
           return;
+        }
+      }
+
+      // ── Invite Tracking ────────────────────────────────────
+      if (cfg?.invites?.enabled) {
+        try {
+          const invites = await guild.invites.fetch().catch(() => null);
+          const cachedInvites = inviteCache.get(guild.id) || {};
+          let inviter = null;
+          let usedInvite = null;
+
+          if (invites) {
+            // Find which invite was used
+            for (const [code, invite] of invites) {
+              const prevUses = cachedInvites[code] || 0;
+              const currentUses = invite.uses || 0;
+
+              if (currentUses > prevUses) {
+                usedInvite = invite;
+                inviter = invite.inviter;
+                break;
+              }
+            }
+
+            // Update invite cache
+            const newCache = {};
+            for (const [code, invite] of invites) {
+              newCache[code] = invite.uses || 0;
+            }
+            inviteCache.set(guild.id, newCache);
+          }
+
+          // Create or update user document
+          let u = await User.findOne({ userId: member.id, guildId: guild.id });
+          if (!u) {
+            u = await User.create({
+              userId: member.id,
+              guildId: guild.id,
+              invites: 0,
+              invitedBy: inviter?.id || null
+            });
+          } else {
+            u.invitedBy = inviter?.id || null;
+            await u.save();
+          }
+
+          // Update inviter's count
+          if (inviter) {
+            await User.findOneAndUpdate(
+              { userId: inviter.id, guildId: guild.id },
+              { $inc: { invites: 1 } },
+              { upsert: true }
+            );
+
+            // Send announcement to configured channel
+            if (cfg.invites.channel) {
+              const announceCh = await client.channels.fetch(cfg.invites.channel).catch(() => null);
+              if (announceCh) {
+                const inviterUser = await User.findOne({ userId: inviter.id, guildId: guild.id });
+                announceCh.send({
+                  embeds: [E.success('✅ New Member Invited', `<@${member.id}> was invited by <@${inviter.id}>\n\n${inviter.username} now has **${inviterUser?.invites || 1}** invites!`)]
+                }).catch(() => {});
+              }
+            }
+          }
+        } catch (e) {
+          logger.error(`Invite tracking error: ${e.message}`);
         }
       }
 
