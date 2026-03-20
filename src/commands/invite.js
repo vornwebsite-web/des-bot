@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const E = require('../utils/embeds');
 const { requirePerm } = require('../utils/helpers');
-const { Guild, User } = require('../models/index');
+const { Guild, Invites } = require('../models/index');
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -33,38 +33,38 @@ module.exports = {
     }
 
     else if (sub === 'leaderboard') {
-      const users = await User.find({ guildId: interaction.guildId, invites: { $gt: 0 } })
+      const invites = await Invites.find({ guildId: interaction.guildId, invites: { $gt: 0 } })
         .sort({ invites: -1 })
         .limit(10);
 
-      if (users.length === 0) {
+      if (invites.length === 0) {
         return interaction.editReply({ embeds: [E.info('No Invites', 'No one has invited anyone yet!')] });
       }
 
-      const entries = users.map((u, i) => ({ id: u.userId, val: `**${u.invites || 0}** invites` }));
+      const entries = invites.map((u, i) => ({ id: u.userId, val: `**${u.invites || 0}** invites` }));
       await interaction.editReply({ embeds: [E.lb('🏆 Top Inviters', entries, interaction.guild)] });
     }
 
     else if (sub === 'stats') {
       const target = interaction.options.getUser('user') || interaction.user;
-      let u = await User.findOne({ userId: target.id, guildId: interaction.guildId });
+      let inviteData = await Invites.findOne({ userId: target.id, guildId: interaction.guildId });
 
-      if (!u) {
-        u = { userId: target.id, invites: 0, invitedBy: null };
+      if (!inviteData) {
+        inviteData = { userId: target.id, invites: 0, invitedBy: null };
       }
 
-      const inviterName = u.invitedBy ? `<@${u.invitedBy}>` : '❌ Unknown';
+      const inviterName = inviteData.invitedBy ? `<@${inviteData.invitedBy}>` : '❌ Unknown';
       
       // Get inviter's invite count
       let inviterInvites = 'N/A';
-      if (u.invitedBy) {
-        const inviter = await User.findOne({ userId: u.invitedBy, guildId: interaction.guildId });
+      if (inviteData.invitedBy) {
+        const inviter = await Invites.findOne({ userId: inviteData.invitedBy, guildId: interaction.guildId });
         inviterInvites = inviter ? `**${inviter.invites || 0}** invites` : 'N/A';
       }
 
       await interaction.editReply({
         embeds: [E.gold(`📊 ${target.username}'s Invite Stats`, '', [
-          { name: '📤 Total Invites', value: `**${u.invites || 0}**`, inline: true },
+          { name: '📤 Total Invites', value: `**${inviteData.invites || 0}**`, inline: true },
           { name: '👤 Invited By', value: inviterName, inline: true },
           { name: '📈 Inviter\'s Invites', value: inviterInvites, inline: true }
         ]).setThumbnail(target.displayAvatarURL({ dynamic: true }))]
@@ -75,23 +75,21 @@ module.exports = {
       if (!(await requirePerm(interaction, PermissionFlagsBits.Administrator))) return;
 
       // Add 5 test invites for the user
-      let u = await User.findOne({ userId: interaction.user.id, guildId: interaction.guildId });
-      if (!u) {
-        u = await User.create({ userId: interaction.user.id, guildId: interaction.guildId });
-      }
-
-      u.invites = (u.invites || 0) + 5;
-      await u.save();
+      const inviteData = await Invites.findOneAndUpdate(
+        { userId: interaction.user.id, guildId: interaction.guildId },
+        { $inc: { invites: 5 } },
+        { upsert: true, new: true }
+      );
 
       await interaction.editReply({
-        embeds: [E.success('✅ Test Complete', `Added **5** test invites to your account!\n\nYou now have **${u.invites}** invites.`)]
+        embeds: [E.success('✅ Test Complete', `Added **5** test invites to your account!\n\nYou now have **${inviteData.invites}** invites.`)]
       });
     }
 
     else if (sub === 'reset') {
       if (!(await requirePerm(interaction, PermissionFlagsBits.Administrator))) return;
 
-      await User.updateMany(
+      await Invites.updateMany(
         { guildId: interaction.guildId },
         { $set: { invites: 0, invitedBy: null } }
       );
