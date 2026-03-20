@@ -565,29 +565,36 @@ module.exports = {
   },
 
   async autocomplete(interaction) {
-    const focused = interaction.options.getFocused().toLowerCase().trim();
+    try {
+      const focused = interaction.options.getFocused().toLowerCase().trim();
 
-    if (!focused) {
-      return interaction.respond(
-        BRAWLER_LIST.slice(0, 25).map(key => ({
-          name: BRAWLERS[key].name,
+      if (!focused) {
+        await interaction.respond(
+          BRAWLER_LIST.slice(0, 25).map(key => ({
+            name: BRAWLERS[key].name,
+            value: key
+          }))
+        );
+        return;
+      }
+
+      const filtered = BRAWLER_LIST
+        .filter(key =>
+          BRAWLERS[key].name.toLowerCase().includes(focused) ||
+          key.includes(focused)
+        )
+        .slice(0, 25);
+
+      await interaction.respond(
+        filtered.map(key => ({
+          name: `${BRAWLERS[key].name} (${BRAWLERS[key].rarity})`,
           value: key
         }))
       );
+    } catch (error) {
+      console.error('Autocomplete error:', error);
+      // Respond with empty array if error occurs
+      await interaction.respond([]).catch(() => {});
     }
-
-    const filtered = BRAWLER_LIST
-      .filter(key =>
-        BRAWLERS[key].name.toLowerCase().includes(focused) ||
-        key.includes(focused)
-      )
-      .slice(0, 25);
-
-    await interaction.respond(
-      filtered.map(key => ({
-        name: `${BRAWLERS[key].name} (${BRAWLERS[key].rarity})`,
-        value: key
-      }))
-    );
   }
 };
