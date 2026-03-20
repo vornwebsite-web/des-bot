@@ -3,8 +3,7 @@ const { Schema } = mongoose;
 
 // ── User ──────────────────────────────────────────────────────
 const UserSchema = new Schema({
-  userId:    { type: String, required: true },
-  guildId:   { type: String, required: true },
+  userId:    { type: String, required: true, unique: true },
   username:  String,
   xp:        { type: Number, default: 0 },
   level:     { type: Number, default: 1 },
@@ -16,8 +15,6 @@ const UserSchema = new Schema({
   streak:    { type: Number, default: 0 },
   bio:       { type: String, default: '' },
   badges:    [String],
-  invites:   { type: Number, default: 0 },
-  invitedBy: { type: String, default: null },
   warnings:  [{ reason: String, modId: String, guildId: String, at: { type: Date, default: Date.now } }],
   premium:   { active: Boolean, plan: String, expiresAt: Date, startedAt: Date, giftedBy: String },
   xpBoost:   { active: Boolean, expiresAt: Date },
@@ -28,8 +25,18 @@ const UserSchema = new Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-// Compound unique index - allows same userId in different guilds
-UserSchema.index({ userId: 1, guildId: 1 }, { unique: true });
+// ── Invites ───────────────────────────────────────────────────
+const InvitesSchema = new Schema({
+  userId:    { type: String, required: true },
+  guildId:   { type: String, required: true },
+  invites:   { type: Number, default: 0 },
+  invitedBy: { type: String, default: null },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now },
+});
+
+// Compound unique index - same user can have different invite counts per guild
+InvitesSchema.index({ userId: 1, guildId: 1 }, { unique: true });
 
 // ── Guild ─────────────────────────────────────────────────────
 const GuildSchema = new Schema({
@@ -140,6 +147,7 @@ const ReminderSchema = new Schema({
 
 module.exports = {
   User:       mongoose.model('User',       UserSchema),
+  Invites:    mongoose.model('Invites',    InvitesSchema),
   Guild:      mongoose.model('Guild',      GuildSchema),
   Tournament: mongoose.model('Tournament', TournamentSchema),
   Ticket:     mongoose.model('Ticket',     TicketSchema),
