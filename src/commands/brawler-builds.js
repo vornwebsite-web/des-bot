@@ -532,68 +532,62 @@ gears: 'Shield, Damage', build: 'Shadow Army'
 const BRAWLER_LIST = Object.keys(BRAWLERS);
 
 module.exports = {
-data: new SlashCommandBuilder()
-.setName('brawler-builds')
-.setDescription('Get the best meta build for any Brawl Stars brawler (March 2026)')
-.addStringOption(o =>
-o.setName('brawler')
-.setDescription('Brawler name')
-.setRequired(true)
-.setAutocomplete(true)
-),
+  data: new SlashCommandBuilder()
+    .setName('brawler-builds')
+    .setDescription('Get the best meta build for any Brawl Stars brawler (March 2026)')
+    .addStringOption(o =>
+      o.setName('brawler')
+        .setDescription('Brawler name')
+        .setRequired(true)
+        .setAutocomplete(true)
+    ),
 
-async execute(interaction) {
-await interaction.deferReply();
+  async execute(interaction) {
+    await interaction.deferReply();
 
-```
-const input = interaction.options.getString('brawler').toLowerCase().trim();
-const brawler = BRAWLERS[input];
+    const input = interaction.options.getString('brawler').toLowerCase().trim();
+    const brawler = BRAWLERS[input];
 
-if (!brawler) {
-  return interaction.editReply({
-    embeds: [E.error('Not Found', `No brawler found for \`${input}\`. Use autocomplete to find the right name.`)]
-  });
-}
+    if (!brawler) {
+      return interaction.editReply({
+        embeds: [E.error('Not Found', `No brawler found for \`${input}\`. Use autocomplete to find the right name.`)]
+      });
+    }
 
-await interaction.editReply({
-  embeds: [E.gold(`${brawler.name} -- META BUILD`, brawler.rarity, [
-    { name: 'Build Type',  value: brawler.build,   inline: false },
-    { name: 'Gadget',      value: brawler.gadget,  inline: true  },
-    { name: 'Star Power',  value: brawler.star,    inline: true  },
-    { name: 'Gears',       value: brawler.gears,   inline: false }
-  ])]
-});
-```
+    await interaction.editReply({
+      embeds: [E.gold(`${brawler.name} -- META BUILD`, brawler.rarity, [
+        { name: 'Build Type',  value: brawler.build,   inline: false },
+        { name: 'Gadget',      value: brawler.gadget,  inline: true  },
+        { name: 'Star Power',  value: brawler.star,    inline: true  },
+        { name: 'Gears',       value: brawler.gears,   inline: false }
+      ])]
+    });
+  },
 
-},
+  async autocomplete(interaction) {
+    const focused = interaction.options.getFocused().toLowerCase().trim();
 
-async autocomplete(interaction) {
-const focused = interaction.options.getFocused().toLowerCase().trim();
+    if (!focused) {
+      return interaction.respond(
+        BRAWLER_LIST.slice(0, 25).map(key => ({
+          name: BRAWLERS[key].name,
+          value: key
+        }))
+      );
+    }
 
-```
-if (!focused) {
-  return interaction.respond(
-    BRAWLER_LIST.slice(0, 25).map(key => ({
-      name: BRAWLERS[key].name,
-      value: key
-    }))
-  );
-}
+    const filtered = BRAWLER_LIST
+      .filter(key =>
+        BRAWLERS[key].name.toLowerCase().includes(focused) ||
+        key.includes(focused)
+      )
+      .slice(0, 25);
 
-const filtered = BRAWLER_LIST
-  .filter(key =>
-    BRAWLERS[key].name.toLowerCase().includes(focused) ||
-    key.includes(focused)
-  )
-  .slice(0, 25);
-
-await interaction.respond(
-  filtered.map(key => ({
-    name: `${BRAWLERS[key].name} (${BRAWLERS[key].rarity})`,
-    value: key
-  }))
-);
-```
-
-}
+    await interaction.respond(
+      filtered.map(key => ({
+        name: `${BRAWLERS[key].name} (${BRAWLERS[key].rarity})`,
+        value: key
+      }))
+    );
+  }
 };
