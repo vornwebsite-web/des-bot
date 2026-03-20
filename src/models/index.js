@@ -35,8 +35,21 @@ const InvitesSchema = new Schema({
   updatedAt: { type: Date, default: Date.now },
 });
 
-// Compound unique index - same user can have different invite counts per guild
 InvitesSchema.index({ userId: 1, guildId: 1 }, { unique: true });
+
+// ── Brawler (NEW) ─────────────────────────────────────────────
+const BrawlerSchema = new Schema({
+  id: { type: String, unique: true, required: true },
+  name: { type: String, required: true, index: true },
+  rarity: String,
+  gadget: String,
+  star: String,
+  gears: String,
+  build: String,
+  createdAt: { type: Date, default: Date.now }
+});
+
+BrawlerSchema.index({ name: 'text', id: 'text' });
 
 // ── Guild ─────────────────────────────────────────────────────
 const GuildSchema = new Schema({
@@ -148,6 +161,7 @@ const ReminderSchema = new Schema({
 module.exports = {
   User:       mongoose.model('User',       UserSchema),
   Invites:    mongoose.model('Invites',    InvitesSchema),
+  Brawler:    mongoose.model('Brawler',    BrawlerSchema),  // ← ADD THIS
   Guild:      mongoose.model('Guild',      GuildSchema),
   Tournament: mongoose.model('Tournament', TournamentSchema),
   Ticket:     mongoose.model('Ticket',     TicketSchema),
