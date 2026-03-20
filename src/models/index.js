@@ -3,7 +3,8 @@ const { Schema } = mongoose;
 
 // ── User ──────────────────────────────────────────────────────
 const UserSchema = new Schema({
-  userId:    { type: String, required: true, unique: true },
+  userId:    { type: String, required: true },
+  guildId:   { type: String, required: true },
   username:  String,
   xp:        { type: Number, default: 0 },
   level:     { type: Number, default: 1 },
@@ -15,6 +16,8 @@ const UserSchema = new Schema({
   streak:    { type: Number, default: 0 },
   bio:       { type: String, default: '' },
   badges:    [String],
+  invites:   { type: Number, default: 0 },
+  invitedBy: { type: String, default: null },
   warnings:  [{ reason: String, modId: String, guildId: String, at: { type: Date, default: Date.now } }],
   premium:   { active: Boolean, plan: String, expiresAt: Date, startedAt: Date, giftedBy: String },
   xpBoost:   { active: Boolean, expiresAt: Date },
@@ -24,6 +27,9 @@ const UserSchema = new Schema({
   weeklyLast: Date,
   createdAt: { type: Date, default: Date.now },
 });
+
+// Compound unique index - allows same userId in different guilds
+UserSchema.index({ userId: 1, guildId: 1 }, { unique: true });
 
 // ── Guild ─────────────────────────────────────────────────────
 const GuildSchema = new Schema({
@@ -42,11 +48,12 @@ const GuildSchema = new Schema({
   },
   welcome:  { enabled: Boolean, message: String, banner: String, ping: Boolean, dm: Boolean, dmMsg: String },
   farewell: { enabled: Boolean, message: String },
+  invites:  { enabled: Boolean, channel: String },
   moderation: {
     autoMod: Boolean, antiSpam: Boolean, antiLinks: Boolean,
     antiInvites: Boolean, antiCaps: Boolean, badWords: [String],
   },
-  antiRaid: { enabled: Boolean, threshold: { type: Number, default: 10 }, window: { type: Number, default: 10 }, action: { type: String, default: 'kick' } },
+  antiRaid: { enabled: Boolean, threshold: { type: Number, default: 10 }, window: { type: Number, default: 10 }, action: { type: String, default: 'kick' }, alertChannel: String },
   antiNuke: { enabled: Boolean, threshold: { type: Number, default: 3 }, action: { type: String, default: 'ban' }, whitelist: [String] },
   tickets:  { enabled: Boolean, supportRole: String, counter: { type: Number, default: 0 }, maxOpen: { type: Number, default: 1 } },
   leveling: { enabled: Boolean, xpPerMsg: { type: Number, default: 15 }, cooldown: { type: Number, default: 60 }, noXpChannels: [String] },
