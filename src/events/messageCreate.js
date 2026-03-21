@@ -14,20 +14,28 @@ module.exports = {
 
       // ── Suggestions Auto-React ─────────────────────────────
       if (cfg?.channels?.suggestions && message.channelId === cfg.channels.suggestions) {
-        const approveEmoji = cfg.suggestions?.approveEmoji || '👍';
-        const denyEmoji = cfg.suggestions?.denyEmoji || '👎';
+        let approveEmoji = cfg.suggestions?.approveEmoji || '👍';
+        let denyEmoji = cfg.suggestions?.denyEmoji || '👎';
 
         try {
           await message.react(approveEmoji);
-          await message.react(denyEmoji);
         } catch (error) {
-          console.error(`Failed to react to suggestion message in ${message.guildId}:`, error);
-          // Fallback to defaults
+          console.error(`Failed to react with approve emoji "${approveEmoji}":`, error.message);
           try {
             await message.react('👍');
+          } catch (e) {
+            console.error('Fallback approve reaction failed:', e.message);
+          }
+        }
+
+        try {
+          await message.react(denyEmoji);
+        } catch (error) {
+          console.error(`Failed to react with deny emoji "${denyEmoji}":`, error.message);
+          try {
             await message.react('👎');
           } catch (e) {
-            console.error('Fallback reaction also failed:', e);
+            console.error('Fallback deny reaction failed:', e.message);
           }
         }
       }
