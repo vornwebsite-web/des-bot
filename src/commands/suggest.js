@@ -16,7 +16,8 @@ module.exports = {
       .addStringOption(o => o.setName('reason').setDescription('Reason')))
     .addSubcommand(s => s.setName('deny').setDescription('Deny a suggestion')
       .addStringOption(o => o.setName('message-id').setDescription('Suggestion message ID').setRequired(true))
-      .addStringOption(o => o.setName('reason').setDescription('Reason'))),
+      .addStringOption(o => o.setName('reason').setDescription('Reason')))
+    .addSubcommand(s => s.setName('view-config').setDescription('View current suggestion config')),
 
   async execute(interaction, client) {
     const sub = interaction.options.getSubcommand();
@@ -30,22 +31,51 @@ module.exports = {
       let approveEmoji = interaction.options.getString('approve-emoji') || '👍';
       let denyEmoji = interaction.options.getString('deny-emoji') || '👎';
 
-      // Log the emojis being saved for debugging
-      console.log(`[Suggest Setup] Guild: ${interaction.guildId} | Approve: ${approveEmoji} | Deny: ${denyEmoji}`);
+      // Extract emoji ID from custom emoji format <:name:id>
+      const extractEmojiId = (emoji) => {
+        const match = emoji.match(/\d+/);
+        return match ? match[0] : emoji;
+      };
 
-      await Guild.findOneAndUpdate(
+      approveEmoji = extractEmojiId(approveEmoji);
+      denyEmoji = extractEmojiId(denyEmoji);
+
+      console.log(`[Suggest Setup] Guild: ${interaction.guildId} | Approve: "${approveEmoji}" | Deny: "${denyEmoji}"`);
+
+      const updated = await Guild.findOneAndUpdate(
         { guildId: interaction.guildId }, 
         { $set: { 
           'channels.suggestions': ch.id,
-          'suggestions.approveEmoji': approveEmoji,
-          'suggestions.denyEmoji': denyEmoji
+          'suggestions': {
+            approveEmoji: approveEmoji,
+            denyEmoji: denyEmoji
+          }
         }}, 
-        { upsert: true }
+        { upsert: true, new: true }
       );
 
-      await interaction.editReply({ embeds: [E.success('Suggestions Setup', 
-        `📍 Channel: <#${ch.id}>\n${approveEmoji} Approve emoji: ${approveEmoji}\n${denyEmoji} Deny emoji: ${denyEmoji}\n\n✅ All messages in this channel will auto-react with these emojis!`
+      console.log(`[Suggest Setup] Saved - Approve: "${updated.suggestions?.approveEmoji}" | Deny: "${updated.suggestions?.denyEmoji}"`);
+
+      await interaction.editReply({ content: '', embeds: [E.success('Suggestions Setup', 
+        `📍 Channel: <#${ch.id}>\n✅ Approve emoji: ${approveEmoji}\n❌ Deny emoji: ${denyEmoji}\n\n✅ All messages in this channel will auto-react with these emojis!`
       )] });
+    }
+
+    else if (sub === 'view-config') {
+      const cfg = await Guild.findOne({ guildId: interaction.guildId });
+      const approveEmoji = cfg?.suggestions?.approveEmoji || 'Not set';
+      const denyEmoji = cfg?.suggestions?.denyEmoji || 'Not set';
+      const channel = cfg?.channels?.suggestions ? `<#${cfg.channels.suggestions}>` : 'Not set';
+
+      await interaction.editReply({ content: '', embeds: [E.make(E.C.INFO)
+        .setTitle('💡 Suggestion Config')
+        .addFields(
+          { name: '📍 Channel', value: channel, inline: false },
+          { name: '👍 Approve Emoji ID', value: `\`${approveEmoji}\``, inline: true },
+          { name: '👎 Deny Emoji ID', value: `\`${denyEmoji}\``, inline: true }
+        )
+        .setFooter({ text: 'DeS Bot™  ·  DOT Esport' })
+      ] });
     }
 
     else if (sub === 'submit') {
@@ -70,7 +100,7 @@ module.exports = {
       
       await ch.send({ embeds: [embed] });
       
-      await interaction.editReply({ embeds: [E.success('Suggestion Submitted!', `Your idea has been posted in <#${ch.id}>!`)] });
+      await interaction.editReply({ content: '', embeds: [E.success('Suggestion Submitted!', `Your idea has been posted in <#${ch.id}>!`)] });
     }
 
     else if (sub === 'approve') {
@@ -99,7 +129,7 @@ module.exports = {
         await msg.edit({ embeds: [newEmbed] });
         await msg.reactions.removeAll().catch(() => {});
         
-        await interaction.editReply({ embeds: [E.success('Suggestion Approved', `Message \`${msgId}\` approved.`)] });
+        await interaction.editReply({ content: '', embeds: [E.success('Suggestion Approved', `Message \`${msgId}\` approved.`)] });
       } catch (e) { 
         await interaction.editReply({ embeds: [E.error('Error', e.message)] }); 
       }
@@ -131,7 +161,7 @@ module.exports = {
         await msg.edit({ embeds: [newEmbed] });
         await msg.reactions.removeAll().catch(() => {});
         
-        await interaction.editReply({ embeds: [E.success('Suggestion Denied', `Message \`${msgId}\` denied.`)] });
+        await interaction.editReply({ content: '', embeds: [E.success('Suggestion Denied', `Message \`${msgId}\` denied.`)] });
       } catch (e) { 
         await interaction.editReply({ embeds: [E.error('Error', e.message)] }); 
       }
