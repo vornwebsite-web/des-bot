@@ -12,6 +12,26 @@ module.exports = {
     try {
       const cfg = await Guild.findOne({ guildId: message.guild.id });
 
+      // ── Suggestions Auto-React ─────────────────────────────
+      if (cfg?.channels?.suggestions && message.channelId === cfg.channels.suggestions) {
+        const approveEmoji = cfg.suggestions?.approveEmoji || '👍';
+        const denyEmoji = cfg.suggestions?.denyEmoji || '👎';
+
+        try {
+          await message.react(approveEmoji);
+          await message.react(denyEmoji);
+        } catch (error) {
+          console.error(`Failed to react to suggestion message in ${message.guildId}:`, error);
+          // Fallback to defaults
+          try {
+            await message.react('👍');
+            await message.react('👎');
+          } catch (e) {
+            console.error('Fallback reaction also failed:', e);
+          }
+        }
+      }
+
       // ── AutoMod ────────────────────────────────────────────
       if (cfg?.moderation?.autoMod) {
         const content = message.content;
@@ -93,6 +113,22 @@ module.exports = {
             u.level += 1;
             u.xp = 0;
             u.points = (u.points || 0) + 10;
+
+            // Role rewards
+            if (cfg.leveling.roleRewards?.length) {
+              const reward = cfg.leveling.roleRewards.find(r => r.level === u.level);
+              if (reward) {
+                try {
+                  const member = await message.guild.members.fetch(message.author.id);
+                  const role = message.guild.roles.cache.get(reward.roleId);
+                  if (role) {
+                    await member.roles.add(role).catch(() => {});
+                  }
+                } catch (e) {
+                  console.error('Failed to assign level role:', e);
+                }
+              }
+            }
 
             if (cfg.leveling.announceLevel !== false) {
               const E = require('../utils/embeds');
