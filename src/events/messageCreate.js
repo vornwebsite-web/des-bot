@@ -14,28 +14,36 @@ module.exports = {
 
       // ── Suggestions Auto-React ─────────────────────────────
       if (cfg?.channels?.suggestions && message.channelId === cfg.channels.suggestions) {
-        let approveEmoji = cfg.suggestions?.approveEmoji || '👍';
-        let denyEmoji = cfg.suggestions?.denyEmoji || '👎';
+        const approveEmoji = cfg.suggestions?.approveEmoji || '👍';
+        const denyEmoji = cfg.suggestions?.denyEmoji || '👎';
 
+        console.log(`[Suggest React] Guild: ${message.guildId} | Approve: "${approveEmoji}" | Deny: "${denyEmoji}"`);
+
+        // React with approve emoji
         try {
           await message.react(approveEmoji);
+          console.log(`[Suggest React] ✅ Successfully reacted with approve emoji: "${approveEmoji}"`);
         } catch (error) {
-          console.error(`Failed to react with approve emoji "${approveEmoji}":`, error.message);
+          console.error(`[Suggest React] ❌ Failed with emoji "${approveEmoji}":`, error.message);
           try {
             await message.react('👍');
+            console.log(`[Suggest React] Fallback: Used default 👍`);
           } catch (e) {
-            console.error('Fallback approve reaction failed:', e.message);
+            console.error('[Suggest React] Fallback failed:', e.message);
           }
         }
 
+        // React with deny emoji
         try {
           await message.react(denyEmoji);
+          console.log(`[Suggest React] ✅ Successfully reacted with deny emoji: "${denyEmoji}"`);
         } catch (error) {
-          console.error(`Failed to react with deny emoji "${denyEmoji}":`, error.message);
+          console.error(`[Suggest React] ❌ Failed with emoji "${denyEmoji}":`, error.message);
           try {
             await message.react('👎');
+            console.log(`[Suggest React] Fallback: Used default 👎`);
           } catch (e) {
-            console.error('Fallback deny reaction failed:', e.message);
+            console.error('[Suggest React] Fallback failed:', e.message);
           }
         }
       }
@@ -150,6 +158,6 @@ module.exports = {
         }
       }
 
-    } catch (e) { /* silent */ }
+    } catch (e) { console.error('[messageCreate] Error:', e); }
   }
 };
