@@ -27,8 +27,11 @@ module.exports = {
         return interaction.editReply({ embeds: [E.error('Permission Denied', 'Need `Manage Server`.')] });
       
       const ch = interaction.options.getChannel('channel');
-      const approveEmoji = interaction.options.getString('approve-emoji') || '👍';
-      const denyEmoji = interaction.options.getString('deny-emoji') || '👎';
+      let approveEmoji = interaction.options.getString('approve-emoji') || '👍';
+      let denyEmoji = interaction.options.getString('deny-emoji') || '👎';
+
+      // Log the emojis being saved for debugging
+      console.log(`[Suggest Setup] Guild: ${interaction.guildId} | Approve: ${approveEmoji} | Deny: ${denyEmoji}`);
 
       await Guild.findOneAndUpdate(
         { guildId: interaction.guildId }, 
