@@ -41,7 +41,7 @@ module.exports = {
       );
 
       await interaction.editReply({ embeds: [E.success('Suggestions Setup', 
-        `📍 Channel: <#${ch.id}>\n${approveEmoji} Approve emoji: ${approveEmoji}\n${denyEmoji} Deny emoji: ${denyEmoji}`
+        `📍 Channel: <#${ch.id}>\n${approveEmoji} Approve emoji: ${approveEmoji}\n${denyEmoji} Deny emoji: ${denyEmoji}\n\n✅ All messages in this channel will auto-react with these emojis!`
       )] });
     }
 
@@ -54,9 +54,6 @@ module.exports = {
       
       const ch = await client.channels.fetch(cfg.channels.suggestions).catch(() => null);
       if (!ch) return interaction.editReply({ embeds: [E.error('Channel Not Found', 'Suggestion channel is invalid.')] });
-      
-      const approveEmoji = cfg.suggestions?.approveEmoji || '👍';
-      const denyEmoji = cfg.suggestions?.denyEmoji || '👎';
 
       const embed = E.make(E.C.INFO)
         .setTitle('💡  New Suggestion')
@@ -68,16 +65,7 @@ module.exports = {
         .setThumbnail(interaction.user.displayAvatarURL({ dynamic: true }))
         .setFooter({ text: 'DeS Bot™  ·  DOT Esport' }).setTimestamp();
       
-      const msg = await ch.send({ embeds: [embed] });
-      
-      try {
-        await msg.react(approveEmoji);
-        await msg.react(denyEmoji);
-      } catch (e) {
-        console.error('Failed to react:', e);
-        await msg.react('👍').catch(() => {});
-        await msg.react('👎').catch(() => {});
-      }
+      await ch.send({ embeds: [embed] });
       
       await interaction.editReply({ embeds: [E.success('Suggestion Submitted!', `Your idea has been posted in <#${ch.id}>!`)] });
     }
